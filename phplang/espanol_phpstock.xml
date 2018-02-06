@@ -1,0 +1,766 @@
+<?xml version="1.0" standalone="yes"?>
+<ew-language date="2018/2/6" version="14.0.2" id="es" name="Español PHP" desc="Español" author="Paolo Pizarro">
+  <locale>
+    <phrase id="locale" value="es_ES" />
+    <!-- *** system locale for this language -->
+    <phrase id="use_system_locale" value="0" />
+    <!-- *** change to "0" to disable system locale and use the following settings *** -->
+    <phrase id="decimal_point" value="." />
+    <phrase id="thousands_sep" value="," />
+    <phrase id="mon_decimal_point" value="." />
+    <phrase id="mon_thousands_sep" value="," />
+    <phrase id="currency_symbol" value=" " />
+    <phrase id="positive_sign" value="" />
+    <phrase id="negative_sign" value="-" />
+    <phrase id="frac_digits" value="2" />
+    <phrase id="p_cs_precedes" value="0" />
+    <phrase id="p_sep_by_space" value="1" />
+    <phrase id="n_cs_precedes" value="0" />
+    <phrase id="n_sep_by_space" value="1" />
+    <phrase id="p_sign_posn" value="1" />
+    <phrase id="n_sign_posn" value="1" />
+    <phrase id="time_zone" value="America/La_Paz" />
+    <!-- *** used for multi-language site only *** -->
+  </locale>
+  <global>
+    <phrase id="dir" value="ltr" />
+    <phrase id="actiondeleted" value="Eliminado" />
+    <phrase id="actioninserted" value="Insertado" />
+    <phrase id="actioninsertedgridadd" value="Insertado (Registro-Agregado)" />
+    <phrase id="actionupdated" value="Actualizado" />
+    <phrase id="actionupdatedgridedit" value="Actualizado (Registro-Editado)" />
+    <phrase id="actionupdatedmultiupdate" value="Actualizado (Actualizado-Multiple)" />
+    <phrase id="activateaccount" value="Su cuenta esta activa." />
+    <phrase id="activatefailed" value="Activacion Fallida" />
+    <phrase id="add" value="Agregar" />
+    <phrase id="addblankrow" value="Agregar Fila en Blanco" class="glyphicon glyphicon-plus ewIcon" />
+    <!-- v11 -->
+    <phrase id="addbtn" value="Agregar" />
+    <phrase id="addlink" value="Agregar" class="glyphicon glyphicon-plus ewIcon" />
+    <!-- v11 -->
+    <phrase id="addmasterdetaillink" value="Añadir Maestro/Detalle" class="icon-md-add ewIcon" />
+    <!-- v11 -->
+    <phrase id="addsuccess" value="Agregado Exitoso" />
+    <phrase id="advancedsearch" value="Busqueda Avanzada" />
+    <!-- v11 -->
+    <phrase id="advancedsearchbtn" value="Busqueda Avanzada" class="icon-advanced-search ewIcon" />
+    <!-- v11 -->
+    <phrase id="allrecords" value="Todo" />
+    <phrase id="allword" value="todas las Palabras" />
+    <phrase id="alwaysask" value="Simpre preguntar por mi Usuario y Contraseña." />
+    <phrase id="anyword" value="Alguna palabra" />
+    <phrase id="audittrailautologin" value="Auto Login" />
+    <phrase id="audittrailfailedattempt" value="Intento Fallido: %n" />
+    <phrase id="audittrailuserloggedin" value="usuario ya registrado" />
+    <phrase id="audittrailpasswordexpired" value="Contraseña Expirada" />
+    <phrase id="audittraillogin" value="Iniciar Sesión" />
+    <phrase id="audittraillogout" value="Salir" />
+    <phrase id="autologin" value="Conexión automática hasta que cierre de sesión de forma explícita" />
+    <phrase id="average" value="Promedio" />
+    <phrase id="backtolist" value="Volver a la Lista" />
+    <phrase id="backtologin" value="Volver a la página iniciar sesión" />
+    <phrase id="backtomasterrecordpage" value="Volver a la Tabla Principal" />
+    <phrase id="batchdeletebegin" value="*** Empezar a Borrar Grupo ***" />
+    <phrase id="batchdeleterollback" value="*** Batch delete rollback ***" />
+    <phrase id="batchdeletesuccess" value="*** Grupo Eliminado con éxito ***" />
+    <phrase id="batchinsertbegin" value="*** Batch insert begin ***" />
+    <phrase id="batchinsertrollback" value="*** Batch insert rollback ***" />
+    <phrase id="batchinsertsuccess" value="*** Batch insert successful ***" />
+    <phrase id="batchupdatebegin" value="*** Batch update begin ***" />
+    <phrase id="batchupdaterollback" value="*** Batch update rollback ***" />
+    <phrase id="batchupdatesuccess" value="*** Batch update successful ***" />
+    <!-- ***
+    <phrase id="BreadcrumbDivider" value="/"/>
+-->
+    <phrase id="buttonactions" value="Acciones" class="icon-options ewIcon" />
+    <!-- v11 -->
+    <phrase id="buttonaddedit" value="Agregar/Editar" class="icon-addedit ewIcon" />
+    <!-- v11 -->
+    <phrase id="buttondetails" value="Principal/Detalles" class="icon-master-detail ewIcon" />
+    <!-- v11 -->
+    <phrase id="buttonexport" value="Exportar" class="icon-export ewIcon" />
+    <!-- v11 -->
+    <phrase id="buttonlistoptions" value="Opciones" class="icon-options ewIcon" />
+    <!-- v11 -->
+    <phrase id="buttonsearch" value="Buscar" class="icon-search ewIcon" />
+    <!-- v11 -->
+    <phrase id="cancelbtn" value="Cancelar" />
+    <phrase id="cancellink" value="Cancelar" class="glyphicon glyphicon-remove ewIcon" />
+    <!-- v11 -->
+    <phrase id="changepwd" value="Contraseña" />
+    <phrase id="changepwdpage" value="Cambiar Contraseña" />
+    <phrase id="changepwdbtn" value="Cambiar" />
+    <phrase id="choosefilebtn" value="Escoger..." />
+    <!-- v11 -->
+    <phrase id="choosefile" value="Escoger Archivo" />
+    <!-- v11 -->
+    <phrase id="choosefiles" value="Escoger Archivos" />
+    <!-- v11 -->
+    <phrase id="confirm" value="Confirmar" />
+    <phrase id="confirmbtn" value="Confirmar" />
+    <phrase id="confirmpassword" value="Confirmar Contraseña" />
+    <phrase id="conflictcancellink" value="Cancelar" />
+    <phrase id="lightboxtitle" value=" " client="1" />
+    <!-- v11 -->
+    <phrase id="lightboxcurrent" value="imagen {current} de {total}" client="1" />
+    <!-- Note: DO NOT translate "{current}" and "{total}" -->
+    <!-- v11 -->
+    <phrase id="lightboxprevious" value="antes" client="1" />
+    <!-- v11 -->
+    <phrase id="lightboxnext" value="despues" client="1" />
+    <!-- v11 -->
+    <phrase id="lightboxclose" value="cerrar" client="1" />
+    <!-- v11 -->
+    <phrase id="lightboxxhrerror" value="Este contenido no se pudo cargar." client="1" />
+    <!-- v11 -->
+    <phrase id="lightboximgerror" value="Esta imagen no se pudo cargar." client="1" />
+    <!-- v11 -->
+    <phrase id="copy" value="Copiar" />
+    <phrase id="copylink" value="Copiar" class="icon-copy ewIcon" />
+    <!-- v11 -->
+    <phrase id="count" value="Enumerar" />
+    <phrase id="customactioncompleted" value="Accion '%s' completa" />
+    <phrase id="customactioncancelled" value="Accion '%s' cancelada" />
+    <phrase id="customview" value="VISTA PERSONALIZADA" />
+    <phrase id="delete" value="Eliminar" />
+    <phrase id="deletebtn" value="Eliminar" />
+    <phrase id="deletecancelled" value="Cancelar Elminar" />
+    <phrase id="deleteconfirmmsg" value="¿Quiere Eliminar este Registro?" client="1" />
+    <phrase id="deletelink" value="Eliminar" class="glyphicon glyphicon-trash ewIcon" />
+    <!-- v11 -->
+    <phrase id="deletemulticonfirmmsg" value="¿Quieres eliminar los registros seleccionados?" client="1" />
+    <phrase id="deleteselectedlink" value="Eliminar registros seleccionados" class="glyphicon glyphicon-trash ewIcon" />
+    <!-- v11 -->
+    <phrase id="deletesuccess" value="Eliminado Exitoso" />
+    <phrase id="detaillink" value="" />
+    <phrase id="detailcount" value="&lt;span dir='ltr'&gt;(%c)&lt;/span&gt;" />
+    <!-- v11 -->
+    <phrase id="masterdetailcopylink" value="Copiar Maestro/Detalle" class="icon-md-copy ewIcon" />
+    <!-- v11 -->
+    <phrase id="masterdetaileditlink" value="Editar Maestro/Detalle" class="icon-md-edit ewIcon" />
+    <!-- v11 -->
+    <phrase id="masterdetaillistlink" value="Lista de Detalle" class="icon-table ewIcon" />
+    <!-- v11 -->
+    <phrase id="masterdetailviewlink" value="Ver Maestro/Detalle" class="icon-md-view ewIcon" />
+    <!-- v11 -->
+    <phrase id="dupindex" value="Valor duplicado '%v' para índice único '%f'" />
+    <phrase id="dupkey" value="Llave primaria duplicada: '%f'" />
+    <phrase id="edit" value="Editar" />
+    <!-- ***
+    <phrase id="EditBtn" value="Edit"/>
+-->
+    <phrase id="editlink" value="Editar" class="icon-edit ewIcon" />
+    <!-- v11 -->
+    <phrase id="enternewpassword" value="Porfavor Ingrese Contraseña Nueva" client="1" />
+    <phrase id="enteroldpassword" value="Porfavor Ingrese Contraseña Antigua" client="1" />
+    <phrase id="enterpassword" value="Porfavor Ingrese Contraseña" client="1" />
+    <phrase id="enterpwd" value="Porfavor Ingrese Contraseña" client="1" />
+    <phrase id="enterrequiredfield" value="Por favor ingrese el campo requerido - %s" />
+    <!-- v11 -->
+    <phrase id="entersearchcriteria" value="Por favor ingrese el criterio de búsqueda" />
+    <phrase id="enterusername" value="Profavor Ingrese Nombre de Usuario" client="1" />
+    <phrase id="entervalidatecode" value="Ingrese el código de validación mostrado" client="1" />
+    <!-- v11 -->
+    <phrase id="entersenderemail" value="Por favor ingrese el email del remitente" client="1" />
+    <phrase id="enterpropersenderemail" value="Conteo máximo de email del remitente excedido o dirección de correo incorrecto" client="1" />
+    <phrase id="enterrecipientemail" value="Por favor ingrese el correo del receptor" client="1" />
+    <phrase id="enterproperrecipientemail" value="Conteo máximo de email del receptor excedido o dirección de correo incorrecto" client="1" />
+    <phrase id="enterproperccemail" value="Conteo máximo de email de cc excedido o dirección de correo incorrecto" client="1" />
+    <phrase id="enterproperbccemail" value="Conteo máximo de email del bcc excedido o dirección de correo incorrecto" client="1" />
+    <phrase id="entersubject" value="Por favor ingrese el asunto" client="1" />
+    <phrase id="emailformsender" value="De" />
+    <phrase id="emailformrecipient" value="a" />
+    <phrase id="emailformcc" value="Cc" />
+    <phrase id="emailformbcc" value="Bcc" />
+    <phrase id="emailformsubject" value="Asunto" />
+    <phrase id="emailformmessage" value="Mensaje" />
+    <phrase id="emailformcontenttype" value="Enviado como" />
+    <phrase id="emailformcontenttypeurl" value="URL" />
+    <phrase id="emailformcontenttypehtml" value="HTML" />
+    <phrase id="enteruid" value="Por favor ingrese el ID del usuario" client="1" />
+    <phrase id="entervalidemail" value="Por favor ingrese un email válido!" client="1" />
+    <phrase id="exactphrase" value="Frase exacta" />
+    <phrase id="exceedmaxretry" value="Exceed maximum login retry count. Account is locked. Please try again in %t minutes" />
+    <phrase id="exceedmaxemailexport" value="Exceed maximum export email count. Please try again later" />
+    <phrase id="exporttocsv" value="Exportar a CSV" class="icon-csv ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttocsvtext" value="CSV" />
+    <phrase id="exporttoemail" value="Email" class="icon-email ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttoemailtext" value="Email" client="1" />
+    <phrase id="exporttoexcel" value="Exportar a Excel" class="icon-excel ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttoexceltext" value="Excel" />
+    <phrase id="exporttohtml" value="Exportar a HTML" class="icon-html ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttohtmltext" value="HTML" />
+    <phrase id="exporttopdf" value="Exportar a PDF" class="icon-pdf ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttopdftext" value="PDF" />
+    <phrase id="exporttoword" value="Exportar a Word" class="icon-word ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttowordtext" value="Word" />
+    <phrase id="exporttoxml" value="Exportar a XML" class="icon-xml ewIcon" />
+    <!-- v11 -->
+    <phrase id="exporttoxmltext" value="XML" />
+    <phrase id="failedtosendmail" value="Envío de correo fallido." />
+    <phrase id="fieldname" value="Nombre del campo" />
+    <phrase id="fieldrequiredindicator" value="&lt;span class=&quot;ewRequired&quot;&gt;&amp;nbsp;*&lt;/span&gt;" />
+    <phrase id="filenotfound" value="Archivo no encontrado" />
+    <!-- *** characters need to be supported by EW_TMP_IMAGE_FONT *** -->
+    <phrase id="overwritebtn" value="Sobreescribir" />
+    <phrase id="overwritelink" value="Sobreescribir" />
+    <phrase id="forgotpwd" value="Recuperar Contraseña" />
+    <phrase id="goback" value="Volver" />
+    <phrase id="gridaddcancelled" value="Grid add cancelled" />
+    <!-- v11 -->
+    <phrase id="gridaddlink" value="Grid Add" class="icon-grid-add ewIcon" />
+    <!-- v11 -->
+    <phrase id="gridcancellink" value="Cancel" class="glyphicon glyphicon-remove ewIcon" />
+    <!-- v11 -->
+    <phrase id="grideditcancelled" value="Grid edit cancelled" />
+    <!-- v11 -->
+    <phrase id="grideditlink" value="Grid Edit" class="icon-grid-edit ewIcon" />
+    <!-- v11 -->
+    <phrase id="gridinsertlink" value="Insert" class="glyphicon glyphicon-ok ewIcon" />
+    <!-- v11 -->
+    <phrase id="gridsavelink" value="Grabar" class="glyphicon glyphicon-ok ewIcon" />
+    <!-- v11 -->
+    <!-- ***
+    <phrase id="HideHighlight" value="Hide highlight" client="1"/>
+-->
+    <phrase id="highlight" value="Highlight" />
+    <!-- v11 -->
+    <phrase id="highlightbtn" value="Highlight" class="icon-highlight ewIcon" />
+    <!-- v11 -->
+    <phrase id="homepage" value="Home" class="glyphicon glyphicon-home ewIconHome" />
+    <!-- v11 -->
+    <phrase id="incorrectcreditcard" value="Incorrect credit card number" />
+    <phrase id="incorrectdateymd" value="Incorrect date, format = yyyy%smm%sdd" />
+    <phrase id="incorrectdatemdy" value="Incorrect date, format = mm%sdd%syyyy" />
+    <phrase id="incorrectdatedmy" value="Fecha incorrecta, Formato = dd%smm%syyyy" />
+    <phrase id="incorrectshortdateymd" value="Incorrect date, format = yy%smm%sdd" />
+    <phrase id="incorrectshortdatemdy" value="Incorrect date, format = mm%sdd%syy" />
+    <phrase id="incorrectshortdatedmy" value="Fecha incorrecta, Formato = dd%smm%syy" />
+    <phrase id="incorrectemail" value="Corre Electrónico incorrecto" client="1" />
+    <phrase id="incorrectfield" value="Campo Incorrecto" client="1" />
+    <phrase id="incorrectfloat" value="Numero con decimal incorrecto" client="1" />
+    <phrase id="incorrectguid" value="Incorrect GUID" client="1" />
+    <phrase id="incorrectinteger" value="Entero Incorrecto" client="1" />
+    <phrase id="incorrectphone" value="Incorrect phone number" client="1" />
+    <phrase id="incorrectregexp" value="Regular expression not matched" client="1" />
+    <phrase id="incorrectrange" value="Number must be between %1 and %2" client="1" />
+    <phrase id="incorrectssn" value="Incorrect social security number" client="1" />
+    <phrase id="incorrecttime" value="Incorrect time (hh:mm:ss)" client="1" />
+    <phrase id="incorrectzip" value="Incorrect ZIP code" client="1" />
+    <phrase id="inlineaddlink" value="Inline Add" class="icon-inline-add ewIcon" />
+    <!-- v11 -->
+    <phrase id="inlinecopylink" value="Inline Copy" class="icon-inline-copy ewIcon" />
+    <!-- v11 -->
+    <phrase id="inlineeditlink" value="Inline Edit" class="icon-inline-edit ewIcon" />
+    <!-- v11 -->
+    <phrase id="insertcancelled" value="Insert cancelled" />
+    <phrase id="insertfailed" value="Insert failed" client="1" />
+    <phrase id="insertlink" value="Insert" class="glyphicon glyphicon-ok ewIcon" />
+    <!-- v11 -->
+    <phrase id="insertsuccess" value="Insert succeeded" />
+    <phrase id="invalidemail" value="Invalid Email" />
+    <phrase id="invalidfield" value="Invalid Field" />
+    <phrase id="invalidkeyvalue" value="Invalid key value" />
+    <phrase id="invalidrecord" value="Invalid Record! Key is null" client="1" />
+    <phrase id="invalidpostrequest" value="Invalid post request" />
+    <!-- v11 -->
+    <phrase id="invalidparameter" value="Invalid Parameter" />
+    <phrase id="invalidpassword" value="Invalid Password" />
+    <phrase id="invalidnewpassword" value="Invalid New Password" />
+    <phrase id="invaliduidpwd" value="Incorrect user ID or password" />
+    <phrase id="keep" value="Mantener" />
+    <phrase id="language" value="Idioma" />
+    <phrase id="loading" value="Cargando..." client="1" />
+    <phrase id="login" value="Iniciar Sesion" />
+    <phrase id="logincancelled" value="Inicio de Sesion Cancelado" />
+    <phrase id="loginoptions" value="Opciones" />
+    <!-- v11 -->
+    <phrase id="loginpage" value="Iniciar Sesión" />
+    <phrase id="logout" value="Salir" />
+    <phrase id="masterrecord" value="Master Record: " />
+    <phrase id="maxfilesize" value="Max. file size (%s bytes) exceeded." client="1" />
+    <phrase id="messageok" value="OK" client="1" />
+    <phrase id="mismatchpassword" value="Mismatch Password" client="1" />
+    <phrase id="missinglookuptablename" value="Missing lookup table name" />
+    <phrase id="missingdisplayfieldname" value="Missing display field name" />
+    <phrase id="missingdisplayfieldvalue" value="Missing display field value" />
+    <phrase id="missinguserlevelid" value="Missing User Level ID" />
+    <phrase id="missinguserlevelname" value="Missing User Level name" />
+    <phrase id="mobilemenu" value="Menu" />
+    <phrase id="multiplemasterdetails" value="Master/Detail" class="icon-master-detail ewIcon" />
+    <!-- v11 -->
+    <phrase id="new" value="Nuevo" />
+    <phrase id="newpassword" value="Nueva Contraseña" />
+    <phrase id="next" value="Siguiente" />
+    <phrase id="noaddrecord" value="No records to be added" client="1" />
+    <phrase id="nofieldselected" value="No field selected for update" client="1" />
+    <phrase id="nopermission" value="Usted no tiene permisos para realizar esta accíon, comuniquese con su administrador." />
+    <phrase id="noaddpermission" value="Usted no tiene permisos para añadir este registro, comuniquese con su administrador." />
+    <phrase id="nodeletepermission" value="Usted no tiene permisos para eliminar este registro, comuniquese con su administrador." />
+    <phrase id="noeditpermission" value="Usted no tiene permisos para editar este registro, comuniquese con su administrador" />
+    <phrase id="norecord" value="No se encontraron registros." />
+    <phrase id="norecordforkey" value="No record found for key = " />
+    <phrase id="norecordselected" value="Ningun registro seleccionado" client="1" />
+    <phrase id="notablegenerated" value="No tables generated" />
+    <phrase id="nouserlevel" value="No user level settings." />
+    <phrase id="of" value="of" />
+    <phrase id="old" value="Old" />
+    <phrase id="oldpassword" value="Contraseña Antigua" />
+    <phrase id="optionalreadyexist" value="Option already exists" />
+    <phrase id="page" value="Page" />
+    <phrase id="pagerfirst" value="First" />
+    <phrase id="pagerlast" value="Last" />
+    <phrase id="pagernext" value="Next" />
+    <phrase id="pagerprevious" value="Previous" />
+    <phrase id="password" value="Contraseña" />
+    <phrase id="passwordrequest" value="Contraseña Requerida" />
+    <phrase id="passwordchanged" value="Cambiar Contraseña" />
+    <phrase id="passwordexpired" value="Contraseña Expirada. Porfavor cambie Contraseña." />
+    <phrase id="permission" value="Permissions" class="icon-user ewIcon" />
+    <!-- v11 -->
+    <phrase id="permissionaddcopy" value="Add/Copy" />
+    <phrase id="permissiondelete" value="Delete" />
+    <phrase id="permissionedit" value="Edit" />
+    <phrase id="permissionlistsearchview" value="List/Search/View" />
+    <phrase id="permissionlist" value="List" />
+    <phrase id="permissionsearch" value="Buscar" />
+    <phrase id="permissionview" value="View" />
+    <phrase id="pickdate" value="Pick a date" />
+    <phrase id="pleaseselect" value="Seleccione un valor" />
+    <phrase id="pleasewait" value="Por favor espere..." client="1" />
+    <phrase id="primarykeyunspecified" value="Primary key unspecified" />
+    <phrase id="printerfriendly" value="Printer Friendly" class="icon-print ewIcon" />
+    <!-- v11 -->
+    <phrase id="printerfriendlytext" value="Printer Friendly" />
+    <phrase id="prev" value="Prev" />
+    <phrase id="pwdemailsent" value="Password sent to your email" />
+    <phrase id="resetpwdemailsent" value="The reset password email has been sent to you" />
+    <phrase id="quicksearch" value="Quick Search" />
+    <phrase id="quicksearchbtn" value="Buscar" />
+    <phrase id="quicksearchauto" value="Auto" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchautoshort" value="" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchall" value="All keywords" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchallshort" value="All" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchany" value="Any keywords" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchanyshort" value="Any" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchexact" value="Exact match" client="1" />
+    <!-- v11 -->
+    <phrase id="quicksearchexactshort" value="Exact" client="1" />
+    <!-- v11 -->
+    <phrase id="record" value="Registros" />
+    <phrase id="recordchangedbyotheruser" value="Data has been changed by other user. Click [Reload] to retrieve the changed data (your data in the form will be overwritten) or click [Overwrite] to overwrite the changed data." />
+    <phrase id="recorddeleted" value="registro(s) eliminado(s)" />
+    <phrase id="recordinserted" value="registro(s) insertado(s)" />
+    <phrase id="recordupdated" value="registro(s) actualizado(s)" />
+    <phrase id="recordsperpage" value="Tamaño de página" />
+    <phrase id="register" value="Registrarse" />
+    <phrase id="registerbtn" value="Register" />
+    <phrase id="registersuccess" value="Registration succeeded" />
+    <phrase id="registersuccessactivate" value="Registration succeeded. An email has been sent to your email address, please click the link in the email to activate your account." />
+    <phrase id="registerpage" value="Registro" />
+    <phrase id="relatedrecordrequired" value="You cannot add or update a record because the foreign key value does not exist in the master table '%t'" />
+    <phrase id="relatedrecordexists" value="No puede borrar este registro ya que existen datos relacionados en la tabla detalle - '%t'" />
+    <phrase id="reloadbtn" value="Reload" />
+    <phrase id="reloadlink" value="Reload" />
+    <phrase id="rememberme" value="Remember me" />
+    <phrase id="remove" value="Remove" />
+    <phrase id="replace" value="Replace" />
+    <phrase id="report" value="Reporte" />
+    <phrase id="requestpwdpage" value="Request Password" />
+    <phrase id="reset" value="Limpiar" />
+    <phrase id="resetsearchbtn" value="Limpiar" class="icon-reset-search ewIcon" />
+    <!-- v11 -->
+    <phrase id="resetsearch" value="Limpiar" />
+    <phrase id="rptavg" value="Promedio" />
+    <phrase id="rptdtlrec" value="Registros de detalle" />
+    <phrase id="rptgrandtotal" value="Gran Total" />
+    <phrase id="rptmax" value="Maximo" />
+    <phrase id="rptmin" value="Minimo" />
+    <phrase id="rptsum" value="Suma" />
+    <phrase id="rptsumhead" value="Resumen para:" />
+    <phrase id="savebtn" value="Grabar" />
+    <!-- v11 -->
+    <phrase id="saveusername" value="Guardar Nombre de Usuario" />
+    <phrase id="search" value="Buscar" />
+    <phrase id="searchbtn" value="Buscar" class="glyphicon glyphicon-search ewIcon" />
+    <!-- v11 -->
+    <phrase id="searchpanel" value="Panel de Búsqueda" />
+    <!-- v11 -->
+    <phrase id="sendemailbtn" value="Send" />
+    <phrase id="sendemailsuccess" value="Email sent successfully" client="1" />
+    <phrase id="sendpwd" value="Send" />
+    <phrase id="sequencenumber" value="%s." />
+    <phrase id="showallbtn" value="Show all" class="icon-reset-search ewIcon" />
+    <!-- v11 -->
+    <phrase id="showall" value="Show all" />
+    <!-- v11 -->
+    <!-- ***
+    <phrase id="ShowHighlight" value="Show highlight" client="1"/>
+-->
+    <phrase id="srchlegend" value="" />
+    <phrase id="table" value="TABLE" />
+    <phrase id="tbltypetable" value="Table: " />
+    <phrase id="tbltypeview" value="View: " />
+    <phrase id="tbltypecustomview" value="Custom View: " />
+    <phrase id="tbltypereport" value="Report: " />
+    <phrase id="to" value="to" />
+    <phrase id="total" value="Total" />
+    <phrase id="unauthorizeduserid" value="The current user (%c) is not authorized to assign the user ID (%u)." />
+    <phrase id="unauthorizedparentuserid" value="The current user (%c) is not authorized to assign the parent user ID (%p)." />
+    <phrase id="unauthorizedmasteruserid" value="The current user (%c) is not authorized to insert the record. Master filter: %f" />
+    <!-- ***
+    <phrase id="UnmatchedValue" value="Value does not exist" imageurl="{_images}/warn.gif" imagewidth="16" imageheight="15"/>
+-->
+    <phrase id="update" value="Actualizar" />
+    <phrase id="updatebtn" value="Actualizar" />
+    <phrase id="updatecancelled" value="Actualizacion cancelada" />
+    <phrase id="updatefailed" value="Falló Actualizar" />
+    <phrase id="updatelink" value="Actualizar" class="glyphicon glyphicon-ok ewIcon" />
+    <!-- v11 -->
+    <phrase id="updateselectall" value="Seleccionar Todo" />
+    <!-- v11 -->
+    <phrase id="updateselectedlink" value="Actualizar Registros Seleccionados" class="icon-edit ewIcon" />
+    <!-- v11 -->
+    <phrase id="updatesuccess" value="Actualizacion Exitosa" />
+    <phrase id="uploading" value="Subiendo..." client="1" />
+    <phrase id="uploadstart" value="Iniciar" client="1" />
+    <phrase id="uploadcancel" value="Cancelar" client="1" />
+    <phrase id="uploaddelete" value="Eliminar" client="1" />
+    <phrase id="uploadoverwrite" value="¿Sobreescribir archivo existente?" client="1" />
+    <phrase id="uploaderrmsg1" value="The uploaded file exceeds the upload_max_filesize directive in php.ini" />
+    <phrase id="uploaderrmsg2" value="The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form" />
+    <phrase id="uploaderrmsg3" value="The uploaded file was only partially uploaded" />
+    <phrase id="uploaderrmsg4" value="Ningun Archivo fue subido" />
+    <phrase id="uploaderrmsg6" value="Falta una Carpeta Temporal" />
+    <phrase id="uploaderrmsg7" value="Error al escribir el archivo en el disco" />
+    <phrase id="uploaderrmsg8" value="Una extensión de PHP detuvo la carga de archivos" />
+    <phrase id="uploaderrmsgpostmaxsize" value="The uploaded file exceeds the post_max_size directive in php.ini" />
+    <phrase id="uploaderrmsgmaxfilesize" value="Archivo demasiado grande" client="1" />
+    <phrase id="uploaderrmsgminfilesize" value="Archivo demasido pequeño" client="1" />
+    <phrase id="uploaderrmsgacceptfiletypes" value="Tipo de Archivo no Permitido" client="1" />
+    <phrase id="uploaderrmsgmaxnumberoffiles" value="Número maximo de archivos excedido" client="1" />
+    <phrase id="uploaderrmsgmaxwidth" value="Imagen excede el ancho maximo" />
+    <phrase id="uploaderrmsgminwidth" value="Imagen requiere un ancho minimo" />
+    <phrase id="uploaderrmsgmaxheight" value="Imagen excede la altura máxima" />
+    <phrase id="uploaderrmsgminheight" value="Image requiere una altura mínima" />
+    <phrase id="uploaderrmsgmaxfilelength" value="Longitud total de nombres de archivo excede la longitud del campo" client="1" />
+    <phrase id="useremail" value="Correo Electrónico" />
+    <phrase id="userexists" value="El usuario ya existe" />
+    <phrase id="userlevel" value="Nivel de Usuario: " />
+    <phrase id="userleveladministratorname" value="Nivel para usuario -1 debe ser 'Administrador'" client="1" />
+    <phrase id="userlevelpermission" value="Permisos de Nivel de Usuario" />
+    <phrase id="userlevelidinteger" value="ID Nivel Usuario debe ser entero" client="1" />
+    <phrase id="userleveldefaultname" value="Nivel para el usuario 0 debe ser 'Default'" client="1" />
+    <phrase id="userlevelidincorrect" value="ID definido por el Nivel de usuario debe ser mayor que 0" client="1" />
+    <phrase id="userlevelnameincorrect" value="Nivel Definido por el usuario no puede ser 'administrador' o 'por defecto'" client="1" />
+    <phrase id="userloggedin" value="Usuario '%u' ya Conectado!" />
+    <phrase id="username" value="Nombre de Usuario" />
+    <phrase id="userprofilecorrupted" value="Perfil de usuario está dañado. Por favor, iniciar sesión otra vez" />
+    <phrase id="valuenotexist" value="Valor no Existe" client="1" />
+    <!-- v11 -->
+    <phrase id="view" value="Vista" />
+    <phrase id="viewimagegallery" value="Ver Imagen" />
+    <!-- v11 -->
+    <phrase id="viewlink" value="Vista" class="icon-view ewIcon" />
+    <!-- v11 -->
+    <phrase id="viewpageaddlink" value="Agregar" class="glyphicon glyphicon-plus ewIcon" />
+    <!-- v11 -->
+    <phrase id="viewpagecopylink" value="Copiar" class="icon-copy ewIcon" />
+    <!-- v11 -->
+    <phrase id="viewpagedeletelink" value="Eliminar" class="glyphicon glyphicon-trash ewIcon" />
+    <!-- v11 -->
+    <phrase id="viewpagedetaillink" value="" />
+    <phrase id="viewpageeditlink" value="Editar" class="icon-edit ewIcon" />
+    <!-- v11 -->
+    <phrase id="wrongfiletype" value="Tipo de Archivo no Permitido." client="1" />
+    <phrase id="tableorview" value="Tablas" />
+    <phrase id="=" value=" " />
+    <phrase id="&lt;&gt;" value="&amp;lt;&amp;gt;" />
+    <phrase id="&lt;" value="&amp;lt;" />
+    <phrase id="&lt;=" value="&amp;lt;=" />
+    <phrase id="&gt;" value="&amp;gt;" />
+    <phrase id="&gt;=" value="&amp;gt;=" />
+    <phrase id="like" value="contiene" />
+    <phrase id="not like" value="no contiene" />
+    <phrase id="starts with" value="iniciar con" />
+    <phrase id="ends with" value="terminar con" />
+    <phrase id="is null" value="es nulo" />
+    <phrase id="is not null" value="no nulo" />
+    <phrase id="between" value="entre" />
+    <phrase id="and" value="y" />
+    <phrase id="or" value="ó" />
+    <phrase id="errorpasstooshort" value="Password too short. Minimum %n characters." />
+    <phrase id="errorpasstoolong" value="Password too long. Maximum %n characters." />
+    <phrase id="errorpassdoesnotincludeletter" value="Password must contain at least one lowercase character" />
+    <phrase id="errorpassdoesnotincludecaps" value="Password must contain at least one uppercase character" />
+    <phrase id="errorpassdoesnotincludenumber" value="Password must contain at least one numeric digit." />
+    <phrase id="errorpassdoesnotincludesymbol" value="Password must contain at least one symbol or special character" />
+    <phrase id="errorpasscouldnotbesame" value="New password cannot be the same as the old password" />
+    <phrase id="mismatch" value="Mismatch" />
+    <phrase id="match" value="Match" />
+    <phrase id="empty" value="Empty" />
+    <phrase id="veryweak" value="Very weak" />
+    <phrase id="weak" value="Weak" />
+    <phrase id="better" value="Average" />
+    <phrase id="good" value="Good" />
+    <phrase id="strong" value="Strong" />
+    <phrase id="strongest" value="Very strong" />
+    <phrase id="iagreewith" value="I agree with" />
+    <phrase id="print" value="Print" />
+    <phrase id="iagree" value="¡Estoy de Acuerdo, Proceder!" />
+    <phrase id="tactitle" value="Terms and Conditions" />
+    <phrase id="taccontent" value="&lt;i&gt;Terms and &lt;u&gt;Conditions&lt;/u&gt;&lt;/i&gt;.&lt;br /&gt;&lt;br /&gt;Enter terms and conditions here...&lt;br /&gt;&lt;br /&gt;All standard HTML formatting tags may be included." />
+    <phrase id="tacnotavailable" value="Terms and Conditions are currently unavailable" />
+    <phrase id="alertifyalert" value="Alert" client="1" />
+    <phrase id="alertifyconfirm" value="Confirm" client="1" />
+    <phrase id="alertifyprompt" value="Prompt" client="1" />
+    <phrase id="alertifyadd" value="Adding ..." client="1" />
+    <phrase id="alertifyaddconfirm" value="Add new record?" />
+    <phrase id="alertifyedit" value="Updating ..." client="1" />
+    <phrase id="alertifyeditconfirm" value="Proceed with update?" />
+    <phrase id="alertifysavegrid" value="Saving the grid ..." client="1" />
+    <phrase id="alertifysavegridconfirm" value="Proceed with save the grid?" />
+    <phrase id="alertifydelete" value="Deleting ..." client="1" />
+    <phrase id="alertifydeleteconfirm" value="Proceed with deletion?" />
+    <phrase id="alertifycancel" value="Cancelling ..." client="1" />
+    <phrase id="alertifyprocessing" value="Processing ..." client="1" />
+    <phrase id="myokmessage" value="OK" />
+    <phrase id="mycancelmessage" value="Cancelar" />
+    <phrase id="pageprocessingtime" value="Page processing time:" />
+    <phrase id="welcome" value="Bienvenido" />
+    <phrase id="asktologout" value="¿Esta seguro que quiere Salir?" />
+    <phrase id="yes" value="SI" />
+    <phrase id="no" value="NO" />
+    <phrase id="permissionprinterfriendly" value="Version para Imprimir" />
+    <phrase id="permissionexporttohtml" value="Exportar a HTML" />
+    <phrase id="permissionexporttoexcel" value="Exportar a Excel" />
+    <phrase id="permissionexporttoword" value="Exportar a Word" />
+    <phrase id="permissionexporttopdf" value="Exportar a PDF" />
+    <phrase id="permissionexporttoxml" value="Exportar a XML" />
+    <phrase id="permissionexporttocsv" value="Exportar a CSV" />
+    <phrase id="permissionexporttoemail" value="Exportar a Email" />
+    <phrase id="maximumrecordsperpage" value="Maximo %t registros por pagina." />
+    <phrase id="help" value="Ayuda" />
+    <phrase id="helpnotavailable" value="Lo sentimos - no hay ayuda disponible para esta página" />
+    <phrase id="aboutus" value="Sobre Nosotros" />
+    <phrase id="tactitle" value="Terminos y Condiciones" />
+    <phrase id="taccontent" value="&lt;i&gt;Terminos y &lt;u&gt;Condiciones&lt;/u&gt;&lt;/i&gt;.&lt;br /&gt;&lt;br /&gt;Ingrese Terminos y Condiciones Aqui...&lt;br /&gt;&lt;br /&gt;Todas las etiquetas de formato estándar HTML se pueden incluir." />
+    <phrase id="tacnotavailable" value="Términos y Condiciones no están disponibles actualmente" />
+    <phrase id="backtotop" value="Volver Arriba" />
+    <phrase id="logchangepassword" value="Cambiar Contraseña" />
+    <phrase id="logresetpassword" value="Restablecer Contraseña" />
+    <phrase id="longrecno" value="Número de Registro" />
+    <phrase id="shortrecno" value="#" />
+    <phrase id="audittrailunknownuserloggedin" value="Usuario desconocido: '% u' intentó conectarse" />
+    <phrase id="exceedmaxretrynew" value="Exceso máximo de reintentos. Cuenta está bloqueado. Vuelve a intentarlo en %t." />
+    <phrase id="days" value="dia(s)" />
+    <phrase id="hours" value="horas(s)" />
+    <phrase id="minutes" value="minuto(s)" />
+    <phrase id="seconds" value="segundo(s)" />
+    <phrase id="useralreadyloggedin" value="User '%u' already logged in and the session has been automatically removed. &lt;br /&gt;&lt;br /&gt;Please re-login now!" />
+    <phrase id="addbreadcrumblinks" value="Add Breadcrumb Link" />
+    <phrase id="addbreadcrumblinksnodetails" value="Please enter the required details" />
+    <phrase id="addbreadcrumblinksnoparent" value="Operation failed - Page Title Parent does not exist in the breadcrumb links table" />
+    <phrase id="addbreadcrumblinksduplicate" value="Operation failed - Page Title &lt;strong&gt;%s&lt;/strong&gt; already exists in the breadcrumb links table" />
+    <phrase id="addbreadcrumblinksfailed" value="Operation failed - please review your entries" />
+    <phrase id="addbreadcrumblinkssuccess" value="Operation successful - breadcrumb link &lt;strong&gt;%s&lt;/strong&gt; has been added" />
+    <phrase id="deletebreadcrumblinks" value="Delete Breadcrumb Link" />
+    <phrase id="deletebreadcrumblinkswarning" value="Warning: Removing a parent breadcrumb link will automatically delete all the child links below it. Take care as the deletion process cannot be reversed!" />
+    <phrase id="deletebreadcrumblinksnodetails" value="Please select a breadcrumb link record or Page Title" />
+    <phrase id="deletebreadcrumblinksnodata" value="Operation failed - there is no data in the breadcrumb links table" />
+    <phrase id="deletebreadcrumblinksnotfound" value="Operation failed - Page Title does not exist in the breadcrumb links table" />
+    <phrase id="deletebreadcrumblinksfailed" value="Operation failed - please review your selection" />
+    <phrase id="deletebreadcrumblinkssuccess" value="Operation successful - breadcrumb link &lt;strong&gt;%s&lt;/strong&gt; has been deleted" />
+    <phrase id="movebreadcrumblinks" value="Move Breadcrumb Link" />
+    <phrase id="movebreadcrumblinksnodetails" value="Operation failed - please review your selections" />
+    <phrase id="movebreadcrumblinkssame" value="Operation failed - New Root should be different to Current Root" />
+    <phrase id="movebreadcrumblinksnodata" value="Operation failed - there is no data in the breadcrumb links table" />
+    <phrase id="movebreadcrumblinksnoroot" value="Operation failed - New Root does not exist in breadcrumb links table" />
+    <phrase id="movebreadcrumblinksnotitle" value="Operation failed - current Page Title does not exist in breadcrumb links table" />
+    <phrase id="movebreadcrumblinksfailed" value="Operation failed - please review your selections" />
+    <phrase id="movebreadcrumblinkssuccess" value="Operation successful - breadcrumb link &lt;strong&gt;%s&lt;/strong&gt; has been moved below &lt;strong&gt;%s&lt;/strong&gt;" />
+    <phrase id="checkbreadcrumblinks" value="Check Breadcrumb Link" />
+    <phrase id="checkbreadcrumblinksnodetails" value="Please select a breadcrumb link record or Page Title" />
+    <phrase id="checkbreadcrumblinksnodata" value="Operation failed - there is no data in the breadcrumb links table" />
+    <phrase id="checkbreadcrumblinksnotfound" value="Operation failed - Page Title does not exist in the breadcrumb links table" />
+    <phrase id="checkbreadcrumblinksfailed" value="Operation failed - please review your selection" />
+    <phrase id="checkbreadcrumblinksadvice" value="The breadcrumb trail below is only to indicate the full path of the specified breadcrumb link and to assist in identifying its parent links" />
+    <phrase id="checkbreadcrumblinksnotdefinedinxml" value="The selected Page Title is not defined in XML language file, yet" />
+    <phrase id="announcementtext" value="Este es un anuncio de la muestra ..." />
+    <phrase id="maintenancetitle" value="Mantenimiento" />
+    <phrase id="maintenanceusermessage" value="Sorry... routine database maintenance is being performed. &lt;br /&gt;This part of the website is currently unavailable. &lt;br /&gt; Please retry in " />
+    <phrase id="maintenanceusermessageunknown" value="Sorry... routine database maintenance is currently being performed. &lt;br /&gt;This part of the website is currently unavailable." />
+    <phrase id="maintenanceadminmessage" value="Maintenance mode is enabled - concluding in " />
+    <phrase id="maintenanceadminmessageunknown" value="Maintenance mode is enabled" />
+    <phrase id="maintenanceadminmessageerror" value="Maintenance mode has not concluded as per the schedule - please investigate!" />
+    <phrase id="maintenanceendwarning" value="Maintenance Complete must be later than the current time" />
+    <phrase id="maintenanceretry" value="Try again..." />
+    <phrase id="registersuccesspending" value="Registro de éxito - una confirmación ha sido enviada a su correo electrónico" />
+    <phrase id="accounthasbeenactivated" value="Cuenta '%u' ha sido Activada" />
+    <phrase id="subjectaccountactivated" value="Tu cuenta ya ha sido activada" />
+    <phrase id="invalidaccount" value="Cuenta Inválida (o cuenta aun no activada)" />
+    <phrase id="userdeactivated" value="La cuenta de usuario especificada no se ha activado" />
+    <phrase id="subjectrequestpasswordconfirmation" value="Solicitar confirmación de contraseña" />
+    <phrase id="pwdactkey" value="Por favor revise su bandeja de entrada para proceder" />
+    <phrase id="subjectsendnewpassword" value="Nueva Contraseña" />
+    <phrase id="subjectchangepassword" value="Contraseña Cambiada" />
+    <phrase id="subjectregistrationinformation" value="Informacion de Registro" />
+    <phrase id="search" value="Búsqueda" />
+    <phrase id="search" value="Búsqueda" />
+    <phrase id="records" value="Registros" />
+    <phrase id="to" value="al" />
+    <phrase id="of" value="de" />
+    <phrase id="page" value="Página" />
+    <phrase id="search panel" value="Panel de Búsqueda" />
+    <phrase id="exact match" value="Coincidencia Exacta" />
+    <phrase id="please select" value="Por favor seleccione" />
+  </global>
+  <project>
+    <phrase id="bodytitle" value="Sistema de Gestión de Cobranzas - BMG" />
+    <phrase id="footertext" value="&amp;copy;2017 e.World Technology Ltd. All rights reserved." />
+    <menu id="4">
+      <phrase id="menutext" value="audittrail" />
+    </menu>
+    <menu id="1">
+      <phrase id="menutext" value="userlevelpermissions" />
+    </menu>
+    <menu id="2">
+      <phrase id="menutext" value="userlevels" />
+    </menu>
+    <menu id="3">
+      <phrase id="menutext" value="users" />
+    </menu>
+    <table id="userlevelpermissions">
+      <phrase id="tblcaption" value="userlevelpermissions" />
+      <field id="userlevelid">
+        <phrase id="fldcaption" value="userlevelid" />
+      </field>
+      <field id="_tablename">
+        <phrase id="fldcaption" value="tablename" />
+      </field>
+      <field id="permission">
+        <phrase id="fldcaption" value="permission" />
+      </field>
+    </table>
+    <table id="userlevels">
+      <phrase id="tblcaption" value="userlevels" />
+      <field id="userlevelid">
+        <phrase id="fldcaption" value="userlevelid" />
+      </field>
+      <field id="userlevelname">
+        <phrase id="fldcaption" value="userlevelname" />
+      </field>
+    </table>
+    <table id="users">
+      <phrase id="tblcaption" value="users" />
+      <field id="id_user">
+        <phrase id="fldcaption" value="id user" />
+      </field>
+      <field id="id_user_creator">
+        <phrase id="fldcaption" value="id user creator" />
+      </field>
+      <field id="username">
+        <phrase id="fldcaption" value="Username" />
+      </field>
+      <field id="password">
+        <phrase id="fldcaption" value="Password" />
+      </field>
+      <field id="no_documento">
+        <phrase id="fldcaption" value="No documento" />
+      </field>
+      <field id="tipo_documento">
+        <phrase id="fldcaption" value="Tipo documento" />
+      </field>
+      <field id="first_name">
+        <phrase id="fldcaption" value="First Name" />
+      </field>
+      <field id="last_name">
+        <phrase id="fldcaption" value="Last Name" />
+      </field>
+      <field id="_email">
+        <phrase id="fldcaption" value="Email" />
+      </field>
+      <field id="telefono_movil">
+        <phrase id="fldcaption" value="Telefono movil" />
+      </field>
+      <field id="telefono_fijo">
+        <phrase id="fldcaption" value="Telefono fijo" />
+      </field>
+      <field id="fecha_nacimiento">
+        <phrase id="fldcaption" value="Fecha nacimiento" />
+      </field>
+      <field id="user_level">
+        <phrase id="fldcaption" value="User Level" />
+      </field>
+      <field id="report_to">
+        <phrase id="fldcaption" value="Report To" />
+      </field>
+      <field id="activated">
+        <phrase id="fldcaption" value="Activated" />
+      </field>
+      <field id="locked">
+        <phrase id="fldcaption" value="Locked" />
+      </field>
+      <field id="token">
+        <phrase id="fldcaption" value="token" />
+      </field>
+      <field id="acceso_app">
+        <phrase id="fldcaption" value="acceso app" />
+      </field>
+      <field id="observaciones">
+        <phrase id="fldcaption" value="observaciones" />
+      </field>
+      <field id="fecha_ingreso">
+        <phrase id="fldcaption" value="fecha ingreso" />
+      </field>
+      <field id="profile">
+        <phrase id="fldcaption" value="Profile" />
+      </field>
+    </table>
+    <table id="audittrail">
+      <phrase id="tblcaption" value="audittrail" />
+      <field id="id">
+        <phrase id="fldcaption" value="id" />
+      </field>
+      <field id="datetime">
+        <phrase id="fldcaption" value="datetime" />
+      </field>
+      <field id="script">
+        <phrase id="fldcaption" value="script" />
+      </field>
+      <field id="user">
+        <phrase id="fldcaption" value="user" />
+      </field>
+      <field id="action">
+        <phrase id="fldcaption" value="action" />
+      </field>
+      <field id="table">
+        <phrase id="fldcaption" value="table" />
+      </field>
+      <field id="field">
+        <phrase id="fldcaption" value="field" />
+      </field>
+      <field id="keyvalue">
+        <phrase id="fldcaption" value="keyvalue" />
+      </field>
+      <field id="oldvalue">
+        <phrase id="fldcaption" value="oldvalue" />
+      </field>
+      <field id="newvalue">
+        <phrase id="fldcaption" value="newvalue" />
+      </field>
+    </table>
+  </project>
+</ew-language>
