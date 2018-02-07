@@ -10,7 +10,7 @@
 		<!-- To the right -->
 		<div class="pull-right hidden-xs"></div>
 		<!-- Default to the left --><!-- ** Note: Only licensed users are allowed to change the copyright statement. ** -->
-		<div class="ewFooterText"><?php echo $Language->ProjectPhrase("FooterText") ?></div>
+		<div class="ewFooterText"><?php //echo $Language->ProjectPhrase("FooterText") ?>BMG - Sistema de Gestión de Cobranzas - 2018</div>
 	</footer>
 </div>
 <!-- ./wrapper -->

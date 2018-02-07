@@ -1349,7 +1349,7 @@ class cuserlevelpermissions_list extends cuserlevelpermissions {
 
 		// Search button
 		$item = &$this->SearchOptions->Add("searchtoggle");
-		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
+		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : "";
 		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fuserlevelpermissionslistsrch\">" . $Language->Phrase("SearchLink") . "</button>";
 		$item->Visible = TRUE;
 
@@ -2055,6 +2055,9 @@ fuserlevelpermissionslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VA
 // Form object for search
 
 var CurrentSearchForm = fuserlevelpermissionslistsrch = new ew_Form("fuserlevelpermissionslistsrch");
+
+// Init search panel as collapsed
+if (fuserlevelpermissionslistsrch) fuserlevelpermissionslistsrch.InitSearchPanel = true;
 </script>
 <script type="text/javascript">
 
@@ -2106,7 +2109,7 @@ $userlevelpermissions_list->RenderOtherOptions();
 <?php if ($Security->CanSearch()) { ?>
 <?php if ($userlevelpermissions->Export == "" && $userlevelpermissions->CurrentAction == "") { ?>
 <form name="fuserlevelpermissionslistsrch" id="fuserlevelpermissionslistsrch" class="form-inline ewForm ewExtSearchForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($userlevelpermissions_list->SearchWhere <> "") ? " in" : " in"; ?>
+<?php $SearchPanelClass = ($userlevelpermissions_list->SearchWhere <> "") ? " in" : ""; ?>
 <div id="fuserlevelpermissionslistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="userlevelpermissions">

@@ -1360,7 +1360,7 @@ class cuserlevels_list extends cuserlevels {
 
 		// Search button
 		$item = &$this->SearchOptions->Add("searchtoggle");
-		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
+		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : "";
 		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fuserlevelslistsrch\">" . $Language->Phrase("SearchLink") . "</button>";
 		$item->Visible = TRUE;
 
@@ -2051,6 +2051,9 @@ fuserlevelslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>
 // Form object for search
 
 var CurrentSearchForm = fuserlevelslistsrch = new ew_Form("fuserlevelslistsrch");
+
+// Init search panel as collapsed
+if (fuserlevelslistsrch) fuserlevelslistsrch.InitSearchPanel = true;
 </script>
 <script type="text/javascript">
 
@@ -2102,7 +2105,7 @@ $userlevels_list->RenderOtherOptions();
 <?php if ($Security->CanSearch()) { ?>
 <?php if ($userlevels->Export == "" && $userlevels->CurrentAction == "") { ?>
 <form name="fuserlevelslistsrch" id="fuserlevelslistsrch" class="form-inline ewForm ewExtSearchForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($userlevels_list->SearchWhere <> "") ? " in" : " in"; ?>
+<?php $SearchPanelClass = ($userlevels_list->SearchWhere <> "") ? " in" : ""; ?>
 <div id="fuserlevelslistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="userlevels">

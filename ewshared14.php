@@ -1820,5 +1820,8 @@ function SetupLoginStatus() {
 	$LoginStatus["loginText"] = $Language->Phrase("Login");
 	$LoginStatus["canLogin"] = !IsLoggedIn() && !ew_EndsStr($LoginStatus["loginUrl"], @$_SERVER["URL"]);
 	$LoginStatus["canLogout"] = IsLoggedIn();
+	$LoginStatus["changePasswordUrl"] = ew_GetUrl("changepwd.php");
+	$LoginStatus["changePasswordText"] = $Language->Phrase("ChangePwd");
+	$LoginStatus["canChangePassword"] = IsLoggedIn() && !IsSysAdmin();
 }
 ?>

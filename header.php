@@ -153,6 +153,9 @@ var ewVar = <?php echo json_encode($EW_CLIENT_VAR); ?>;
 			<a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
 				<span class="sr-only">Toggle navigation</span>
 			</a>
+			<!-- Titulo del sistema -->
+			<div class="titulo visible-md visible-lg">Sistema de Gesti&oacute;n de Cobranzas
+	</div>
 			<!-- Navbar custom menu (on right) -->
 			<div class="navbar-custom-menu">
 				<ul class="nav navbar-nav"></ul>

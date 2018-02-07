@@ -25,7 +25,7 @@ define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME, TRUE); // Config file name
 define("EW_PROJECT_ID", "{A36EA07C-DB7F-422A-9088-B007545008C2}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", 'oV9HAGIenP31XFzn', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", 'nNe5Fl22Ln6mh6lq', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/cobproject.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -39,7 +39,7 @@ define("EW_FONT_SIZE", 12, TRUE);
 define("EW_TMP_IMAGE_FONT", "DejaVuSans", TRUE); // Font for temp files
 $EW_LAZY_LOAD = TRUE; // Lazy loading of images
 $EW_RELATED_PROJECT_ID = "";
-$EW_BODY_CLASS = "hold-transition skin-red";
+$EW_BODY_CLASS = "hold-transition skin-yellow";
 $EW_RESET_HEIGHT = TRUE; // Reset layout height
 
 // Set up font path
@@ -170,7 +170,7 @@ define("EW_SESSION_TEMP_IMAGES", EW_PROJECT_NAME . "_TempImages", TRUE); // Temp
 // Language settings
 define("EW_LANGUAGE_FOLDER", $EW_RELATIVE_PATH . "phplang/", TRUE);
 $EW_LANGUAGE_FILE = array();
-$EW_LANGUAGE_FILE[] = array("en", "", "english.xml");
+$EW_LANGUAGE_FILE[] = array("en", "", "spanish.xml");
 define("EW_LANGUAGE_DEFAULT_ID", "en", TRUE);
 define("EW_SESSION_LANGUAGE_ID", EW_PROJECT_NAME . "_LanguageId", TRUE); // Language ID
 define("EW_LOCALE_FOLDER", $EW_RELATIVE_PATH . "phplocale/", TRUE);

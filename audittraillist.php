@@ -1393,7 +1393,7 @@ class caudittrail_list extends caudittrail {
 
 		// Search button
 		$item = &$this->SearchOptions->Add("searchtoggle");
-		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
+		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : "";
 		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"faudittraillistsrch\">" . $Language->Phrase("SearchLink") . "</button>";
 		$item->Visible = TRUE;
 
@@ -1635,7 +1635,7 @@ class caudittrail_list extends caudittrail {
 
 		// datetime
 		$this->datetime->ViewValue = $this->datetime->CurrentValue;
-		$this->datetime->ViewValue = ew_FormatDateTime($this->datetime->ViewValue, 0);
+		$this->datetime->ViewValue = ew_FormatDateTime($this->datetime->ViewValue, 7);
 		$this->datetime->ViewCustomAttributes = "";
 
 		// script
@@ -2160,6 +2160,9 @@ faudittraillist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>
 // Form object for search
 
 var CurrentSearchForm = faudittraillistsrch = new ew_Form("faudittraillistsrch");
+
+// Init search panel as collapsed
+if (faudittraillistsrch) faudittraillistsrch.InitSearchPanel = true;
 </script>
 <script type="text/javascript">
 
@@ -2211,7 +2214,7 @@ $audittrail_list->RenderOtherOptions();
 <?php if ($Security->CanSearch()) { ?>
 <?php if ($audittrail->Export == "" && $audittrail->CurrentAction == "") { ?>
 <form name="faudittraillistsrch" id="faudittraillistsrch" class="form-inline ewForm ewExtSearchForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($audittrail_list->SearchWhere <> "") ? " in" : " in"; ?>
+<?php $SearchPanelClass = ($audittrail_list->SearchWhere <> "") ? " in" : ""; ?>
 <div id="faudittraillistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="audittrail">

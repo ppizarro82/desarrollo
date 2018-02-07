@@ -56,9 +56,9 @@ class caudittrail extends cTable {
 		$this->fields['id'] = &$this->id;
 
 		// datetime
-		$this->datetime = new cField('audittrail', 'audittrail', 'x_datetime', 'datetime', '`datetime`', ew_CastDateFieldForLike('`datetime`', 0, "DB"), 135, 0, FALSE, '`datetime`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->datetime = new cField('audittrail', 'audittrail', 'x_datetime', 'datetime', '`datetime`', ew_CastDateFieldForLike('`datetime`', 7, "DB"), 135, 7, FALSE, '`datetime`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
 		$this->datetime->Sortable = TRUE; // Allow sort
-		$this->datetime->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_FORMAT"], $Language->Phrase("IncorrectDate"));
+		$this->datetime->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_SEPARATOR"], $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['datetime'] = &$this->datetime;
 
 		// script
@@ -666,7 +666,7 @@ class caudittrail extends cTable {
 
 		// datetime
 		$this->datetime->ViewValue = $this->datetime->CurrentValue;
-		$this->datetime->ViewValue = ew_FormatDateTime($this->datetime->ViewValue, 0);
+		$this->datetime->ViewValue = ew_FormatDateTime($this->datetime->ViewValue, 7);
 		$this->datetime->ViewCustomAttributes = "";
 
 		// script
@@ -778,7 +778,7 @@ class caudittrail extends cTable {
 		// datetime
 		$this->datetime->EditAttrs["class"] = "form-control";
 		$this->datetime->EditCustomAttributes = "";
-		$this->datetime->EditValue = ew_FormatDateTime($this->datetime->CurrentValue, 8);
+		$this->datetime->EditValue = ew_FormatDateTime($this->datetime->CurrentValue, 7);
 		$this->datetime->PlaceHolder = ew_RemoveHtml($this->datetime->FldCaption());
 
 		// script

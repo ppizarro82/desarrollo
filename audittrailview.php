@@ -771,7 +771,7 @@ class caudittrail_view extends caudittrail {
 
 		// datetime
 		$this->datetime->ViewValue = $this->datetime->CurrentValue;
-		$this->datetime->ViewValue = ew_FormatDateTime($this->datetime->ViewValue, 0);
+		$this->datetime->ViewValue = ew_FormatDateTime($this->datetime->ViewValue, 7);
 		$this->datetime->ViewCustomAttributes = "";
 
 		// script

@@ -640,12 +640,18 @@ class cusers_list extends cusers {
 
 			// Get default search criteria
 			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
+			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
 
 			// Get basic search values
 			$this->LoadBasicSearchValues();
 
+			// Get and validate search values for advanced search
+			$this->LoadSearchValues(); // Get search values
+
 			// Process filter list
 			$this->ProcessFilterList();
+			if (!$this->ValidateSearch())
+				$this->setFailureMessage($gsSearchError);
 
 			// Restore search parms from Session if not searching / reset / export
 			if (($this->Export <> "" || $this->Command <> "search" && $this->Command <> "reset" && $this->Command <> "resetall") && $this->Command <> "json" && $this->CheckSearchParms())
@@ -660,6 +666,10 @@ class cusers_list extends cusers {
 			// Get basic search criteria
 			if ($gsSearchError == "")
 				$sSrchBasic = $this->BasicSearchWhere();
+
+			// Get search criteria for advanced search
+			if ($gsSearchError == "")
+				$sSrchAdvanced = $this->AdvancedSearchWhere();
 		}
 
 		// Restore display records
@@ -680,6 +690,11 @@ class cusers_list extends cusers {
 			$this->BasicSearch->LoadDefault();
 			if ($this->BasicSearch->Keyword != "")
 				$sSrchBasic = $this->BasicSearchWhere();
+
+			// Load advanced search from default
+			if ($this->LoadAdvancedSearchDefault()) {
+				$sSrchAdvanced = $this->AdvancedSearchWhere();
+			}
 		}
 
 		// Build search criteria
@@ -1023,6 +1038,107 @@ class cusers_list extends cusers {
 		$this->BasicSearch->setType(@$filter[EW_TABLE_BASIC_SEARCH_TYPE]);
 	}
 
+	// Advanced search WHERE clause based on QueryString
+	function AdvancedSearchWhere($Default = FALSE) {
+		global $Security;
+		$sWhere = "";
+		if (!$Security->CanSearch()) return "";
+		$this->BuildSearchSql($sWhere, $this->id_user, $Default, FALSE); // id_user
+		$this->BuildSearchSql($sWhere, $this->User_Level, $Default, FALSE); // User_Level
+		$this->BuildSearchSql($sWhere, $this->id_user_creator, $Default, FALSE); // id_user_creator
+		$this->BuildSearchSql($sWhere, $this->Username, $Default, FALSE); // Username
+		$this->BuildSearchSql($sWhere, $this->Password, $Default, FALSE); // Password
+		$this->BuildSearchSql($sWhere, $this->No_documento, $Default, FALSE); // No_documento
+		$this->BuildSearchSql($sWhere, $this->Tipo_documento, $Default, FALSE); // Tipo_documento
+		$this->BuildSearchSql($sWhere, $this->First_Name, $Default, FALSE); // First_Name
+		$this->BuildSearchSql($sWhere, $this->Last_Name, $Default, FALSE); // Last_Name
+		$this->BuildSearchSql($sWhere, $this->_Email, $Default, FALSE); // Email
+		$this->BuildSearchSql($sWhere, $this->Telefono_movil, $Default, FALSE); // Telefono_movil
+		$this->BuildSearchSql($sWhere, $this->Telefono_fijo, $Default, FALSE); // Telefono_fijo
+		$this->BuildSearchSql($sWhere, $this->Fecha_nacimiento, $Default, FALSE); // Fecha_nacimiento
+		$this->BuildSearchSql($sWhere, $this->Report_To, $Default, FALSE); // Report_To
+		$this->BuildSearchSql($sWhere, $this->Activated, $Default, FALSE); // Activated
+		$this->BuildSearchSql($sWhere, $this->Locked, $Default, FALSE); // Locked
+		$this->BuildSearchSql($sWhere, $this->token, $Default, FALSE); // token
+		$this->BuildSearchSql($sWhere, $this->acceso_app, $Default, FALSE); // acceso_app
+		$this->BuildSearchSql($sWhere, $this->observaciones, $Default, FALSE); // observaciones
+		$this->BuildSearchSql($sWhere, $this->fecha_ingreso, $Default, FALSE); // fecha_ingreso
+		$this->BuildSearchSql($sWhere, $this->Profile, $Default, FALSE); // Profile
+
+		// Set up search parm
+		if (!$Default && $sWhere <> "" && in_array($this->Command, array("", "reset", "resetall"))) {
+			$this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->id_user->AdvancedSearch->Save(); // id_user
+			$this->User_Level->AdvancedSearch->Save(); // User_Level
+			$this->id_user_creator->AdvancedSearch->Save(); // id_user_creator
+			$this->Username->AdvancedSearch->Save(); // Username
+			$this->Password->AdvancedSearch->Save(); // Password
+			$this->No_documento->AdvancedSearch->Save(); // No_documento
+			$this->Tipo_documento->AdvancedSearch->Save(); // Tipo_documento
+			$this->First_Name->AdvancedSearch->Save(); // First_Name
+			$this->Last_Name->AdvancedSearch->Save(); // Last_Name
+			$this->_Email->AdvancedSearch->Save(); // Email
+			$this->Telefono_movil->AdvancedSearch->Save(); // Telefono_movil
+			$this->Telefono_fijo->AdvancedSearch->Save(); // Telefono_fijo
+			$this->Fecha_nacimiento->AdvancedSearch->Save(); // Fecha_nacimiento
+			$this->Report_To->AdvancedSearch->Save(); // Report_To
+			$this->Activated->AdvancedSearch->Save(); // Activated
+			$this->Locked->AdvancedSearch->Save(); // Locked
+			$this->token->AdvancedSearch->Save(); // token
+			$this->acceso_app->AdvancedSearch->Save(); // acceso_app
+			$this->observaciones->AdvancedSearch->Save(); // observaciones
+			$this->fecha_ingreso->AdvancedSearch->Save(); // fecha_ingreso
+			$this->Profile->AdvancedSearch->Save(); // Profile
+		}
+		return $sWhere;
+	}
+
+	// Build search SQL
+	function BuildSearchSql(&$Where, &$Fld, $Default, $MultiValue) {
+		$FldParm = $Fld->FldParm();
+		$FldVal = ($Default) ? $Fld->AdvancedSearch->SearchValueDefault : $Fld->AdvancedSearch->SearchValue; // @$_GET["x_$FldParm"]
+		$FldOpr = ($Default) ? $Fld->AdvancedSearch->SearchOperatorDefault : $Fld->AdvancedSearch->SearchOperator; // @$_GET["z_$FldParm"]
+		$FldCond = ($Default) ? $Fld->AdvancedSearch->SearchConditionDefault : $Fld->AdvancedSearch->SearchCondition; // @$_GET["v_$FldParm"]
+		$FldVal2 = ($Default) ? $Fld->AdvancedSearch->SearchValue2Default : $Fld->AdvancedSearch->SearchValue2; // @$_GET["y_$FldParm"]
+		$FldOpr2 = ($Default) ? $Fld->AdvancedSearch->SearchOperator2Default : $Fld->AdvancedSearch->SearchOperator2; // @$_GET["w_$FldParm"]
+		$sWrk = "";
+		if (is_array($FldVal)) $FldVal = implode(",", $FldVal);
+		if (is_array($FldVal2)) $FldVal2 = implode(",", $FldVal2);
+		$FldOpr = strtoupper(trim($FldOpr));
+		if ($FldOpr == "") $FldOpr = "=";
+		$FldOpr2 = strtoupper(trim($FldOpr2));
+		if ($FldOpr2 == "") $FldOpr2 = "=";
+		if (EW_SEARCH_MULTI_VALUE_OPTION == 1)
+			$MultiValue = FALSE;
+		if ($MultiValue) {
+			$sWrk1 = ($FldVal <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr, $FldVal, $this->DBID) : ""; // Field value 1
+			$sWrk2 = ($FldVal2 <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr2, $FldVal2, $this->DBID) : ""; // Field value 2
+			$sWrk = $sWrk1; // Build final SQL
+			if ($sWrk2 <> "")
+				$sWrk = ($sWrk <> "") ? "($sWrk) $FldCond ($sWrk2)" : $sWrk2;
+		} else {
+			$FldVal = $this->ConvertSearchValue($Fld, $FldVal);
+			$FldVal2 = $this->ConvertSearchValue($Fld, $FldVal2);
+			$sWrk = ew_GetSearchSql($Fld, $FldVal, $FldOpr, $FldCond, $FldVal2, $FldOpr2, $this->DBID);
+		}
+		ew_AddFilter($Where, $sWrk);
+	}
+
+	// Convert search value
+	function ConvertSearchValue(&$Fld, $FldVal) {
+		if ($FldVal == EW_NULL_VALUE || $FldVal == EW_NOT_NULL_VALUE)
+			return $FldVal;
+		$Value = $FldVal;
+		if ($Fld->FldDataType == EW_DATATYPE_BOOLEAN) {
+			if ($FldVal <> "") $Value = ($FldVal == "1" || strtolower(strval($FldVal)) == "y" || strtolower(strval($FldVal)) == "t") ? $Fld->TrueValue : $Fld->FalseValue;
+		} elseif ($Fld->FldDataType == EW_DATATYPE_DATE || $Fld->FldDataType == EW_DATATYPE_TIME) {
+			if ($FldVal <> "") $Value = ew_UnFormatDateTime($FldVal, $Fld->FldDateTimeFormat);
+		}
+		return $Value;
+	}
+
 	// Return basic search SQL
 	function BasicSearchSQL($arKeywords, $type) {
 		$sWhere = "";
@@ -1145,6 +1261,48 @@ class cusers_list extends cusers {
 		// Check basic search
 		if ($this->BasicSearch->IssetSession())
 			return TRUE;
+		if ($this->id_user->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->User_Level->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->id_user_creator->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Username->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Password->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->No_documento->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Tipo_documento->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->First_Name->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Last_Name->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->_Email->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Telefono_movil->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Telefono_fijo->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Fecha_nacimiento->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Report_To->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Activated->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Locked->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->token->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->acceso_app->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->observaciones->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->fecha_ingreso->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->Profile->AdvancedSearch->IssetSession())
+			return TRUE;
 		return FALSE;
 	}
 
@@ -1157,6 +1315,9 @@ class cusers_list extends cusers {
 
 		// Clear basic search parameters
 		$this->ResetBasicSearchParms();
+
+		// Clear advanced search parameters
+		$this->ResetAdvancedSearchParms();
 	}
 
 	// Load advanced search default values
@@ -1169,12 +1330,60 @@ class cusers_list extends cusers {
 		$this->BasicSearch->UnsetSession();
 	}
 
+	// Clear all advanced search parameters
+	function ResetAdvancedSearchParms() {
+		$this->id_user->AdvancedSearch->UnsetSession();
+		$this->User_Level->AdvancedSearch->UnsetSession();
+		$this->id_user_creator->AdvancedSearch->UnsetSession();
+		$this->Username->AdvancedSearch->UnsetSession();
+		$this->Password->AdvancedSearch->UnsetSession();
+		$this->No_documento->AdvancedSearch->UnsetSession();
+		$this->Tipo_documento->AdvancedSearch->UnsetSession();
+		$this->First_Name->AdvancedSearch->UnsetSession();
+		$this->Last_Name->AdvancedSearch->UnsetSession();
+		$this->_Email->AdvancedSearch->UnsetSession();
+		$this->Telefono_movil->AdvancedSearch->UnsetSession();
+		$this->Telefono_fijo->AdvancedSearch->UnsetSession();
+		$this->Fecha_nacimiento->AdvancedSearch->UnsetSession();
+		$this->Report_To->AdvancedSearch->UnsetSession();
+		$this->Activated->AdvancedSearch->UnsetSession();
+		$this->Locked->AdvancedSearch->UnsetSession();
+		$this->token->AdvancedSearch->UnsetSession();
+		$this->acceso_app->AdvancedSearch->UnsetSession();
+		$this->observaciones->AdvancedSearch->UnsetSession();
+		$this->fecha_ingreso->AdvancedSearch->UnsetSession();
+		$this->Profile->AdvancedSearch->UnsetSession();
+	}
+
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
 		// Restore basic search values
 		$this->BasicSearch->Load();
+
+		// Restore advanced search values
+		$this->id_user->AdvancedSearch->Load();
+		$this->User_Level->AdvancedSearch->Load();
+		$this->id_user_creator->AdvancedSearch->Load();
+		$this->Username->AdvancedSearch->Load();
+		$this->Password->AdvancedSearch->Load();
+		$this->No_documento->AdvancedSearch->Load();
+		$this->Tipo_documento->AdvancedSearch->Load();
+		$this->First_Name->AdvancedSearch->Load();
+		$this->Last_Name->AdvancedSearch->Load();
+		$this->_Email->AdvancedSearch->Load();
+		$this->Telefono_movil->AdvancedSearch->Load();
+		$this->Telefono_fijo->AdvancedSearch->Load();
+		$this->Fecha_nacimiento->AdvancedSearch->Load();
+		$this->Report_To->AdvancedSearch->Load();
+		$this->Activated->AdvancedSearch->Load();
+		$this->Locked->AdvancedSearch->Load();
+		$this->token->AdvancedSearch->Load();
+		$this->acceso_app->AdvancedSearch->Load();
+		$this->observaciones->AdvancedSearch->Load();
+		$this->fecha_ingreso->AdvancedSearch->Load();
+		$this->Profile->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -1571,7 +1780,7 @@ class cusers_list extends cusers {
 
 		// Search button
 		$item = &$this->SearchOptions->Add("searchtoggle");
-		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : " active";
+		$SearchToggleClass = ($this->SearchWhere <> "") ? " active" : "";
 		$item->Body = "<button type=\"button\" class=\"btn btn-default ewSearchToggle" . $SearchToggleClass . "\" title=\"" . $Language->Phrase("SearchPanel") . "\" data-caption=\"" . $Language->Phrase("SearchPanel") . "\" data-toggle=\"button\" data-form=\"fuserslistsrch\">" . $Language->Phrase("SearchLink") . "</button>";
 		$item->Visible = TRUE;
 
@@ -1650,6 +1859,118 @@ class cusers_list extends cusers {
 		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
 		if ($this->BasicSearch->Keyword <> "" && $this->Command == "") $this->Command = "search";
 		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	}
+
+	// Load search values for validation
+	function LoadSearchValues() {
+		global $objForm;
+
+		// Load search values
+		// id_user
+
+		$this->id_user->AdvancedSearch->SearchValue = @$_GET["x_id_user"];
+		if ($this->id_user->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_user->AdvancedSearch->SearchOperator = @$_GET["z_id_user"];
+
+		// User_Level
+		$this->User_Level->AdvancedSearch->SearchValue = @$_GET["x_User_Level"];
+		if ($this->User_Level->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->User_Level->AdvancedSearch->SearchOperator = @$_GET["z_User_Level"];
+
+		// id_user_creator
+		$this->id_user_creator->AdvancedSearch->SearchValue = @$_GET["x_id_user_creator"];
+		if ($this->id_user_creator->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_user_creator->AdvancedSearch->SearchOperator = @$_GET["z_id_user_creator"];
+
+		// Username
+		$this->Username->AdvancedSearch->SearchValue = @$_GET["x_Username"];
+		if ($this->Username->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Username->AdvancedSearch->SearchOperator = @$_GET["z_Username"];
+
+		// Password
+		$this->Password->AdvancedSearch->SearchValue = @$_GET["x_Password"];
+		if ($this->Password->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Password->AdvancedSearch->SearchOperator = @$_GET["z_Password"];
+
+		// No_documento
+		$this->No_documento->AdvancedSearch->SearchValue = @$_GET["x_No_documento"];
+		if ($this->No_documento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->No_documento->AdvancedSearch->SearchOperator = @$_GET["z_No_documento"];
+
+		// Tipo_documento
+		$this->Tipo_documento->AdvancedSearch->SearchValue = @$_GET["x_Tipo_documento"];
+		if ($this->Tipo_documento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Tipo_documento->AdvancedSearch->SearchOperator = @$_GET["z_Tipo_documento"];
+
+		// First_Name
+		$this->First_Name->AdvancedSearch->SearchValue = @$_GET["x_First_Name"];
+		if ($this->First_Name->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->First_Name->AdvancedSearch->SearchOperator = @$_GET["z_First_Name"];
+
+		// Last_Name
+		$this->Last_Name->AdvancedSearch->SearchValue = @$_GET["x_Last_Name"];
+		if ($this->Last_Name->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Last_Name->AdvancedSearch->SearchOperator = @$_GET["z_Last_Name"];
+
+		// Email
+		$this->_Email->AdvancedSearch->SearchValue = @$_GET["x__Email"];
+		if ($this->_Email->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->_Email->AdvancedSearch->SearchOperator = @$_GET["z__Email"];
+
+		// Telefono_movil
+		$this->Telefono_movil->AdvancedSearch->SearchValue = @$_GET["x_Telefono_movil"];
+		if ($this->Telefono_movil->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Telefono_movil->AdvancedSearch->SearchOperator = @$_GET["z_Telefono_movil"];
+
+		// Telefono_fijo
+		$this->Telefono_fijo->AdvancedSearch->SearchValue = @$_GET["x_Telefono_fijo"];
+		if ($this->Telefono_fijo->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Telefono_fijo->AdvancedSearch->SearchOperator = @$_GET["z_Telefono_fijo"];
+
+		// Fecha_nacimiento
+		$this->Fecha_nacimiento->AdvancedSearch->SearchValue = @$_GET["x_Fecha_nacimiento"];
+		if ($this->Fecha_nacimiento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Fecha_nacimiento->AdvancedSearch->SearchOperator = @$_GET["z_Fecha_nacimiento"];
+
+		// Report_To
+		$this->Report_To->AdvancedSearch->SearchValue = @$_GET["x_Report_To"];
+		if ($this->Report_To->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Report_To->AdvancedSearch->SearchOperator = @$_GET["z_Report_To"];
+
+		// Activated
+		$this->Activated->AdvancedSearch->SearchValue = @$_GET["x_Activated"];
+		if ($this->Activated->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Activated->AdvancedSearch->SearchOperator = @$_GET["z_Activated"];
+
+		// Locked
+		$this->Locked->AdvancedSearch->SearchValue = @$_GET["x_Locked"];
+		if ($this->Locked->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Locked->AdvancedSearch->SearchOperator = @$_GET["z_Locked"];
+
+		// token
+		$this->token->AdvancedSearch->SearchValue = @$_GET["x_token"];
+		if ($this->token->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->token->AdvancedSearch->SearchOperator = @$_GET["z_token"];
+
+		// acceso_app
+		$this->acceso_app->AdvancedSearch->SearchValue = @$_GET["x_acceso_app"];
+		if ($this->acceso_app->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->acceso_app->AdvancedSearch->SearchOperator = @$_GET["z_acceso_app"];
+
+		// observaciones
+		$this->observaciones->AdvancedSearch->SearchValue = @$_GET["x_observaciones"];
+		if ($this->observaciones->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->observaciones->AdvancedSearch->SearchOperator = @$_GET["z_observaciones"];
+
+		// fecha_ingreso
+		$this->fecha_ingreso->AdvancedSearch->SearchValue = @$_GET["x_fecha_ingreso"];
+		if ($this->fecha_ingreso->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->fecha_ingreso->AdvancedSearch->SearchOperator = @$_GET["z_fecha_ingreso"];
+
+		// Profile
+		$this->Profile->AdvancedSearch->SearchValue = @$_GET["x_Profile"];
+		if ($this->Profile->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Profile->AdvancedSearch->SearchOperator = @$_GET["z_Profile"];
 	}
 
 	// Load recordset
@@ -2000,11 +2321,149 @@ class cusers_list extends cusers {
 			$this->fecha_ingreso->LinkCustomAttributes = "";
 			$this->fecha_ingreso->HrefValue = "";
 			$this->fecha_ingreso->TooltipValue = "";
+		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
+
+			// id_user
+			$this->id_user->EditAttrs["class"] = "form-control";
+			$this->id_user->EditCustomAttributes = "";
+			$this->id_user->EditValue = ew_HtmlEncode($this->id_user->AdvancedSearch->SearchValue);
+			$this->id_user->PlaceHolder = ew_RemoveHtml($this->id_user->FldCaption());
+
+			// User_Level
+			$this->User_Level->EditAttrs["class"] = "form-control";
+			$this->User_Level->EditCustomAttributes = "";
+			if (!$Security->CanAdmin()) { // System admin
+				$this->User_Level->EditValue = $Language->Phrase("PasswordMask");
+			} else {
+			if (trim(strval($this->User_Level->AdvancedSearch->SearchValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`userlevelid`" . ew_SearchString("=", $this->User_Level->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `userlevelid`, `userlevelname` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `userlevels`";
+			$sWhereWrk = "";
+			$this->User_Level->LookupFilters = array();
+			$lookuptblfilter = "`userlevelid` > 0";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->User_Level, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->User_Level->EditValue = $arwrk;
+			}
+
+			// Username
+			$this->Username->EditAttrs["class"] = "form-control";
+			$this->Username->EditCustomAttributes = "";
+			$this->Username->EditValue = ew_HtmlEncode($this->Username->AdvancedSearch->SearchValue);
+			$this->Username->PlaceHolder = ew_RemoveHtml($this->Username->FldCaption());
+
+			// No_documento
+			$this->No_documento->EditAttrs["class"] = "form-control";
+			$this->No_documento->EditCustomAttributes = "";
+			$this->No_documento->EditValue = ew_HtmlEncode($this->No_documento->AdvancedSearch->SearchValue);
+			$this->No_documento->PlaceHolder = ew_RemoveHtml($this->No_documento->FldCaption());
+
+			// First_Name
+			$this->First_Name->EditAttrs["class"] = "form-control";
+			$this->First_Name->EditCustomAttributes = "";
+			$this->First_Name->EditValue = ew_HtmlEncode($this->First_Name->AdvancedSearch->SearchValue);
+			$this->First_Name->PlaceHolder = ew_RemoveHtml($this->First_Name->FldCaption());
+
+			// Last_Name
+			$this->Last_Name->EditAttrs["class"] = "form-control";
+			$this->Last_Name->EditCustomAttributes = "";
+			$this->Last_Name->EditValue = ew_HtmlEncode($this->Last_Name->AdvancedSearch->SearchValue);
+			$this->Last_Name->PlaceHolder = ew_RemoveHtml($this->Last_Name->FldCaption());
+
+			// Email
+			$this->_Email->EditAttrs["class"] = "form-control";
+			$this->_Email->EditCustomAttributes = "";
+			$this->_Email->EditValue = ew_HtmlEncode($this->_Email->AdvancedSearch->SearchValue);
+			$this->_Email->PlaceHolder = ew_RemoveHtml($this->_Email->FldCaption());
+
+			// Telefono_movil
+			$this->Telefono_movil->EditAttrs["class"] = "form-control";
+			$this->Telefono_movil->EditCustomAttributes = "";
+			$this->Telefono_movil->EditValue = ew_HtmlEncode($this->Telefono_movil->AdvancedSearch->SearchValue);
+			$this->Telefono_movil->PlaceHolder = ew_RemoveHtml($this->Telefono_movil->FldCaption());
+
+			// Fecha_nacimiento
+			$this->Fecha_nacimiento->EditAttrs["class"] = "form-control";
+			$this->Fecha_nacimiento->EditCustomAttributes = "";
+			$this->Fecha_nacimiento->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->Fecha_nacimiento->AdvancedSearch->SearchValue, 17), 17));
+			$this->Fecha_nacimiento->PlaceHolder = ew_RemoveHtml($this->Fecha_nacimiento->FldCaption());
+
+			// Locked
+			$this->Locked->EditCustomAttributes = "";
+			$this->Locked->EditValue = $this->Locked->Options(FALSE);
+
+			// acceso_app
+			$this->acceso_app->EditCustomAttributes = "";
+			$this->acceso_app->EditValue = $this->acceso_app->Options(FALSE);
+
+			// fecha_ingreso
+			$this->fecha_ingreso->EditAttrs["class"] = "form-control";
+			$this->fecha_ingreso->EditCustomAttributes = "";
+			$this->fecha_ingreso->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha_ingreso->AdvancedSearch->SearchValue, 0), 8));
+			$this->fecha_ingreso->PlaceHolder = ew_RemoveHtml($this->fecha_ingreso->FldCaption());
 		}
+		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
+			$this->SetupFieldTitles();
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Validate search
+	function ValidateSearch() {
+		global $gsSearchError;
+
+		// Initialize
+		$gsSearchError = "";
+
+		// Check if validation required
+		if (!EW_SERVER_VALIDATE)
+			return TRUE;
+
+		// Return validate result
+		$ValidateSearch = ($gsSearchError == "");
+
+		// Call Form_CustomValidate event
+		$sFormCustomError = "";
+		$ValidateSearch = $ValidateSearch && $this->Form_CustomValidate($sFormCustomError);
+		if ($sFormCustomError <> "") {
+			ew_AddMessage($gsSearchError, $sFormCustomError);
+		}
+		return $ValidateSearch;
+	}
+
+	// Load advanced search
+	function LoadAdvancedSearch() {
+		$this->id_user->AdvancedSearch->Load();
+		$this->User_Level->AdvancedSearch->Load();
+		$this->id_user_creator->AdvancedSearch->Load();
+		$this->Username->AdvancedSearch->Load();
+		$this->Password->AdvancedSearch->Load();
+		$this->No_documento->AdvancedSearch->Load();
+		$this->Tipo_documento->AdvancedSearch->Load();
+		$this->First_Name->AdvancedSearch->Load();
+		$this->Last_Name->AdvancedSearch->Load();
+		$this->_Email->AdvancedSearch->Load();
+		$this->Telefono_movil->AdvancedSearch->Load();
+		$this->Telefono_fijo->AdvancedSearch->Load();
+		$this->Fecha_nacimiento->AdvancedSearch->Load();
+		$this->Report_To->AdvancedSearch->Load();
+		$this->Activated->AdvancedSearch->Load();
+		$this->Locked->AdvancedSearch->Load();
+		$this->token->AdvancedSearch->Load();
+		$this->acceso_app->AdvancedSearch->Load();
+		$this->observaciones->AdvancedSearch->Load();
+		$this->fecha_ingreso->AdvancedSearch->Load();
+		$this->Profile->AdvancedSearch->Load();
 	}
 
 	// Set up export options
@@ -2250,6 +2709,27 @@ class cusers_list extends cusers {
 		if ($this->BasicSearch->getKeyword() <> "") {
 			$sQry .= "&" . EW_TABLE_BASIC_SEARCH . "=" . urlencode($this->BasicSearch->getKeyword()) . "&" . EW_TABLE_BASIC_SEARCH_TYPE . "=" . urlencode($this->BasicSearch->getType());
 		}
+		$this->AddSearchQueryString($sQry, $this->id_user); // id_user
+		$this->AddSearchQueryString($sQry, $this->User_Level); // User_Level
+		$this->AddSearchQueryString($sQry, $this->id_user_creator); // id_user_creator
+		$this->AddSearchQueryString($sQry, $this->Username); // Username
+		$this->AddSearchQueryString($sQry, $this->Password); // Password
+		$this->AddSearchQueryString($sQry, $this->No_documento); // No_documento
+		$this->AddSearchQueryString($sQry, $this->Tipo_documento); // Tipo_documento
+		$this->AddSearchQueryString($sQry, $this->First_Name); // First_Name
+		$this->AddSearchQueryString($sQry, $this->Last_Name); // Last_Name
+		$this->AddSearchQueryString($sQry, $this->_Email); // Email
+		$this->AddSearchQueryString($sQry, $this->Telefono_movil); // Telefono_movil
+		$this->AddSearchQueryString($sQry, $this->Telefono_fijo); // Telefono_fijo
+		$this->AddSearchQueryString($sQry, $this->Fecha_nacimiento); // Fecha_nacimiento
+		$this->AddSearchQueryString($sQry, $this->Report_To); // Report_To
+		$this->AddSearchQueryString($sQry, $this->Activated); // Activated
+		$this->AddSearchQueryString($sQry, $this->Locked); // Locked
+		$this->AddSearchQueryString($sQry, $this->token); // token
+		$this->AddSearchQueryString($sQry, $this->acceso_app); // acceso_app
+		$this->AddSearchQueryString($sQry, $this->observaciones); // observaciones
+		$this->AddSearchQueryString($sQry, $this->fecha_ingreso); // fecha_ingreso
+		$this->AddSearchQueryString($sQry, $this->Profile); // Profile
 
 		// Build QueryString for pager
 		$sQry .= "&" . EW_TABLE_REC_PER_PAGE . "=" . urlencode($this->getRecordsPerPage()) . "&" . EW_TABLE_START_REC . "=" . urlencode($this->getStartRecordNumber());
@@ -2285,7 +2765,26 @@ class cusers_list extends cusers {
 	function SetupLookupFilters($fld, $pageId = null) {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
-		switch ($fld->FldVar) {
+		if ($pageId == "list") {
+			switch ($fld->FldVar) {
+			}
+		} elseif ($pageId == "extbs") {
+			switch ($fld->FldVar) {
+		case "x_User_Level":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `userlevelid` AS `LinkFld`, `userlevelname` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `userlevels`";
+			$sWhereWrk = "";
+			$this->User_Level->LookupFilters = array();
+			$lookuptblfilter = "`userlevelid` > 0";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`userlevelid` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->User_Level, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+			}
 		}
 	}
 
@@ -2293,7 +2792,12 @@ class cusers_list extends cusers {
 	function SetupAutoSuggestFilters($fld, $pageId = null) {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
-		switch ($fld->FldVar) {
+		if ($pageId == "list") {
+			switch ($fld->FldVar) {
+			}
+		} elseif ($pageId == "extbs") {
+			switch ($fld->FldVar) {
+			}
 		}
 	}
 
@@ -2474,6 +2978,37 @@ fuserslist.Lists["x_acceso_app"].Options = <?php echo json_encode($users_list->a
 
 // Form object for search
 var CurrentSearchForm = fuserslistsrch = new ew_Form("fuserslistsrch");
+
+// Validate function for search
+fuserslistsrch.Validate = function(fobj) {
+	if (!this.ValidateRequired)
+		return true; // Ignore validation
+	fobj = fobj || this.Form;
+	var infix = "";
+
+	// Fire Form_CustomValidate event
+	if (!this.Form_CustomValidate(fobj))
+		return false;
+	return true;
+}
+
+// Form_CustomValidate event
+fuserslistsrch.Form_CustomValidate = 
+ function(fobj) { // DO NOT CHANGE THIS LINE!
+
+ 	// Your custom validation code here, return false if invalid.
+ 	return true;
+ }
+
+// Use JavaScript validation or not
+fuserslistsrch.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
+
+// Dynamic selection lists
+fuserslistsrch.Lists["x_User_Level"] = {"LinkField":"x_userlevelid","Ajax":true,"AutoFill":false,"DisplayFields":["x_userlevelname","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"userlevels"};
+fuserslistsrch.Lists["x_User_Level"].Data = "<?php echo $users_list->User_Level->LookupFilterQuery(FALSE, "extbs") ?>";
+
+// Init search panel as collapsed
+if (fuserslistsrch) fuserslistsrch.InitSearchPanel = true;
 </script>
 <script type="text/javascript">
 
@@ -2525,12 +3060,73 @@ $users_list->RenderOtherOptions();
 <?php if ($Security->CanSearch()) { ?>
 <?php if ($users->Export == "" && $users->CurrentAction == "") { ?>
 <form name="fuserslistsrch" id="fuserslistsrch" class="form-inline ewForm ewExtSearchForm" action="<?php echo ew_CurrentPage() ?>">
-<?php $SearchPanelClass = ($users_list->SearchWhere <> "") ? " in" : " in"; ?>
+<?php $SearchPanelClass = ($users_list->SearchWhere <> "") ? " in" : ""; ?>
 <div id="fuserslistsrch_SearchPanel" class="ewSearchPanel collapse<?php echo $SearchPanelClass ?>">
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="users">
 	<div class="ewBasicSearch">
+<?php
+if ($gsSearchError == "")
+	$users_list->LoadAdvancedSearch(); // Load advanced search
+
+// Render for search
+$users->RowType = EW_ROWTYPE_SEARCH;
+
+// Render row
+$users->ResetAttrs();
+$users_list->RenderRow();
+?>
 <div id="xsr_1" class="ewRow">
+<?php if ($users->User_Level->Visible) { // User_Level ?>
+	<div id="xsc_User_Level" class="ewCell form-group">
+		<label for="x_User_Level" class="ewSearchCaption ewLabel"><?php echo $users->User_Level->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_User_Level" id="z_User_Level" value="="></span>
+		<span class="ewSearchField">
+<?php if (!$Security->IsAdmin() && $Security->IsLoggedIn()) { // Non system admin ?>
+<p class="form-control-static"><?php echo $users->User_Level->EditValue ?></p>
+<?php } else { ?>
+<select data-table="users" data-field="x_User_Level" data-value-separator="<?php echo $users->User_Level->DisplayValueSeparatorAttribute() ?>" id="x_User_Level" name="x_User_Level"<?php echo $users->User_Level->EditAttributes() ?>>
+<?php echo $users->User_Level->SelectOptionListHtml("x_User_Level") ?>
+</select>
+<?php } ?>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_2" class="ewRow">
+<?php if ($users->Username->Visible) { // Username ?>
+	<div id="xsc_Username" class="ewCell form-group">
+		<label for="x_Username" class="ewSearchCaption ewLabel"><?php echo $users->Username->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_Username" id="z_Username" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="users" data-field="x_Username" name="x_Username" id="x_Username" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($users->Username->getPlaceHolder()) ?>" value="<?php echo $users->Username->EditValue ?>"<?php echo $users->Username->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_3" class="ewRow">
+<?php if ($users->First_Name->Visible) { // First_Name ?>
+	<div id="xsc_First_Name" class="ewCell form-group">
+		<label for="x_First_Name" class="ewSearchCaption ewLabel"><?php echo $users->First_Name->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_First_Name" id="z_First_Name" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="users" data-field="x_First_Name" name="x_First_Name" id="x_First_Name" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($users->First_Name->getPlaceHolder()) ?>" value="<?php echo $users->First_Name->EditValue ?>"<?php echo $users->First_Name->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_4" class="ewRow">
+<?php if ($users->Last_Name->Visible) { // Last_Name ?>
+	<div id="xsc_Last_Name" class="ewCell form-group">
+		<label for="x_Last_Name" class="ewSearchCaption ewLabel"><?php echo $users->Last_Name->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_Last_Name" id="z_Last_Name" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="users" data-field="x_Last_Name" name="x_Last_Name" id="x_Last_Name" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($users->Last_Name->getPlaceHolder()) ?>" value="<?php echo $users->Last_Name->EditValue ?>"<?php echo $users->Last_Name->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_5" class="ewRow">
 	<div class="ewQuickSearch input-group">
 	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($users_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
 	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($users_list->BasicSearch->getType()) ?>">
