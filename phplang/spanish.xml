@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<ew-language date="2018/2/7" version="14.0.0" id="en" name="Español" desc="Español" author="e.World Technology Ltd.">
+<ew-language date="2018/2/8" version="14.0.0" id="en" name="Español" desc="Español" author="e.World Technology Ltd.">
   <!-- 
 	*** Important Notes:
 	1. Language ID should follow: https://developers.google.com/recaptcha/docs/language,
@@ -616,6 +616,39 @@
   <project>
     <phrase id="bodytitle" value="Sistema de Gestión de Cobranzas - BMG" />
     <phrase id="footertext" value="&amp;copy;2017 e.World Technology Ltd. All rights reserved." />
+    <menu id="31">
+      <phrase id="menutext" value="Cartera" />
+    </menu>
+    <menu id="18">
+      <phrase id="menutext" value="Personas" />
+    </menu>
+    <menu id="19">
+      <phrase id="menutext" value="Teléfonos" />
+    </menu>
+    <menu id="32">
+      <phrase id="menutext" value="Direcciones" />
+    </menu>
+    <menu id="33">
+      <phrase id="menutext" value="Correos" />
+    </menu>
+    <menu id="16">
+      <phrase id="menutext" value="Cuentas" />
+    </menu>
+    <menu id="14">
+      <phrase id="menutext" value="Parámetros" />
+    </menu>
+    <menu id="17">
+      <phrase id="menutext" value="Ciudades" />
+    </menu>
+    <menu id="15">
+      <phrase id="menutext" value="Estados de Deuda" />
+    </menu>
+    <menu id="9">
+      <phrase id="menutext" value="Tipo de gestión" />
+    </menu>
+    <menu id="10">
+      <phrase id="menutext" value="Tipo de persona" />
+    </menu>
     <menu id="4">
       <phrase id="menutext" value="Auditoría" />
     </menu>
@@ -767,6 +800,190 @@
         <phrase id="fldtagcaption2" value="Pasaporte" />
         <phrase id="fldtagvalue3" value="OT" />
         <phrase id="fldtagcaption3" value="Otro" />
+      </field>
+    </table>
+    <table id="tipo_gestion">
+      <phrase id="tblcaption" value="Tipo de gestión" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="tipo_persona">
+      <phrase id="tblcaption" value="Tipo de persona" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="estado_deuda">
+      <phrase id="tblcaption" value="Estados de Deuda" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="cuentas">
+      <phrase id="tblcaption" value="Cuentas" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="denominacion">
+        <phrase id="fldcaption" value="Denominación" />
+      </field>
+      <field id="inicio_contrato">
+        <phrase id="fldcaption" value="F.Inicio Contrato" />
+      </field>
+      <field id="fin_contrato">
+        <phrase id="fldcaption" value="F.Fin Contrato" />
+      </field>
+      <field id="fecha_registro">
+        <phrase id="fldcaption" value="Fecha de Registro" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="ciudades">
+      <phrase id="tblcaption" value="Ciudades" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="personas">
+      <phrase id="tblcaption" value="Personas" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="id_tipopersona">
+        <phrase id="fldcaption" value="Tipo" />
+      </field>
+      <field id="tipo_documento">
+        <phrase id="fldcaption" value="Tipo Doc." />
+        <phrase id="fldtagvalue1" value="CI" />
+        <phrase id="fldtagcaption1" value="CI" />
+        <phrase id="fldtagvalue2" value="Libreta Militar" />
+        <phrase id="fldtagcaption2" value="Libreta Militar" />
+        <phrase id="fldtagvalue3" value="Pasaporte" />
+        <phrase id="fldtagcaption3" value="Pasaporte" />
+      </field>
+      <field id="no_documento">
+        <phrase id="fldcaption" value="No. Doc." />
+      </field>
+      <field id="nombres">
+        <phrase id="fldcaption" value="Nombres" />
+      </field>
+      <field id="paterno">
+        <phrase id="fldcaption" value="Ap. Paterno" />
+      </field>
+      <field id="materno">
+        <phrase id="fldcaption" value="Ap. Materno" />
+      </field>
+      <field id="fecha_nacimiento">
+        <phrase id="fldcaption" value="Fecha de nacimiento" />
+      </field>
+      <field id="fecha_registro">
+        <phrase id="fldcaption" value="Fecha de registro" />
+      </field>
+      <field id="observaciones">
+        <phrase id="fldcaption" value="Observaciones" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="telefonos">
+      <phrase id="tblcaption" value="Teléfonos" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="id_persona">
+        <phrase id="fldcaption" value="Persona" />
+      </field>
+      <field id="tipo">
+        <phrase id="fldcaption" value="Tipo" />
+        <phrase id="fldtagvalue1" value="Celular" />
+        <phrase id="fldtagcaption1" value="Celular" />
+        <phrase id="fldtagvalue2" value="Fijo" />
+        <phrase id="fldtagcaption2" value="Fijo" />
+      </field>
+      <field id="numero">
+        <phrase id="fldcaption" value="Número" />
+      </field>
+      <field id="ult_fecha_activo">
+        <phrase id="fldcaption" value="Ult. Fecha Activo" />
+      </field>
+    </table>
+    <table id="direcciones">
+      <phrase id="tblcaption" value="Direcciones" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="id_persona">
+        <phrase id="fldcaption" value="Persona" />
+      </field>
+      <field id="direccion">
+        <phrase id="fldcaption" value="Dirección" />
+      </field>
+      <field id="ult_fecha_activo">
+        <phrase id="fldcaption" value="Ult. Fecha Activo" />
+      </field>
+    </table>
+    <table id="emails">
+      <phrase id="tblcaption" value="Correos" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="id_persona">
+        <phrase id="fldcaption" value="Persona" />
+      </field>
+      <field id="_email">
+        <phrase id="fldcaption" value="Email" />
       </field>
     </table>
   </project>

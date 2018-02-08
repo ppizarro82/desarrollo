@@ -25,7 +25,7 @@ define("EW_CONFIG_FILE_FOLDER", EW_PROJECT_NAME, TRUE); // Config file name
 define("EW_PROJECT_ID", "{A36EA07C-DB7F-422A-9088-B007545008C2}", TRUE); // Project ID (GUID)
 $EW_RELATED_PROJECT_ID = "";
 $EW_RELATED_LANGUAGE_FOLDER = "";
-define("EW_RANDOM_KEY", 'nNe5Fl22Ln6mh6lq', TRUE); // Random key for encryption
+define("EW_RANDOM_KEY", 'k5xbbrwnXAWER98o', TRUE); // Random key for encryption
 define("EW_PROJECT_STYLESHEET_FILENAME", "phpcss/cobproject.css", TRUE); // Project stylesheet file name
 define("EW_CHARSET", "utf-8", TRUE); // Project charset
 define("EW_EMAIL_CHARSET", EW_CHARSET, TRUE); // Email charset
@@ -248,8 +248,8 @@ define("EW_AUDIT_TRAIL_FIELD_NAME_OLDVALUE", "oldvalue", TRUE); // Audit trail O
 define("EW_AUDIT_TRAIL_FIELD_NAME_NEWVALUE", "newvalue", TRUE); // Audit trail New Value field name
 
 // Security
-define("EW_ADMIN_USER_NAME", "administrador", TRUE); // Administrator user name
-define("EW_ADMIN_PASSWORD", "lqevslv2017", TRUE); // Administrator password
+define("EW_ADMIN_USER_NAME", "", TRUE); // Administrator user name
+define("EW_ADMIN_PASSWORD", "", TRUE); // Administrator password
 define("EW_USE_CUSTOM_LOGIN", TRUE, TRUE); // Use custom login
 define("EW_ALLOW_LOGIN_BY_URL", FALSE, TRUE); // Allow login by URL
 define("EW_ALLOW_LOGIN_BY_SESSION", FALSE, TRUE); // Allow login by session variables

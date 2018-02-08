@@ -311,6 +311,24 @@ class cdefault {
 			$this->Page_Terminate("userslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'audittrail'))
 			$this->Page_Terminate("audittraillist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_gestion'))
+			$this->Page_Terminate("tipo_gestionlist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_persona'))
+			$this->Page_Terminate("tipo_personalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'estado_deuda'))
+			$this->Page_Terminate("estado_deudalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'cuentas'))
+			$this->Page_Terminate("cuentaslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'ciudades'))
+			$this->Page_Terminate("ciudadeslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'personas'))
+			$this->Page_Terminate("personaslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'telefonos'))
+			$this->Page_Terminate("telefonoslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'direcciones'))
+			$this->Page_Terminate("direccioneslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'emails'))
+			$this->Page_Terminate("emailslist.php");
 		if ($Security->IsLoggedIn()) {
 			$this->setFailureMessage(ew_DeniedMsg() . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
 		} else {
