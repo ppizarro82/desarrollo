@@ -1697,7 +1697,7 @@ class ctelefonos_list extends ctelefonos {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
@@ -1852,7 +1852,7 @@ class ctelefonos_list extends ctelefonos {
 		// Export to Pdf
 		$item = &$this->ExportOptions->Add("pdf");
 		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = FALSE;
+		$item->Visible = TRUE;
 
 		// Export to Email
 		$item = &$this->ExportOptions->Add("email");

@@ -451,8 +451,13 @@ class cdirecciones_list extends cdirecciones {
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 		$this->id_persona->SetVisibility();
+		$this->id_ciudad->SetVisibility();
+		$this->tipo_direccion->SetVisibility();
 		$this->direccion->SetVisibility();
 		$this->ult_fecha_activo->SetVisibility();
+		$this->mapa->SetVisibility();
+		$this->longitud->SetVisibility();
+		$this->latitud->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -642,7 +647,11 @@ class cdirecciones_list extends cdirecciones {
 			}
 
 			// Get default search criteria
+			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
 			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
+
+			// Get basic search values
+			$this->LoadBasicSearchValues();
 
 			// Get and validate search values for advanced search
 			$this->LoadSearchValues(); // Get search values
@@ -662,6 +671,10 @@ class cdirecciones_list extends cdirecciones {
 			// Set up sorting order
 			$this->SetupSortOrder();
 
+			// Get basic search criteria
+			if ($gsSearchError == "")
+				$sSrchBasic = $this->BasicSearchWhere();
+
 			// Get search criteria for advanced search
 			if ($gsSearchError == "")
 				$sSrchAdvanced = $this->AdvancedSearchWhere();
@@ -680,6 +693,11 @@ class cdirecciones_list extends cdirecciones {
 
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
+
+			// Load basic search from default
+			$this->BasicSearch->LoadDefault();
+			if ($this->BasicSearch->Keyword != "")
+				$sSrchBasic = $this->BasicSearchWhere();
 
 			// Load advanced search from default
 			if ($this->LoadAdvancedSearchDefault()) {
@@ -814,8 +832,17 @@ class cdirecciones_list extends cdirecciones {
 		$sFilterList = "";
 		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
 		$sFilterList = ew_Concat($sFilterList, $this->id_persona->AdvancedSearch->ToJson(), ","); // Field id_persona
+		$sFilterList = ew_Concat($sFilterList, $this->id_ciudad->AdvancedSearch->ToJson(), ","); // Field id_ciudad
+		$sFilterList = ew_Concat($sFilterList, $this->tipo_direccion->AdvancedSearch->ToJson(), ","); // Field tipo_direccion
 		$sFilterList = ew_Concat($sFilterList, $this->direccion->AdvancedSearch->ToJson(), ","); // Field direccion
 		$sFilterList = ew_Concat($sFilterList, $this->ult_fecha_activo->AdvancedSearch->ToJson(), ","); // Field ult_fecha_activo
+		$sFilterList = ew_Concat($sFilterList, $this->mapa->AdvancedSearch->ToJson(), ","); // Field mapa
+		$sFilterList = ew_Concat($sFilterList, $this->longitud->AdvancedSearch->ToJson(), ","); // Field longitud
+		$sFilterList = ew_Concat($sFilterList, $this->latitud->AdvancedSearch->ToJson(), ","); // Field latitud
+		if ($this->BasicSearch->Keyword <> "") {
+			$sWrk = "\"" . EW_TABLE_BASIC_SEARCH . "\":\"" . ew_JsEncode2($this->BasicSearch->Keyword) . "\",\"" . EW_TABLE_BASIC_SEARCH_TYPE . "\":\"" . ew_JsEncode2($this->BasicSearch->Type) . "\"";
+			$sFilterList = ew_Concat($sFilterList, $sWrk, ",");
+		}
 		$sFilterList = preg_replace('/,$/', "", $sFilterList);
 
 		// Return filter list in json
@@ -872,6 +899,22 @@ class cdirecciones_list extends cdirecciones {
 		$this->id_persona->AdvancedSearch->SearchOperator2 = @$filter["w_id_persona"];
 		$this->id_persona->AdvancedSearch->Save();
 
+		// Field id_ciudad
+		$this->id_ciudad->AdvancedSearch->SearchValue = @$filter["x_id_ciudad"];
+		$this->id_ciudad->AdvancedSearch->SearchOperator = @$filter["z_id_ciudad"];
+		$this->id_ciudad->AdvancedSearch->SearchCondition = @$filter["v_id_ciudad"];
+		$this->id_ciudad->AdvancedSearch->SearchValue2 = @$filter["y_id_ciudad"];
+		$this->id_ciudad->AdvancedSearch->SearchOperator2 = @$filter["w_id_ciudad"];
+		$this->id_ciudad->AdvancedSearch->Save();
+
+		// Field tipo_direccion
+		$this->tipo_direccion->AdvancedSearch->SearchValue = @$filter["x_tipo_direccion"];
+		$this->tipo_direccion->AdvancedSearch->SearchOperator = @$filter["z_tipo_direccion"];
+		$this->tipo_direccion->AdvancedSearch->SearchCondition = @$filter["v_tipo_direccion"];
+		$this->tipo_direccion->AdvancedSearch->SearchValue2 = @$filter["y_tipo_direccion"];
+		$this->tipo_direccion->AdvancedSearch->SearchOperator2 = @$filter["w_tipo_direccion"];
+		$this->tipo_direccion->AdvancedSearch->Save();
+
 		// Field direccion
 		$this->direccion->AdvancedSearch->SearchValue = @$filter["x_direccion"];
 		$this->direccion->AdvancedSearch->SearchOperator = @$filter["z_direccion"];
@@ -887,6 +930,32 @@ class cdirecciones_list extends cdirecciones {
 		$this->ult_fecha_activo->AdvancedSearch->SearchValue2 = @$filter["y_ult_fecha_activo"];
 		$this->ult_fecha_activo->AdvancedSearch->SearchOperator2 = @$filter["w_ult_fecha_activo"];
 		$this->ult_fecha_activo->AdvancedSearch->Save();
+
+		// Field mapa
+		$this->mapa->AdvancedSearch->SearchValue = @$filter["x_mapa"];
+		$this->mapa->AdvancedSearch->SearchOperator = @$filter["z_mapa"];
+		$this->mapa->AdvancedSearch->SearchCondition = @$filter["v_mapa"];
+		$this->mapa->AdvancedSearch->SearchValue2 = @$filter["y_mapa"];
+		$this->mapa->AdvancedSearch->SearchOperator2 = @$filter["w_mapa"];
+		$this->mapa->AdvancedSearch->Save();
+
+		// Field longitud
+		$this->longitud->AdvancedSearch->SearchValue = @$filter["x_longitud"];
+		$this->longitud->AdvancedSearch->SearchOperator = @$filter["z_longitud"];
+		$this->longitud->AdvancedSearch->SearchCondition = @$filter["v_longitud"];
+		$this->longitud->AdvancedSearch->SearchValue2 = @$filter["y_longitud"];
+		$this->longitud->AdvancedSearch->SearchOperator2 = @$filter["w_longitud"];
+		$this->longitud->AdvancedSearch->Save();
+
+		// Field latitud
+		$this->latitud->AdvancedSearch->SearchValue = @$filter["x_latitud"];
+		$this->latitud->AdvancedSearch->SearchOperator = @$filter["z_latitud"];
+		$this->latitud->AdvancedSearch->SearchCondition = @$filter["v_latitud"];
+		$this->latitud->AdvancedSearch->SearchValue2 = @$filter["y_latitud"];
+		$this->latitud->AdvancedSearch->SearchOperator2 = @$filter["w_latitud"];
+		$this->latitud->AdvancedSearch->Save();
+		$this->BasicSearch->setKeyword(@$filter[EW_TABLE_BASIC_SEARCH]);
+		$this->BasicSearch->setType(@$filter[EW_TABLE_BASIC_SEARCH_TYPE]);
 	}
 
 	// Advanced search WHERE clause based on QueryString
@@ -896,8 +965,13 @@ class cdirecciones_list extends cdirecciones {
 		if (!$Security->CanSearch()) return "";
 		$this->BuildSearchSql($sWhere, $this->Id, $Default, FALSE); // Id
 		$this->BuildSearchSql($sWhere, $this->id_persona, $Default, FALSE); // id_persona
+		$this->BuildSearchSql($sWhere, $this->id_ciudad, $Default, FALSE); // id_ciudad
+		$this->BuildSearchSql($sWhere, $this->tipo_direccion, $Default, FALSE); // tipo_direccion
 		$this->BuildSearchSql($sWhere, $this->direccion, $Default, FALSE); // direccion
 		$this->BuildSearchSql($sWhere, $this->ult_fecha_activo, $Default, FALSE); // ult_fecha_activo
+		$this->BuildSearchSql($sWhere, $this->mapa, $Default, FALSE); // mapa
+		$this->BuildSearchSql($sWhere, $this->longitud, $Default, FALSE); // longitud
+		$this->BuildSearchSql($sWhere, $this->latitud, $Default, FALSE); // latitud
 
 		// Set up search parm
 		if (!$Default && $sWhere <> "" && in_array($this->Command, array("", "reset", "resetall"))) {
@@ -906,8 +980,13 @@ class cdirecciones_list extends cdirecciones {
 		if (!$Default && $this->Command == "search") {
 			$this->Id->AdvancedSearch->Save(); // Id
 			$this->id_persona->AdvancedSearch->Save(); // id_persona
+			$this->id_ciudad->AdvancedSearch->Save(); // id_ciudad
+			$this->tipo_direccion->AdvancedSearch->Save(); // tipo_direccion
 			$this->direccion->AdvancedSearch->Save(); // direccion
 			$this->ult_fecha_activo->AdvancedSearch->Save(); // ult_fecha_activo
+			$this->mapa->AdvancedSearch->Save(); // mapa
+			$this->longitud->AdvancedSearch->Save(); // longitud
+			$this->latitud->AdvancedSearch->Save(); // latitud
 		}
 		return $sWhere;
 	}
@@ -956,15 +1035,137 @@ class cdirecciones_list extends cdirecciones {
 		return $Value;
 	}
 
+	// Return basic search SQL
+	function BasicSearchSQL($arKeywords, $type) {
+		$sWhere = "";
+		$this->BuildBasicSearchSQL($sWhere, $this->tipo_direccion, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->mapa, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->longitud, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->latitud, $arKeywords, $type);
+		return $sWhere;
+	}
+
+	// Build basic search SQL
+	function BuildBasicSearchSQL(&$Where, &$Fld, $arKeywords, $type) {
+		global $EW_BASIC_SEARCH_IGNORE_PATTERN;
+		$sDefCond = ($type == "OR") ? "OR" : "AND";
+		$arSQL = array(); // Array for SQL parts
+		$arCond = array(); // Array for search conditions
+		$cnt = count($arKeywords);
+		$j = 0; // Number of SQL parts
+		for ($i = 0; $i < $cnt; $i++) {
+			$Keyword = $arKeywords[$i];
+			$Keyword = trim($Keyword);
+			if ($EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
+				$Keyword = preg_replace($EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
+				$ar = explode("\\", $Keyword);
+			} else {
+				$ar = array($Keyword);
+			}
+			foreach ($ar as $Keyword) {
+				if ($Keyword <> "") {
+					$sWrk = "";
+					if ($Keyword == "OR" && $type == "") {
+						if ($j > 0)
+							$arCond[$j-1] = "OR";
+					} elseif ($Keyword == EW_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NULL";
+					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NOT NULL";
+					} elseif ($Fld->FldIsVirtual) {
+						$sWrk = $Fld->FldVirtualExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
+					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
+						$sWrk = $Fld->FldBasicSearchExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
+					}
+					if ($sWrk <> "") {
+						$arSQL[$j] = $sWrk;
+						$arCond[$j] = $sDefCond;
+						$j += 1;
+					}
+				}
+			}
+		}
+		$cnt = count($arSQL);
+		$bQuoted = FALSE;
+		$sSql = "";
+		if ($cnt > 0) {
+			for ($i = 0; $i < $cnt-1; $i++) {
+				if ($arCond[$i] == "OR") {
+					if (!$bQuoted) $sSql .= "(";
+					$bQuoted = TRUE;
+				}
+				$sSql .= $arSQL[$i];
+				if ($bQuoted && $arCond[$i] <> "OR") {
+					$sSql .= ")";
+					$bQuoted = FALSE;
+				}
+				$sSql .= " " . $arCond[$i] . " ";
+			}
+			$sSql .= $arSQL[$cnt-1];
+			if ($bQuoted)
+				$sSql .= ")";
+		}
+		if ($sSql <> "") {
+			if ($Where <> "") $Where .= " OR ";
+			$Where .= "(" . $sSql . ")";
+		}
+	}
+
+	// Return basic search WHERE clause based on search keyword and type
+	function BasicSearchWhere($Default = FALSE) {
+		global $Security;
+		$sSearchStr = "";
+		if (!$Security->CanSearch()) return "";
+		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
+		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
+
+		// Get search SQL
+		if ($sSearchKeyword <> "") {
+			$ar = $this->BasicSearch->KeywordList($Default);
+
+			// Search keyword in any fields
+			if (($sSearchType == "OR" || $sSearchType == "AND") && $this->BasicSearch->BasicSearchAnyFields) {
+				foreach ($ar as $sKeyword) {
+					if ($sKeyword <> "") {
+						if ($sSearchStr <> "") $sSearchStr .= " " . $sSearchType . " ";
+						$sSearchStr .= "(" . $this->BasicSearchSQL(array($sKeyword), $sSearchType) . ")";
+					}
+				}
+			} else {
+				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
+			}
+			if (!$Default && in_array($this->Command, array("", "reset", "resetall"))) $this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->BasicSearch->setKeyword($sSearchKeyword);
+			$this->BasicSearch->setType($sSearchType);
+		}
+		return $sSearchStr;
+	}
+
 	// Check if search parm exists
 	function CheckSearchParms() {
+
+		// Check basic search
+		if ($this->BasicSearch->IssetSession())
+			return TRUE;
 		if ($this->Id->AdvancedSearch->IssetSession())
 			return TRUE;
 		if ($this->id_persona->AdvancedSearch->IssetSession())
 			return TRUE;
+		if ($this->id_ciudad->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->tipo_direccion->AdvancedSearch->IssetSession())
+			return TRUE;
 		if ($this->direccion->AdvancedSearch->IssetSession())
 			return TRUE;
 		if ($this->ult_fecha_activo->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->mapa->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->longitud->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->latitud->AdvancedSearch->IssetSession())
 			return TRUE;
 		return FALSE;
 	}
@@ -976,6 +1177,9 @@ class cdirecciones_list extends cdirecciones {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
+		// Clear basic search parameters
+		$this->ResetBasicSearchParms();
+
 		// Clear advanced search parameters
 		$this->ResetAdvancedSearchParms();
 	}
@@ -985,23 +1189,41 @@ class cdirecciones_list extends cdirecciones {
 		return FALSE;
 	}
 
+	// Clear all basic search parameters
+	function ResetBasicSearchParms() {
+		$this->BasicSearch->UnsetSession();
+	}
+
 	// Clear all advanced search parameters
 	function ResetAdvancedSearchParms() {
 		$this->Id->AdvancedSearch->UnsetSession();
 		$this->id_persona->AdvancedSearch->UnsetSession();
+		$this->id_ciudad->AdvancedSearch->UnsetSession();
+		$this->tipo_direccion->AdvancedSearch->UnsetSession();
 		$this->direccion->AdvancedSearch->UnsetSession();
 		$this->ult_fecha_activo->AdvancedSearch->UnsetSession();
+		$this->mapa->AdvancedSearch->UnsetSession();
+		$this->longitud->AdvancedSearch->UnsetSession();
+		$this->latitud->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
+		// Restore basic search values
+		$this->BasicSearch->Load();
+
 		// Restore advanced search values
 		$this->Id->AdvancedSearch->Load();
 		$this->id_persona->AdvancedSearch->Load();
+		$this->id_ciudad->AdvancedSearch->Load();
+		$this->tipo_direccion->AdvancedSearch->Load();
 		$this->direccion->AdvancedSearch->Load();
 		$this->ult_fecha_activo->AdvancedSearch->Load();
+		$this->mapa->AdvancedSearch->Load();
+		$this->longitud->AdvancedSearch->Load();
+		$this->latitud->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -1013,8 +1235,13 @@ class cdirecciones_list extends cdirecciones {
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
 			$this->UpdateSort($this->id_persona); // id_persona
+			$this->UpdateSort($this->id_ciudad); // id_ciudad
+			$this->UpdateSort($this->tipo_direccion); // tipo_direccion
 			$this->UpdateSort($this->direccion); // direccion
 			$this->UpdateSort($this->ult_fecha_activo); // ult_fecha_activo
+			$this->UpdateSort($this->mapa); // mapa
+			$this->UpdateSort($this->longitud); // longitud
+			$this->UpdateSort($this->latitud); // latitud
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -1058,8 +1285,13 @@ class cdirecciones_list extends cdirecciones {
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
 				$this->id_persona->setSort("");
+				$this->id_ciudad->setSort("");
+				$this->tipo_direccion->setSort("");
 				$this->direccion->setSort("");
 				$this->ult_fecha_activo->setSort("");
+				$this->mapa->setSort("");
+				$this->longitud->setSort("");
+				$this->latitud->setSort("");
 			}
 
 			// Reset start position
@@ -1141,10 +1373,7 @@ class cdirecciones_list extends cdirecciones {
 		$oListOpt = &$this->ListOptions->Items["view"];
 		$viewcaption = ew_HtmlTitle($Language->Phrase("ViewLink"));
 		if ($Security->CanView()) {
-			if (ew_IsMobile())
-				$oListOpt->Body = "<a class=\"ewRowLink ewView\" title=\"" . $viewcaption . "\" data-caption=\"" . $viewcaption . "\" href=\"" . ew_HtmlEncode($this->ViewUrl) . "\">" . $Language->Phrase("ViewLink") . "</a>";
-			else
-				$oListOpt->Body = "<a class=\"ewRowLink ewView\" title=\"" . $viewcaption . "\" data-table=\"direcciones\" data-caption=\"" . $viewcaption . "\" href=\"javascript:void(0);\" onclick=\"ew_ModalDialogShow({lnk:this,url:'" . ew_HtmlEncode($this->ViewUrl) . "',btn:null});\">" . $Language->Phrase("ViewLink") . "</a>";
+			$oListOpt->Body = "<a class=\"ewRowLink ewView\" title=\"" . $viewcaption . "\" data-caption=\"" . $viewcaption . "\" href=\"" . ew_HtmlEncode($this->ViewUrl) . "\">" . $Language->Phrase("ViewLink") . "</a>";
 		} else {
 			$oListOpt->Body = "";
 		}
@@ -1452,6 +1681,13 @@ class cdirecciones_list extends cdirecciones {
 		}
 	}
 
+	// Load basic search values
+	function LoadBasicSearchValues() {
+		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
+		if ($this->BasicSearch->Keyword <> "" && $this->Command == "") $this->Command = "search";
+		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	}
+
 	// Load search values for validation
 	function LoadSearchValues() {
 		global $objForm;
@@ -1468,6 +1704,16 @@ class cdirecciones_list extends cdirecciones {
 		if ($this->id_persona->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
 		$this->id_persona->AdvancedSearch->SearchOperator = @$_GET["z_id_persona"];
 
+		// id_ciudad
+		$this->id_ciudad->AdvancedSearch->SearchValue = @$_GET["x_id_ciudad"];
+		if ($this->id_ciudad->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_ciudad->AdvancedSearch->SearchOperator = @$_GET["z_id_ciudad"];
+
+		// tipo_direccion
+		$this->tipo_direccion->AdvancedSearch->SearchValue = @$_GET["x_tipo_direccion"];
+		if ($this->tipo_direccion->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->tipo_direccion->AdvancedSearch->SearchOperator = @$_GET["z_tipo_direccion"];
+
 		// direccion
 		$this->direccion->AdvancedSearch->SearchValue = @$_GET["x_direccion"];
 		if ($this->direccion->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
@@ -1481,6 +1727,21 @@ class cdirecciones_list extends cdirecciones {
 		$this->ult_fecha_activo->AdvancedSearch->SearchValue2 = @$_GET["y_ult_fecha_activo"];
 		if ($this->ult_fecha_activo->AdvancedSearch->SearchValue2 <> "" && $this->Command == "") $this->Command = "search";
 		$this->ult_fecha_activo->AdvancedSearch->SearchOperator2 = @$_GET["w_ult_fecha_activo"];
+
+		// mapa
+		$this->mapa->AdvancedSearch->SearchValue = @$_GET["x_mapa"];
+		if ($this->mapa->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->mapa->AdvancedSearch->SearchOperator = @$_GET["z_mapa"];
+
+		// longitud
+		$this->longitud->AdvancedSearch->SearchValue = @$_GET["x_longitud"];
+		if ($this->longitud->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->longitud->AdvancedSearch->SearchOperator = @$_GET["z_longitud"];
+
+		// latitud
+		$this->latitud->AdvancedSearch->SearchValue = @$_GET["x_latitud"];
+		if ($this->latitud->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->latitud->AdvancedSearch->SearchOperator = @$_GET["z_latitud"];
 	}
 
 	// Load recordset
@@ -1544,8 +1805,13 @@ class cdirecciones_list extends cdirecciones {
 			return;
 		$this->Id->setDbValue($row['Id']);
 		$this->id_persona->setDbValue($row['id_persona']);
+		$this->id_ciudad->setDbValue($row['id_ciudad']);
+		$this->tipo_direccion->setDbValue($row['tipo_direccion']);
 		$this->direccion->setDbValue($row['direccion']);
 		$this->ult_fecha_activo->setDbValue($row['ult_fecha_activo']);
+		$this->mapa->setDbValue($row['mapa']);
+		$this->longitud->setDbValue($row['longitud']);
+		$this->latitud->setDbValue($row['latitud']);
 	}
 
 	// Return a row with default values
@@ -1553,8 +1819,13 @@ class cdirecciones_list extends cdirecciones {
 		$row = array();
 		$row['Id'] = NULL;
 		$row['id_persona'] = NULL;
+		$row['id_ciudad'] = NULL;
+		$row['tipo_direccion'] = NULL;
 		$row['direccion'] = NULL;
 		$row['ult_fecha_activo'] = NULL;
+		$row['mapa'] = NULL;
+		$row['longitud'] = NULL;
+		$row['latitud'] = NULL;
 		return $row;
 	}
 
@@ -1565,8 +1836,13 @@ class cdirecciones_list extends cdirecciones {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
 		$this->id_persona->DbValue = $row['id_persona'];
+		$this->id_ciudad->DbValue = $row['id_ciudad'];
+		$this->tipo_direccion->DbValue = $row['tipo_direccion'];
 		$this->direccion->DbValue = $row['direccion'];
 		$this->ult_fecha_activo->DbValue = $row['ult_fecha_activo'];
+		$this->mapa->DbValue = $row['mapa'];
+		$this->longitud->DbValue = $row['longitud'];
+		$this->latitud->DbValue = $row['latitud'];
 	}
 
 	// Load old record
@@ -1609,8 +1885,13 @@ class cdirecciones_list extends cdirecciones {
 		// Common render codes for all row types
 		// Id
 		// id_persona
+		// id_ciudad
+		// tipo_direccion
 		// direccion
 		// ult_fecha_activo
+		// mapa
+		// longitud
+		// latitud
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1645,6 +1926,38 @@ class cdirecciones_list extends cdirecciones {
 		}
 		$this->id_persona->ViewCustomAttributes = "";
 
+		// id_ciudad
+		if (strval($this->id_ciudad->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
+		$sWhereWrk = "";
+		$this->id_ciudad->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_ciudad->ViewValue = $this->id_ciudad->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_ciudad->ViewValue = $this->id_ciudad->CurrentValue;
+			}
+		} else {
+			$this->id_ciudad->ViewValue = NULL;
+		}
+		$this->id_ciudad->ViewCustomAttributes = "";
+
+		// tipo_direccion
+		if (strval($this->tipo_direccion->CurrentValue) <> "") {
+			$this->tipo_direccion->ViewValue = $this->tipo_direccion->OptionCaption($this->tipo_direccion->CurrentValue);
+		} else {
+			$this->tipo_direccion->ViewValue = NULL;
+		}
+		$this->tipo_direccion->ViewCustomAttributes = "";
+
 		// direccion
 		$this->direccion->ViewValue = $this->direccion->CurrentValue;
 		$this->direccion->ViewCustomAttributes = "";
@@ -1654,6 +1967,18 @@ class cdirecciones_list extends cdirecciones {
 		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
 		$this->ult_fecha_activo->ViewCustomAttributes = "";
 
+		// mapa
+		$this->mapa->ViewValue = $this->mapa->CurrentValue;
+		$this->mapa->ViewCustomAttributes = "";
+
+		// longitud
+		$this->longitud->ViewValue = $this->longitud->CurrentValue;
+		$this->longitud->ViewCustomAttributes = "";
+
+		// latitud
+		$this->latitud->ViewValue = $this->latitud->CurrentValue;
+		$this->latitud->ViewCustomAttributes = "";
+
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
@@ -1662,13 +1987,23 @@ class cdirecciones_list extends cdirecciones {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
 				$this->id_persona->HrefValue = "";
 			}
 			$this->id_persona->TooltipValue = "";
+
+			// id_ciudad
+			$this->id_ciudad->LinkCustomAttributes = "";
+			$this->id_ciudad->HrefValue = "";
+			$this->id_ciudad->TooltipValue = "";
+
+			// tipo_direccion
+			$this->tipo_direccion->LinkCustomAttributes = "";
+			$this->tipo_direccion->HrefValue = "";
+			$this->tipo_direccion->TooltipValue = "";
 
 			// direccion
 			$this->direccion->LinkCustomAttributes = "";
@@ -1679,6 +2014,21 @@ class cdirecciones_list extends cdirecciones {
 			$this->ult_fecha_activo->LinkCustomAttributes = "";
 			$this->ult_fecha_activo->HrefValue = "";
 			$this->ult_fecha_activo->TooltipValue = "";
+
+			// mapa
+			$this->mapa->LinkCustomAttributes = "";
+			$this->mapa->HrefValue = "";
+			$this->mapa->TooltipValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+			$this->longitud->TooltipValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
+			$this->latitud->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
 			// Id
@@ -1708,6 +2058,15 @@ class cdirecciones_list extends cdirecciones {
 			if ($rswrk) $rswrk->Close();
 			$this->id_persona->EditValue = $arwrk;
 
+			// id_ciudad
+			$this->id_ciudad->EditAttrs["class"] = "form-control";
+			$this->id_ciudad->EditCustomAttributes = 'onChange=initMap(this);';
+
+			// tipo_direccion
+			$this->tipo_direccion->EditAttrs["class"] = "form-control";
+			$this->tipo_direccion->EditCustomAttributes = "";
+			$this->tipo_direccion->EditValue = $this->tipo_direccion->Options(TRUE);
+
 			// direccion
 			$this->direccion->EditAttrs["class"] = "form-control";
 			$this->direccion->EditCustomAttributes = "";
@@ -1723,6 +2082,24 @@ class cdirecciones_list extends cdirecciones {
 			$this->ult_fecha_activo->EditCustomAttributes = "";
 			$this->ult_fecha_activo->EditValue2 = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->ult_fecha_activo->AdvancedSearch->SearchValue2, 7), 7));
 			$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
+
+			// mapa
+			$this->mapa->EditAttrs["class"] = "form-control";
+			$this->mapa->EditCustomAttributes = "";
+			$this->mapa->EditValue = ew_HtmlEncode($this->mapa->AdvancedSearch->SearchValue);
+			$this->mapa->PlaceHolder = ew_RemoveHtml($this->mapa->FldCaption());
+
+			// longitud
+			$this->longitud->EditAttrs["class"] = "form-control";
+			$this->longitud->EditCustomAttributes = 'readonly=true';
+			$this->longitud->EditValue = ew_HtmlEncode($this->longitud->AdvancedSearch->SearchValue);
+			$this->longitud->PlaceHolder = ew_RemoveHtml($this->longitud->FldCaption());
+
+			// latitud
+			$this->latitud->EditAttrs["class"] = "form-control";
+			$this->latitud->EditCustomAttributes = 'readonly=true';
+			$this->latitud->EditValue = ew_HtmlEncode($this->latitud->AdvancedSearch->SearchValue);
+			$this->latitud->PlaceHolder = ew_RemoveHtml($this->latitud->FldCaption());
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->SetupFieldTitles();
@@ -1765,8 +2142,13 @@ class cdirecciones_list extends cdirecciones {
 	function LoadAdvancedSearch() {
 		$this->Id->AdvancedSearch->Load();
 		$this->id_persona->AdvancedSearch->Load();
+		$this->id_ciudad->AdvancedSearch->Load();
+		$this->tipo_direccion->AdvancedSearch->Load();
 		$this->direccion->AdvancedSearch->Load();
 		$this->ult_fecha_activo->AdvancedSearch->Load();
+		$this->mapa->AdvancedSearch->Load();
+		$this->longitud->AdvancedSearch->Load();
+		$this->latitud->AdvancedSearch->Load();
 	}
 
 	// Set up export options
@@ -1806,7 +2188,7 @@ class cdirecciones_list extends cdirecciones {
 		// Export to Pdf
 		$item = &$this->ExportOptions->Add("pdf");
 		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = FALSE;
+		$item->Visible = TRUE;
 
 		// Export to Email
 		$item = &$this->ExportOptions->Add("email");
@@ -2028,10 +2410,18 @@ class cdirecciones_list extends cdirecciones {
 		$sQry = "export=html";
 
 		// Build QueryString for search
+		if ($this->BasicSearch->getKeyword() <> "") {
+			$sQry .= "&" . EW_TABLE_BASIC_SEARCH . "=" . urlencode($this->BasicSearch->getKeyword()) . "&" . EW_TABLE_BASIC_SEARCH_TYPE . "=" . urlencode($this->BasicSearch->getType());
+		}
 		$this->AddSearchQueryString($sQry, $this->Id); // Id
 		$this->AddSearchQueryString($sQry, $this->id_persona); // id_persona
+		$this->AddSearchQueryString($sQry, $this->id_ciudad); // id_ciudad
+		$this->AddSearchQueryString($sQry, $this->tipo_direccion); // tipo_direccion
 		$this->AddSearchQueryString($sQry, $this->direccion); // direccion
 		$this->AddSearchQueryString($sQry, $this->ult_fecha_activo); // ult_fecha_activo
+		$this->AddSearchQueryString($sQry, $this->mapa); // mapa
+		$this->AddSearchQueryString($sQry, $this->longitud); // longitud
+		$this->AddSearchQueryString($sQry, $this->latitud); // latitud
 
 		// Build QueryString for pager
 		$sQry .= "&" . EW_TABLE_REC_PER_PAGE . "=" . urlencode($this->getRecordsPerPage()) . "&" . EW_TABLE_START_REC . "=" . urlencode($this->getStartRecordNumber());
@@ -2339,6 +2729,10 @@ fdireccioneslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?
 // Dynamic selection lists
 fdireccioneslist.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
 fdireccioneslist.Lists["x_id_persona"].Data = "<?php echo $direcciones_list->id_persona->LookupFilterQuery(FALSE, "list") ?>";
+fdireccioneslist.Lists["x_id_ciudad"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"ciudades"};
+fdireccioneslist.Lists["x_id_ciudad"].Data = "<?php echo $direcciones_list->id_ciudad->LookupFilterQuery(FALSE, "list") ?>";
+fdireccioneslist.Lists["x_tipo_direccion"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
+fdireccioneslist.Lists["x_tipo_direccion"].Options = <?php echo json_encode($direcciones_list->tipo_direccion->Options()) ?>;
 
 // Form object for search
 var CurrentSearchForm = fdireccioneslistsrch = new ew_Form("fdireccioneslistsrch");
@@ -2504,7 +2898,20 @@ ew_CreateDateTimePicker("fdireccioneslistsrch", "y_ult_fecha_activo", {"ignoreRe
 <?php } ?>
 </div>
 <div id="xsr_4" class="ewRow">
+	<div class="ewQuickSearch input-group">
+	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($direcciones_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
+	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($direcciones_list->BasicSearch->getType()) ?>">
+	<div class="input-group-btn">
+		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $direcciones_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
+		<ul class="dropdown-menu pull-right" role="menu">
+			<li<?php if ($direcciones_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
+			<li<?php if ($direcciones_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
+			<li<?php if ($direcciones_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
+			<li<?php if ($direcciones_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
+		</ul>
 	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("SearchBtn") ?></button>
+	</div>
+	</div>
 </div>
 	</div>
 </div>
@@ -2618,6 +3025,24 @@ $direcciones_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
+<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
+	<?php if ($direcciones->SortUrl($direcciones->id_ciudad) == "") { ?>
+		<th data-name="id_ciudad" class="<?php echo $direcciones->id_ciudad->HeaderCellClass() ?>"><div id="elh_direcciones_id_ciudad" class="direcciones_id_ciudad"><div class="ewTableHeaderCaption"><?php echo $direcciones->id_ciudad->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_ciudad" class="<?php echo $direcciones->id_ciudad->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $direcciones->SortUrl($direcciones->id_ciudad) ?>',1);"><div id="elh_direcciones_id_ciudad" class="direcciones_id_ciudad">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->id_ciudad->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->id_ciudad->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->id_ciudad->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
+	<?php if ($direcciones->SortUrl($direcciones->tipo_direccion) == "") { ?>
+		<th data-name="tipo_direccion" class="<?php echo $direcciones->tipo_direccion->HeaderCellClass() ?>"><div id="elh_direcciones_tipo_direccion" class="direcciones_tipo_direccion"><div class="ewTableHeaderCaption"><?php echo $direcciones->tipo_direccion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="tipo_direccion" class="<?php echo $direcciones->tipo_direccion->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $direcciones->SortUrl($direcciones->tipo_direccion) ?>',1);"><div id="elh_direcciones_tipo_direccion" class="direcciones_tipo_direccion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->tipo_direccion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->tipo_direccion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->tipo_direccion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
 <?php if ($direcciones->direccion->Visible) { // direccion ?>
 	<?php if ($direcciones->SortUrl($direcciones->direccion) == "") { ?>
 		<th data-name="direccion" class="<?php echo $direcciones->direccion->HeaderCellClass() ?>"><div id="elh_direcciones_direccion" class="direcciones_direccion"><div class="ewTableHeaderCaption"><?php echo $direcciones->direccion->FldCaption() ?></div></div></th>
@@ -2633,6 +3058,33 @@ $direcciones_list->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="ult_fecha_activo" class="<?php echo $direcciones->ult_fecha_activo->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $direcciones->SortUrl($direcciones->ult_fecha_activo) ?>',1);"><div id="elh_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->ult_fecha_activo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->ult_fecha_activo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->ult_fecha_activo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->mapa->Visible) { // mapa ?>
+	<?php if ($direcciones->SortUrl($direcciones->mapa) == "") { ?>
+		<th data-name="mapa" class="<?php echo $direcciones->mapa->HeaderCellClass() ?>"><div id="elh_direcciones_mapa" class="direcciones_mapa"><div class="ewTableHeaderCaption"><?php echo $direcciones->mapa->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="mapa" class="<?php echo $direcciones->mapa->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $direcciones->SortUrl($direcciones->mapa) ?>',1);"><div id="elh_direcciones_mapa" class="direcciones_mapa">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->mapa->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->mapa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->mapa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->longitud->Visible) { // longitud ?>
+	<?php if ($direcciones->SortUrl($direcciones->longitud) == "") { ?>
+		<th data-name="longitud" class="<?php echo $direcciones->longitud->HeaderCellClass() ?>"><div id="elh_direcciones_longitud" class="direcciones_longitud"><div class="ewTableHeaderCaption"><?php echo $direcciones->longitud->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="longitud" class="<?php echo $direcciones->longitud->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $direcciones->SortUrl($direcciones->longitud) ?>',1);"><div id="elh_direcciones_longitud" class="direcciones_longitud">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->longitud->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->longitud->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->longitud->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->latitud->Visible) { // latitud ?>
+	<?php if ($direcciones->SortUrl($direcciones->latitud) == "") { ?>
+		<th data-name="latitud" class="<?php echo $direcciones->latitud->HeaderCellClass() ?>"><div id="elh_direcciones_latitud" class="direcciones_latitud"><div class="ewTableHeaderCaption"><?php echo $direcciones->latitud->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="latitud" class="<?php echo $direcciones->latitud->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $direcciones->SortUrl($direcciones->latitud) ?>',1);"><div id="elh_direcciones_latitud" class="direcciones_latitud">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->latitud->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->latitud->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->latitud->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2722,6 +3174,22 @@ $direcciones_list->ListOptions->Render("body", "left", $direcciones_list->RowCnt
 </span>
 </td>
 	<?php } ?>
+	<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
+		<td data-name="id_ciudad"<?php echo $direcciones->id_ciudad->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_id_ciudad" class="direcciones_id_ciudad">
+<span<?php echo $direcciones->id_ciudad->ViewAttributes() ?>>
+<?php echo $direcciones->id_ciudad->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
+		<td data-name="tipo_direccion"<?php echo $direcciones->tipo_direccion->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_tipo_direccion" class="direcciones_tipo_direccion">
+<span<?php echo $direcciones->tipo_direccion->ViewAttributes() ?>>
+<?php echo $direcciones->tipo_direccion->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
 	<?php if ($direcciones->direccion->Visible) { // direccion ?>
 		<td data-name="direccion"<?php echo $direcciones->direccion->CellAttributes() ?>>
 <span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_direccion" class="direcciones_direccion">
@@ -2735,6 +3203,39 @@ $direcciones_list->ListOptions->Render("body", "left", $direcciones_list->RowCnt
 <span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo">
 <span<?php echo $direcciones->ult_fecha_activo->ViewAttributes() ?>>
 <?php echo $direcciones->ult_fecha_activo->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->mapa->Visible) { // mapa ?>
+		<td data-name="mapa"<?php echo $direcciones->mapa->CellAttributes() ?>>
+<script id="orig<?php echo $direcciones_list->RowCnt ?>_direcciones_mapa" type="text/html">
+<?php echo $direcciones->mapa->ListViewValue() ?>
+</script>
+<span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_mapa" class="direcciones_mapa">
+<span<?php echo $direcciones->mapa->ViewAttributes() ?>><script type="text/javascript">
+ewGoogleMaps[ewGoogleMaps.length] = jQuery.extend({"id":"gm_direcciones_x_mapa","name":"Google Maps","apikey":"AIzaSyDFibhqbazLZqySy6EuVE_BHRUvkhyIVLg","width":400,"width_field":null,"height":400,"height_field":null,"latitude":null,"latitude_field":"latitud","longitude":null,"longitude_field":"longitud","address":null,"address_field":null,"type":"HYBRID","type_field":null,"zoom":18,"zoom_field":null,"title":null,"title_field":"direccion","icon":null,"icon_field":null,"description":null,"description_field":null,"use_single_map":true,"single_map_width":400,"single_map_height":400,"show_map_on_top":true,"show_all_markers":true,"geocoding_delay":250,"use_marker_clusterer":false,"cluster_max_zoom":-1,"cluster_grid_size":-1,"cluster_styles":-1,"template_id":"orig<?php echo $direcciones_list->RowCnt ?>_direcciones_mapa"}, {
+	latitude: <?php echo ew_VarToJson($direcciones->latitud->CurrentValue, "undefined") ?>,
+	longitude: <?php echo ew_VarToJson($direcciones->longitud->CurrentValue, "undefined") ?>,
+	title: <?php echo ew_VarToJson($direcciones->direccion->CurrentValue, "string") ?>
+});
+</script>
+</span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->longitud->Visible) { // longitud ?>
+		<td data-name="longitud"<?php echo $direcciones->longitud->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_longitud" class="direcciones_longitud">
+<span<?php echo $direcciones->longitud->ViewAttributes() ?>>
+<?php echo $direcciones->longitud->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->latitud->Visible) { // latitud ?>
+		<td data-name="latitud"<?php echo $direcciones->latitud->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_list->RowCnt ?>_direcciones_latitud" class="direcciones_latitud">
+<span<?php echo $direcciones->latitud->ViewAttributes() ?>>
+<?php echo $direcciones->latitud->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

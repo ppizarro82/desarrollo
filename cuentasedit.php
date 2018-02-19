@@ -7,6 +7,7 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "cuentasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "deudasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -322,6 +323,7 @@ class ccuentas_edit extends ccuentas {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->codigo->SetVisibility();
 		$this->denominacion->SetVisibility();
 		$this->inicio_contrato->SetVisibility();
 		$this->fin_contrato->SetVisibility();
@@ -342,6 +344,14 @@ class ccuentas_edit extends ccuentas {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'deudas'
+			if (@$_POST["grid"] == "fdeudasgrid") {
+				if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid;
+				$GLOBALS["deudas_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -466,6 +476,9 @@ class ccuentas_edit extends ccuentas {
 		// Process form if post back
 		if ($postBack) {
 			$this->LoadFormValues(); // Get form values
+
+			// Set up detail parameters
+			$this->SetupDetailParms();
 		}
 
 		// Validate form if post back
@@ -485,9 +498,15 @@ class ccuentas_edit extends ccuentas {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("cuentaslist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetupDetailParms();
 				break;
 			Case "U": // Update
-				$sReturnUrl = $this->getReturnUrl();
+				if ($this->getCurrentDetailTable() <> "") // Master/detail edit
+					$sReturnUrl = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $this->getCurrentDetailTable()); // Master/Detail view page
+				else
+					$sReturnUrl = $this->getReturnUrl();
 				if (ew_GetPageName($sReturnUrl) == "cuentaslist.php")
 					$sReturnUrl = $this->AddMasterUrl($sReturnUrl); // List page, return to List page with correct master key if necessary
 				$this->SendEmail = TRUE; // Send email on update success
@@ -500,6 +519,9 @@ class ccuentas_edit extends ccuentas {
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Restore form values if update failed
+
+					// Set up detail parameters
+					$this->SetupDetailParms();
 				}
 		}
 
@@ -562,6 +584,9 @@ class ccuentas_edit extends ccuentas {
 		global $objForm;
 		if (!$this->Id->FldIsDetailKey)
 			$this->Id->setFormValue($objForm->GetValue("x_Id"));
+		if (!$this->codigo->FldIsDetailKey) {
+			$this->codigo->setFormValue($objForm->GetValue("x_codigo"));
+		}
 		if (!$this->denominacion->FldIsDetailKey) {
 			$this->denominacion->setFormValue($objForm->GetValue("x_denominacion"));
 		}
@@ -582,6 +607,7 @@ class ccuentas_edit extends ccuentas {
 	function RestoreFormValues() {
 		global $objForm;
 		$this->Id->CurrentValue = $this->Id->FormValue;
+		$this->codigo->CurrentValue = $this->codigo->FormValue;
 		$this->denominacion->CurrentValue = $this->denominacion->FormValue;
 		$this->inicio_contrato->CurrentValue = $this->inicio_contrato->FormValue;
 		$this->inicio_contrato->CurrentValue = ew_UnFormatDateTime($this->inicio_contrato->CurrentValue, 7);
@@ -624,6 +650,7 @@ class ccuentas_edit extends ccuentas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->codigo->setDbValue($row['codigo']);
 		$this->denominacion->setDbValue($row['denominacion']);
 		$this->inicio_contrato->setDbValue($row['inicio_contrato']);
 		$this->fin_contrato->setDbValue($row['fin_contrato']);
@@ -635,6 +662,7 @@ class ccuentas_edit extends ccuentas {
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['codigo'] = NULL;
 		$row['denominacion'] = NULL;
 		$row['inicio_contrato'] = NULL;
 		$row['fin_contrato'] = NULL;
@@ -649,6 +677,7 @@ class ccuentas_edit extends ccuentas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->codigo->DbValue = $row['codigo'];
 		$this->denominacion->DbValue = $row['denominacion'];
 		$this->inicio_contrato->DbValue = $row['inicio_contrato'];
 		$this->fin_contrato->DbValue = $row['fin_contrato'];
@@ -689,6 +718,7 @@ class ccuentas_edit extends ccuentas {
 
 		// Common render codes for all row types
 		// Id
+		// codigo
 		// denominacion
 		// inicio_contrato
 		// fin_contrato
@@ -700,6 +730,10 @@ class ccuentas_edit extends ccuentas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// codigo
+		$this->codigo->ViewValue = $this->codigo->CurrentValue;
+		$this->codigo->ViewCustomAttributes = "";
 
 		// denominacion
 		$this->denominacion->ViewValue = $this->denominacion->CurrentValue;
@@ -733,6 +767,11 @@ class ccuentas_edit extends ccuentas {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
+			// codigo
+			$this->codigo->LinkCustomAttributes = "";
+			$this->codigo->HrefValue = "";
+			$this->codigo->TooltipValue = "";
+
 			// denominacion
 			$this->denominacion->LinkCustomAttributes = "";
 			$this->denominacion->HrefValue = "";
@@ -759,6 +798,12 @@ class ccuentas_edit extends ccuentas {
 			$this->Id->EditCustomAttributes = "";
 			$this->Id->EditValue = $this->Id->CurrentValue;
 			$this->Id->ViewCustomAttributes = "";
+
+			// codigo
+			$this->codigo->EditAttrs["class"] = "form-control";
+			$this->codigo->EditCustomAttributes = "";
+			$this->codigo->EditValue = ew_HtmlEncode($this->codigo->CurrentValue);
+			$this->codigo->PlaceHolder = ew_RemoveHtml($this->codigo->FldCaption());
 
 			// denominacion
 			$this->denominacion->EditAttrs["class"] = "form-control";
@@ -787,6 +832,10 @@ class ccuentas_edit extends ccuentas {
 
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
+
+			// codigo
+			$this->codigo->LinkCustomAttributes = "";
+			$this->codigo->HrefValue = "";
 
 			// denominacion
 			$this->denominacion->LinkCustomAttributes = "";
@@ -822,6 +871,9 @@ class ccuentas_edit extends ccuentas {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
+		if (!$this->codigo->FldIsDetailKey && !is_null($this->codigo->FormValue) && $this->codigo->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->codigo->FldCaption(), $this->codigo->ReqErrMsg));
+		}
 		if (!$this->denominacion->FldIsDetailKey && !is_null($this->denominacion->FormValue) && $this->denominacion->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->denominacion->FldCaption(), $this->denominacion->ReqErrMsg));
 		}
@@ -833,6 +885,13 @@ class ccuentas_edit extends ccuentas {
 		}
 		if ($this->estado->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
+		}
+
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("deudas", $DetailTblVar) && $GLOBALS["deudas"]->DetailEdit) {
+			if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid(); // get detail page object
+			$GLOBALS["deudas_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -865,10 +924,17 @@ class ccuentas_edit extends ccuentas {
 			$EditRow = FALSE; // Update Failed
 		} else {
 
+			// Begin transaction
+			if ($this->getCurrentDetailTable() <> "")
+				$conn->BeginTrans();
+
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
+
+			// codigo
+			$this->codigo->SetDbValueDef($rsnew, $this->codigo->CurrentValue, "", $this->codigo->ReadOnly);
 
 			// denominacion
 			$this->denominacion->SetDbValueDef($rsnew, $this->denominacion->CurrentValue, "", $this->denominacion->ReadOnly);
@@ -893,6 +959,26 @@ class ccuentas_edit extends ccuentas {
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
 				}
+
+				// Update detail records
+				$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+				if ($EditRow) {
+					if (in_array("deudas", $DetailTblVar) && $GLOBALS["deudas"]->DetailEdit) {
+						if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid(); // Get detail page object
+						$Security->LoadCurrentUserLevel($this->ProjectID . "deudas"); // Load user level of detail table
+						$EditRow = $GLOBALS["deudas_grid"]->GridUpdate();
+						$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
+					}
+				}
+
+				// Commit/Rollback transaction
+				if ($this->getCurrentDetailTable() <> "") {
+					if ($EditRow) {
+						$conn->CommitTrans(); // Commit transaction
+					} else {
+						$conn->RollbackTrans(); // Rollback transaction
+					}
+				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
 
@@ -912,6 +998,36 @@ class ccuentas_edit extends ccuentas {
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
 		return $EditRow;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetupDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("deudas", $DetailTblVar)) {
+				if (!isset($GLOBALS["deudas_grid"]))
+					$GLOBALS["deudas_grid"] = new cdeudas_grid;
+				if ($GLOBALS["deudas_grid"]->DetailEdit) {
+					$GLOBALS["deudas_grid"]->CurrentMode = "edit";
+					$GLOBALS["deudas_grid"]->CurrentAction = "gridedit";
+
+					// Save current master table to detail table
+					$GLOBALS["deudas_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["deudas_grid"]->setStartRecordNumber(1);
+					$GLOBALS["deudas_grid"]->id_cliente->FldIsDetailKey = TRUE;
+					$GLOBALS["deudas_grid"]->id_cliente->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["deudas_grid"]->id_cliente->setSessionValue($GLOBALS["deudas_grid"]->id_cliente->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -1048,6 +1164,9 @@ fcuentasedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
+			elm = this.GetElements("x" + infix + "_codigo");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuentas->codigo->FldCaption(), $cuentas->codigo->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_denominacion");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $cuentas->denominacion->FldCaption(), $cuentas->denominacion->ReqErrMsg)) ?>");
@@ -1122,6 +1241,16 @@ $cuentas_edit->ShowMessage();
 <?php echo $cuentas->Id->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($cuentas->codigo->Visible) { // codigo ?>
+	<div id="r_codigo" class="form-group">
+		<label id="elh_cuentas_codigo" for="x_codigo" class="<?php echo $cuentas_edit->LeftColumnClass ?>"><?php echo $cuentas->codigo->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="<?php echo $cuentas_edit->RightColumnClass ?>"><div<?php echo $cuentas->codigo->CellAttributes() ?>>
+<span id="el_cuentas_codigo">
+<input type="text" data-table="cuentas" data-field="x_codigo" name="x_codigo" id="x_codigo" size="15" maxlength="100" placeholder="<?php echo ew_HtmlEncode($cuentas->codigo->getPlaceHolder()) ?>" value="<?php echo $cuentas->codigo->EditValue ?>"<?php echo $cuentas->codigo->EditAttributes() ?>>
+</span>
+<?php echo $cuentas->codigo->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 <?php if ($cuentas->denominacion->Visible) { // denominacion ?>
 	<div id="r_denominacion" class="form-group">
 		<label id="elh_cuentas_denominacion" for="x_denominacion" class="<?php echo $cuentas_edit->LeftColumnClass ?>"><?php echo $cuentas->denominacion->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
@@ -1176,6 +1305,14 @@ ew_CreateDateTimePicker("fcuentasedit", "x_fin_contrato", {"ignoreReadonly":true
 	</div>
 <?php } ?>
 </div><!-- /page* -->
+<?php
+	if (in_array("deudas", explode(",", $cuentas->getCurrentDetailTable())) && $deudas->DetailEdit) {
+?>
+<?php if ($cuentas->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("deudas", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "deudasgrid.php" ?>
+<?php } ?>
 <?php if (!$cuentas_edit->IsModal) { ?>
 <div class="form-group"><!-- buttons .form-group -->
 	<div class="<?php echo $cuentas_edit->OffsetColumnClass ?>"><!-- buttons offset -->

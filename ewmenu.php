@@ -2,11 +2,13 @@
 
 // Menu
 $RootMenu = new cMenu("RootMenu", TRUE);
-$RootMenu->AddMenuItem(31, "mci_Cartera", $Language->MenuPhrase("31", "MenuText"), "", -1, "", TRUE, FALSE, TRUE, "fa-male");
-$RootMenu->AddMenuItem(18, "mi_personas", $Language->MenuPhrase("18", "MenuText"), "personaslist.php?cmd=resetall", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}personas'), FALSE, FALSE, "");
+$RootMenu->AddMenuItem(31, "mci_Carpeta_de_Cobro", $Language->MenuPhrase("31", "MenuText"), "", -1, "", TRUE, FALSE, TRUE, "fa-male");
+$RootMenu->AddMenuItem(18, "mi_personas", $Language->MenuPhrase("18", "MenuText"), "personaslist.php", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}personas'), FALSE, FALSE, "");
+$RootMenu->AddMenuItem(38, "mi_deudas", $Language->MenuPhrase("38", "MenuText"), "deudaslist.php?cmd=resetall", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}deudas'), FALSE, FALSE, "");
 $RootMenu->AddMenuItem(19, "mi_telefonos", $Language->MenuPhrase("19", "MenuText"), "telefonoslist.php?cmd=resetall", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}telefonos'), FALSE, FALSE, "");
 $RootMenu->AddMenuItem(32, "mi_direcciones", $Language->MenuPhrase("32", "MenuText"), "direccioneslist.php?cmd=resetall", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}direcciones'), FALSE, FALSE, "");
 $RootMenu->AddMenuItem(33, "mi_emails", $Language->MenuPhrase("33", "MenuText"), "emailslist.php?cmd=resetall", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}emails'), FALSE, FALSE, "");
+$RootMenu->AddMenuItem(34, "mi_vehiculos", $Language->MenuPhrase("34", "MenuText"), "vehiculoslist.php?cmd=resetall", 31, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}vehiculos'), FALSE, FALSE, "");
 $RootMenu->AddMenuItem(16, "mi_cuentas", $Language->MenuPhrase("16", "MenuText"), "cuentaslist.php", -1, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}cuentas'), FALSE, FALSE, "fa-address-card-o");
 $RootMenu->AddMenuItem(14, "mci_Pare1metros", $Language->MenuPhrase("14", "MenuText"), "", -1, "", TRUE, FALSE, TRUE, "fa-check-square-o");
 $RootMenu->AddMenuItem(17, "mi_ciudades", $Language->MenuPhrase("17", "MenuText"), "ciudadeslist.php", 14, "", AllowListMenu('{A36EA07C-DB7F-422A-9088-B007545008C2}ciudades'), FALSE, FALSE, "");

@@ -322,8 +322,13 @@ class cdirecciones_delete extends cdirecciones {
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 		$this->id_persona->SetVisibility();
+		$this->id_ciudad->SetVisibility();
+		$this->tipo_direccion->SetVisibility();
 		$this->direccion->SetVisibility();
 		$this->ult_fecha_activo->SetVisibility();
+		$this->mapa->SetVisibility();
+		$this->longitud->SetVisibility();
+		$this->latitud->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -508,8 +513,13 @@ class cdirecciones_delete extends cdirecciones {
 			return;
 		$this->Id->setDbValue($row['Id']);
 		$this->id_persona->setDbValue($row['id_persona']);
+		$this->id_ciudad->setDbValue($row['id_ciudad']);
+		$this->tipo_direccion->setDbValue($row['tipo_direccion']);
 		$this->direccion->setDbValue($row['direccion']);
 		$this->ult_fecha_activo->setDbValue($row['ult_fecha_activo']);
+		$this->mapa->setDbValue($row['mapa']);
+		$this->longitud->setDbValue($row['longitud']);
+		$this->latitud->setDbValue($row['latitud']);
 	}
 
 	// Return a row with default values
@@ -517,8 +527,13 @@ class cdirecciones_delete extends cdirecciones {
 		$row = array();
 		$row['Id'] = NULL;
 		$row['id_persona'] = NULL;
+		$row['id_ciudad'] = NULL;
+		$row['tipo_direccion'] = NULL;
 		$row['direccion'] = NULL;
 		$row['ult_fecha_activo'] = NULL;
+		$row['mapa'] = NULL;
+		$row['longitud'] = NULL;
+		$row['latitud'] = NULL;
 		return $row;
 	}
 
@@ -529,8 +544,13 @@ class cdirecciones_delete extends cdirecciones {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
 		$this->id_persona->DbValue = $row['id_persona'];
+		$this->id_ciudad->DbValue = $row['id_ciudad'];
+		$this->tipo_direccion->DbValue = $row['tipo_direccion'];
 		$this->direccion->DbValue = $row['direccion'];
 		$this->ult_fecha_activo->DbValue = $row['ult_fecha_activo'];
+		$this->mapa->DbValue = $row['mapa'];
+		$this->longitud->DbValue = $row['longitud'];
+		$this->latitud->DbValue = $row['latitud'];
 	}
 
 	// Render row values based on field settings
@@ -545,8 +565,13 @@ class cdirecciones_delete extends cdirecciones {
 		// Common render codes for all row types
 		// Id
 		// id_persona
+		// id_ciudad
+		// tipo_direccion
 		// direccion
 		// ult_fecha_activo
+		// mapa
+		// longitud
+		// latitud
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -581,6 +606,38 @@ class cdirecciones_delete extends cdirecciones {
 		}
 		$this->id_persona->ViewCustomAttributes = "";
 
+		// id_ciudad
+		if (strval($this->id_ciudad->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
+		$sWhereWrk = "";
+		$this->id_ciudad->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_ciudad->ViewValue = $this->id_ciudad->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_ciudad->ViewValue = $this->id_ciudad->CurrentValue;
+			}
+		} else {
+			$this->id_ciudad->ViewValue = NULL;
+		}
+		$this->id_ciudad->ViewCustomAttributes = "";
+
+		// tipo_direccion
+		if (strval($this->tipo_direccion->CurrentValue) <> "") {
+			$this->tipo_direccion->ViewValue = $this->tipo_direccion->OptionCaption($this->tipo_direccion->CurrentValue);
+		} else {
+			$this->tipo_direccion->ViewValue = NULL;
+		}
+		$this->tipo_direccion->ViewCustomAttributes = "";
+
 		// direccion
 		$this->direccion->ViewValue = $this->direccion->CurrentValue;
 		$this->direccion->ViewCustomAttributes = "";
@@ -590,6 +647,18 @@ class cdirecciones_delete extends cdirecciones {
 		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
 		$this->ult_fecha_activo->ViewCustomAttributes = "";
 
+		// mapa
+		$this->mapa->ViewValue = $this->mapa->CurrentValue;
+		$this->mapa->ViewCustomAttributes = "";
+
+		// longitud
+		$this->longitud->ViewValue = $this->longitud->CurrentValue;
+		$this->longitud->ViewCustomAttributes = "";
+
+		// latitud
+		$this->latitud->ViewValue = $this->latitud->CurrentValue;
+		$this->latitud->ViewCustomAttributes = "";
+
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
@@ -598,13 +667,23 @@ class cdirecciones_delete extends cdirecciones {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
 				$this->id_persona->HrefValue = "";
 			}
 			$this->id_persona->TooltipValue = "";
+
+			// id_ciudad
+			$this->id_ciudad->LinkCustomAttributes = "";
+			$this->id_ciudad->HrefValue = "";
+			$this->id_ciudad->TooltipValue = "";
+
+			// tipo_direccion
+			$this->tipo_direccion->LinkCustomAttributes = "";
+			$this->tipo_direccion->HrefValue = "";
+			$this->tipo_direccion->TooltipValue = "";
 
 			// direccion
 			$this->direccion->LinkCustomAttributes = "";
@@ -615,6 +694,21 @@ class cdirecciones_delete extends cdirecciones {
 			$this->ult_fecha_activo->LinkCustomAttributes = "";
 			$this->ult_fecha_activo->HrefValue = "";
 			$this->ult_fecha_activo->TooltipValue = "";
+
+			// mapa
+			$this->mapa->LinkCustomAttributes = "";
+			$this->mapa->HrefValue = "";
+			$this->mapa->TooltipValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+			$this->longitud->TooltipValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
+			$this->latitud->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -888,6 +982,10 @@ fdireccionesdelete.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE)
 // Dynamic selection lists
 fdireccionesdelete.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
 fdireccionesdelete.Lists["x_id_persona"].Data = "<?php echo $direcciones_delete->id_persona->LookupFilterQuery(FALSE, "delete") ?>";
+fdireccionesdelete.Lists["x_id_ciudad"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"ciudades"};
+fdireccionesdelete.Lists["x_id_ciudad"].Data = "<?php echo $direcciones_delete->id_ciudad->LookupFilterQuery(FALSE, "delete") ?>";
+fdireccionesdelete.Lists["x_tipo_direccion"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
+fdireccionesdelete.Lists["x_tipo_direccion"].Options = <?php echo json_encode($direcciones_delete->tipo_direccion->Options()) ?>;
 
 // Form object for search
 </script>
@@ -920,11 +1018,26 @@ $direcciones_delete->ShowMessage();
 <?php if ($direcciones->id_persona->Visible) { // id_persona ?>
 		<th class="<?php echo $direcciones->id_persona->HeaderCellClass() ?>"><span id="elh_direcciones_id_persona" class="direcciones_id_persona"><?php echo $direcciones->id_persona->FldCaption() ?></span></th>
 <?php } ?>
+<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
+		<th class="<?php echo $direcciones->id_ciudad->HeaderCellClass() ?>"><span id="elh_direcciones_id_ciudad" class="direcciones_id_ciudad"><?php echo $direcciones->id_ciudad->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
+		<th class="<?php echo $direcciones->tipo_direccion->HeaderCellClass() ?>"><span id="elh_direcciones_tipo_direccion" class="direcciones_tipo_direccion"><?php echo $direcciones->tipo_direccion->FldCaption() ?></span></th>
+<?php } ?>
 <?php if ($direcciones->direccion->Visible) { // direccion ?>
 		<th class="<?php echo $direcciones->direccion->HeaderCellClass() ?>"><span id="elh_direcciones_direccion" class="direcciones_direccion"><?php echo $direcciones->direccion->FldCaption() ?></span></th>
 <?php } ?>
 <?php if ($direcciones->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
 		<th class="<?php echo $direcciones->ult_fecha_activo->HeaderCellClass() ?>"><span id="elh_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo"><?php echo $direcciones->ult_fecha_activo->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($direcciones->mapa->Visible) { // mapa ?>
+		<th class="<?php echo $direcciones->mapa->HeaderCellClass() ?>"><span id="elh_direcciones_mapa" class="direcciones_mapa"><?php echo $direcciones->mapa->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($direcciones->longitud->Visible) { // longitud ?>
+		<th class="<?php echo $direcciones->longitud->HeaderCellClass() ?>"><span id="elh_direcciones_longitud" class="direcciones_longitud"><?php echo $direcciones->longitud->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($direcciones->latitud->Visible) { // latitud ?>
+		<th class="<?php echo $direcciones->latitud->HeaderCellClass() ?>"><span id="elh_direcciones_latitud" class="direcciones_latitud"><?php echo $direcciones->latitud->FldCaption() ?></span></th>
 <?php } ?>
 	</tr>
 	</thead>
@@ -968,6 +1081,22 @@ while (!$direcciones_delete->Recordset->EOF) {
 </span>
 </td>
 <?php } ?>
+<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
+		<td<?php echo $direcciones->id_ciudad->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_id_ciudad" class="direcciones_id_ciudad">
+<span<?php echo $direcciones->id_ciudad->ViewAttributes() ?>>
+<?php echo $direcciones->id_ciudad->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
+		<td<?php echo $direcciones->tipo_direccion->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_tipo_direccion" class="direcciones_tipo_direccion">
+<span<?php echo $direcciones->tipo_direccion->ViewAttributes() ?>>
+<?php echo $direcciones->tipo_direccion->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
 <?php if ($direcciones->direccion->Visible) { // direccion ?>
 		<td<?php echo $direcciones->direccion->CellAttributes() ?>>
 <span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_direccion" class="direcciones_direccion">
@@ -981,6 +1110,39 @@ while (!$direcciones_delete->Recordset->EOF) {
 <span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo">
 <span<?php echo $direcciones->ult_fecha_activo->ViewAttributes() ?>>
 <?php echo $direcciones->ult_fecha_activo->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($direcciones->mapa->Visible) { // mapa ?>
+		<td<?php echo $direcciones->mapa->CellAttributes() ?>>
+<script id="orig<?php echo $direcciones_delete->RowCnt ?>_direcciones_mapa" type="text/html">
+<?php echo $direcciones->mapa->ListViewValue() ?>
+</script>
+<span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_mapa" class="direcciones_mapa">
+<span<?php echo $direcciones->mapa->ViewAttributes() ?>><script type="text/javascript">
+ewGoogleMaps[ewGoogleMaps.length] = jQuery.extend({"id":"gm_direcciones_x_mapa","name":"Google Maps","apikey":"AIzaSyDFibhqbazLZqySy6EuVE_BHRUvkhyIVLg","width":400,"width_field":null,"height":400,"height_field":null,"latitude":null,"latitude_field":"latitud","longitude":null,"longitude_field":"longitud","address":null,"address_field":null,"type":"HYBRID","type_field":null,"zoom":18,"zoom_field":null,"title":null,"title_field":"direccion","icon":null,"icon_field":null,"description":null,"description_field":null,"use_single_map":true,"single_map_width":400,"single_map_height":400,"show_map_on_top":true,"show_all_markers":true,"geocoding_delay":250,"use_marker_clusterer":false,"cluster_max_zoom":-1,"cluster_grid_size":-1,"cluster_styles":-1,"template_id":"orig<?php echo $direcciones_delete->RowCnt ?>_direcciones_mapa"}, {
+	latitude: <?php echo ew_VarToJson($direcciones->latitud->CurrentValue, "undefined") ?>,
+	longitude: <?php echo ew_VarToJson($direcciones->longitud->CurrentValue, "undefined") ?>,
+	title: <?php echo ew_VarToJson($direcciones->direccion->CurrentValue, "string") ?>
+});
+</script>
+</span>
+</span>
+</td>
+<?php } ?>
+<?php if ($direcciones->longitud->Visible) { // longitud ?>
+		<td<?php echo $direcciones->longitud->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_longitud" class="direcciones_longitud">
+<span<?php echo $direcciones->longitud->ViewAttributes() ?>>
+<?php echo $direcciones->longitud->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($direcciones->latitud->Visible) { // latitud ?>
+		<td<?php echo $direcciones->latitud->CellAttributes() ?>>
+<span id="el<?php echo $direcciones_delete->RowCnt ?>_direcciones_latitud" class="direcciones_latitud">
+<span<?php echo $direcciones->latitud->ViewAttributes() ?>>
+<?php echo $direcciones->latitud->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

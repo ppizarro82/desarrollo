@@ -7,6 +7,7 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "cuentasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "deudasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -304,7 +305,7 @@ class ccuentas_list extends ccuentas {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "cuentasadd.php";
+		$this->AddUrl = "cuentasadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -446,6 +447,7 @@ class ccuentas_list extends ccuentas {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->codigo->SetVisibility();
 		$this->denominacion->SetVisibility();
 		$this->inicio_contrato->SetVisibility();
 		$this->fin_contrato->SetVisibility();
@@ -467,6 +469,14 @@ class ccuentas_list extends ccuentas {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'deudas'
+			if (@$_POST["grid"] == "fdeudasgrid") {
+				if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid;
+				$GLOBALS["deudas_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -583,6 +593,7 @@ class ccuentas_list extends ccuentas {
 	var $MultiSelectKey;
 	var $Command;
 	var $RestoreSearch = FALSE;
+	var $deudas_Count;
 	var $DetailPages;
 	var $Recordset;
 	var $OldRecordset;
@@ -786,6 +797,7 @@ class ccuentas_list extends ccuentas {
 		// Initialize
 		$sFilterList = "";
 		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
+		$sFilterList = ew_Concat($sFilterList, $this->codigo->AdvancedSearch->ToJson(), ","); // Field codigo
 		$sFilterList = ew_Concat($sFilterList, $this->denominacion->AdvancedSearch->ToJson(), ","); // Field denominacion
 		$sFilterList = ew_Concat($sFilterList, $this->inicio_contrato->AdvancedSearch->ToJson(), ","); // Field inicio_contrato
 		$sFilterList = ew_Concat($sFilterList, $this->fin_contrato->AdvancedSearch->ToJson(), ","); // Field fin_contrato
@@ -843,6 +855,14 @@ class ccuentas_list extends ccuentas {
 		$this->Id->AdvancedSearch->SearchOperator2 = @$filter["w_Id"];
 		$this->Id->AdvancedSearch->Save();
 
+		// Field codigo
+		$this->codigo->AdvancedSearch->SearchValue = @$filter["x_codigo"];
+		$this->codigo->AdvancedSearch->SearchOperator = @$filter["z_codigo"];
+		$this->codigo->AdvancedSearch->SearchCondition = @$filter["v_codigo"];
+		$this->codigo->AdvancedSearch->SearchValue2 = @$filter["y_codigo"];
+		$this->codigo->AdvancedSearch->SearchOperator2 = @$filter["w_codigo"];
+		$this->codigo->AdvancedSearch->Save();
+
 		// Field denominacion
 		$this->denominacion->AdvancedSearch->SearchValue = @$filter["x_denominacion"];
 		$this->denominacion->AdvancedSearch->SearchOperator = @$filter["z_denominacion"];
@@ -889,6 +909,7 @@ class ccuentas_list extends ccuentas {
 	// Return basic search SQL
 	function BasicSearchSQL($arKeywords, $type) {
 		$sWhere = "";
+		$this->BuildBasicSearchSQL($sWhere, $this->codigo, $arKeywords, $type);
 		$this->BuildBasicSearchSQL($sWhere, $this->denominacion, $arKeywords, $type);
 		return $sWhere;
 	}
@@ -1037,6 +1058,7 @@ class ccuentas_list extends ccuentas {
 			$this->CurrentOrder = @$_GET["order"];
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
+			$this->UpdateSort($this->codigo); // codigo
 			$this->UpdateSort($this->denominacion); // denominacion
 			$this->UpdateSort($this->inicio_contrato); // inicio_contrato
 			$this->UpdateSort($this->fin_contrato); // fin_contrato
@@ -1075,6 +1097,7 @@ class ccuentas_list extends ccuentas {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
+				$this->codigo->setSort("");
 				$this->denominacion->setSort("");
 				$this->inicio_contrato->setSort("");
 				$this->fin_contrato->setSort("");
@@ -1115,6 +1138,28 @@ class ccuentas_list extends ccuentas {
 		$item->CssClass = "text-nowrap";
 		$item->Visible = $Security->CanAdd();
 		$item->OnLeft = TRUE;
+
+		// "detail_deudas"
+		$item = &$this->ListOptions->Add("detail_deudas");
+		$item->CssClass = "text-nowrap";
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'deudas') && !$this->ShowMultipleDetails;
+		$item->OnLeft = TRUE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssClass = "text-nowrap";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = TRUE;
+			$item->ShowInButtonGroup = FALSE;
+		}
+
+		// Set up detail pages
+		$pages = new cSubPages();
+		$pages->Add("deudas");
+		$this->DetailPages = $pages;
 
 		// List actions
 		$item = &$this->ListOptions->Add("listactions");
@@ -1221,6 +1266,69 @@ class ccuentas_list extends ccuentas {
 				$oListOpt->Visible = TRUE;
 			}
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_deudas"
+		$oListOpt = &$this->ListOptions->Items["detail_deudas"];
+		if ($Security->AllowList(CurrentProjectID() . 'deudas')) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("deudas", "TblCaption");
+			$body .= "&nbsp;" . str_replace("%c", $this->deudas_Count, $Language->Phrase("DetailCount"));
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("deudaslist.php?" . EW_TABLE_SHOW_MASTER . "=cuentas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["deudas_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'deudas')) {
+				$caption = $Language->Phrase("MasterDetailViewLink");
+				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=deudas");
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "deudas";
+			}
+			if ($GLOBALS["deudas_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'deudas')) {
+				$caption = $Language->Phrase("MasterDetailEditLink");
+				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=deudas");
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "deudas";
+			}
+			if ($GLOBALS["deudas_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'deudas')) {
+				$caption = $Language->Phrase("MasterDetailCopyLink");
+				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=deudas");
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
+				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+				$DetailCopyTblVar .= "deudas";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -1245,6 +1353,34 @@ class ccuentas_list extends ccuentas {
 		else
 			$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . $addcaption . "\" data-table=\"cuentas\" data-caption=\"" . $addcaption . "\" href=\"javascript:void(0);\" onclick=\"ew_ModalDialogShow({lnk:this,btn:'AddBtn',url:'" . ew_HtmlEncode($this->AddUrl) . "'});\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_deudas");
+		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=deudas");
+		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["deudas"]->TableCaption();
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
+		$item->Visible = ($GLOBALS["deudas"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'deudas') && $Security->CanAdd());
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "deudas";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink);
+			$caption = $Language->Phrase("AddMasterDetailLink");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
+			$item->Visible = ($DetailTableLink <> "" && $Security->CanAdd());
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Add multi delete
@@ -1539,17 +1675,25 @@ class ccuentas_list extends ccuentas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->codigo->setDbValue($row['codigo']);
 		$this->denominacion->setDbValue($row['denominacion']);
 		$this->inicio_contrato->setDbValue($row['inicio_contrato']);
 		$this->fin_contrato->setDbValue($row['fin_contrato']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
 		$this->estado->setDbValue($row['estado']);
+		if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid;
+		$sDetailFilter = $GLOBALS["deudas"]->SqlDetailFilter_cuentas();
+		$sDetailFilter = str_replace("@id_cliente@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
+		$GLOBALS["deudas"]->setCurrentMasterTable("cuentas");
+		$sDetailFilter = $GLOBALS["deudas"]->ApplyUserIDFilters($sDetailFilter);
+		$this->deudas_Count = $GLOBALS["deudas"]->LoadRecordCount($sDetailFilter);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['codigo'] = NULL;
 		$row['denominacion'] = NULL;
 		$row['inicio_contrato'] = NULL;
 		$row['fin_contrato'] = NULL;
@@ -1564,6 +1708,7 @@ class ccuentas_list extends ccuentas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->codigo->DbValue = $row['codigo'];
 		$this->denominacion->DbValue = $row['denominacion'];
 		$this->inicio_contrato->DbValue = $row['inicio_contrato'];
 		$this->fin_contrato->DbValue = $row['fin_contrato'];
@@ -1610,6 +1755,7 @@ class ccuentas_list extends ccuentas {
 
 		// Common render codes for all row types
 		// Id
+		// codigo
 		// denominacion
 		// inicio_contrato
 		// fin_contrato
@@ -1621,6 +1767,10 @@ class ccuentas_list extends ccuentas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// codigo
+		$this->codigo->ViewValue = $this->codigo->CurrentValue;
+		$this->codigo->ViewCustomAttributes = "";
 
 		// denominacion
 		$this->denominacion->ViewValue = $this->denominacion->CurrentValue;
@@ -1653,6 +1803,11 @@ class ccuentas_list extends ccuentas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
+
+			// codigo
+			$this->codigo->LinkCustomAttributes = "";
+			$this->codigo->HrefValue = "";
+			$this->codigo->TooltipValue = "";
 
 			// denominacion
 			$this->denominacion->LinkCustomAttributes = "";
@@ -1722,7 +1877,7 @@ class ccuentas_list extends ccuentas {
 		// Export to Pdf
 		$item = &$this->ExportOptions->Add("pdf");
 		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = FALSE;
+		$item->Visible = TRUE;
 
 		// Export to Email
 		$item = &$this->ExportOptions->Add("email");
@@ -2322,6 +2477,15 @@ $cuentas_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
+<?php if ($cuentas->codigo->Visible) { // codigo ?>
+	<?php if ($cuentas->SortUrl($cuentas->codigo) == "") { ?>
+		<th data-name="codigo" class="<?php echo $cuentas->codigo->HeaderCellClass() ?>"><div id="elh_cuentas_codigo" class="cuentas_codigo"><div class="ewTableHeaderCaption"><?php echo $cuentas->codigo->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="codigo" class="<?php echo $cuentas->codigo->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $cuentas->SortUrl($cuentas->codigo) ?>',1);"><div id="elh_cuentas_codigo" class="cuentas_codigo">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $cuentas->codigo->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($cuentas->codigo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($cuentas->codigo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
 <?php if ($cuentas->denominacion->Visible) { // denominacion ?>
 	<?php if ($cuentas->SortUrl($cuentas->denominacion) == "") { ?>
 		<th data-name="denominacion" class="<?php echo $cuentas->denominacion->HeaderCellClass() ?>"><div id="elh_cuentas_denominacion" class="cuentas_denominacion"><div class="ewTableHeaderCaption"><?php echo $cuentas->denominacion->FldCaption() ?></div></div></th>
@@ -2437,6 +2601,14 @@ $cuentas_list->ListOptions->Render("body", "left", $cuentas_list->RowCnt);
 <span id="el<?php echo $cuentas_list->RowCnt ?>_cuentas_Id" class="cuentas_Id">
 <span<?php echo $cuentas->Id->ViewAttributes() ?>>
 <?php echo $cuentas->Id->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($cuentas->codigo->Visible) { // codigo ?>
+		<td data-name="codigo"<?php echo $cuentas->codigo->CellAttributes() ?>>
+<span id="el<?php echo $cuentas_list->RowCnt ?>_cuentas_codigo" class="cuentas_codigo">
+<span<?php echo $cuentas->codigo->ViewAttributes() ?>>
+<?php echo $cuentas->codigo->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

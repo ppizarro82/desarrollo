@@ -1,7 +1,6 @@
 <?php
 
 // Id
-// id_tipopersona
 // tipo_documento
 // no_documento
 // nombres
@@ -9,6 +8,7 @@
 // materno
 // fecha_nacimiento
 // fecha_registro
+// imagen
 // estado
 
 ?>
@@ -23,17 +23,6 @@
 <span id="el_personas_Id">
 <span<?php echo $personas->Id->ViewAttributes() ?>>
 <?php echo $personas->Id->ListViewValue() ?></span>
-</span>
-</td>
-		</tr>
-<?php } ?>
-<?php if ($personas->id_tipopersona->Visible) { // id_tipopersona ?>
-		<tr id="r_id_tipopersona">
-			<td class="col-sm-2"><?php echo $personas->id_tipopersona->FldCaption() ?></td>
-			<td<?php echo $personas->id_tipopersona->CellAttributes() ?>>
-<span id="el_personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<?php echo $personas->id_tipopersona->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>
@@ -111,6 +100,18 @@
 <span id="el_personas_fecha_registro">
 <span<?php echo $personas->fecha_registro->ViewAttributes() ?>>
 <?php echo $personas->fecha_registro->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($personas->imagen->Visible) { // imagen ?>
+		<tr id="r_imagen">
+			<td class="col-sm-2"><?php echo $personas->imagen->FldCaption() ?></td>
+			<td<?php echo $personas->imagen->CellAttributes() ?>>
+<span id="el_personas_imagen">
+<span>
+<?php echo ew_GetFileViewTag($personas->imagen, $personas->imagen->ListViewValue()) ?>
+</span>
 </span>
 </td>
 		</tr>

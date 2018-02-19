@@ -689,7 +689,7 @@ class cemails_add extends cemails {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
@@ -764,7 +764,7 @@ class cemails_add extends cemails {
 
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
@@ -818,6 +818,26 @@ class cemails_add extends cemails {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $Language, $Security;
+
+		// Check referential integrity for master table 'personas'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_personas();
+		if (strval($this->id_persona->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@Id@", ew_AdjustSql($this->id_persona->CurrentValue, "DB"), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
+			$rsmaster = $GLOBALS["personas"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "personas", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
 		$conn = &$this->Connection();
 
 		// Load db values from rsold

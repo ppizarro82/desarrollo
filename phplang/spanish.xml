@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<ew-language date="2018/2/8" version="14.0.0" id="en" name="Español" desc="Español" author="e.World Technology Ltd.">
+<ew-language date="2018/2/16" version="14.0.0" id="en" name="Español" desc="Español" author="e.World Technology Ltd.">
   <!-- 
 	*** Important Notes:
 	1. Language ID should follow: https://developers.google.com/recaptcha/docs/language,
@@ -616,11 +616,19 @@
   <project>
     <phrase id="bodytitle" value="Sistema de Gestión de Cobranzas - BMG" />
     <phrase id="footertext" value="&amp;copy;2017 e.World Technology Ltd. All rights reserved." />
+    <menu id="35" />
+    <menu id="36" />
     <menu id="31">
-      <phrase id="menutext" value="Cartera" />
+      <phrase id="menutext" value="Carpeta de Cobro" />
     </menu>
     <menu id="18">
       <phrase id="menutext" value="Personas" />
+    </menu>
+    <menu id="38">
+      <phrase id="menutext" value="Deudas" />
+    </menu>
+    <menu id="37">
+      <phrase id="menutext" value="Datos Deudas" />
     </menu>
     <menu id="19">
       <phrase id="menutext" value="Teléfonos" />
@@ -630,6 +638,9 @@
     </menu>
     <menu id="33">
       <phrase id="menutext" value="Correos" />
+    </menu>
+    <menu id="34">
+      <phrase id="menutext" value="Vehículos" />
     </menu>
     <menu id="16">
       <phrase id="menutext" value="Cuentas" />
@@ -855,6 +866,9 @@
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
+      <field id="codigo">
+        <phrase id="fldcaption" value="Código" />
+      </field>
       <field id="denominacion">
         <phrase id="fldcaption" value="Denominación" />
       </field>
@@ -896,9 +910,6 @@
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
-      <field id="id_tipopersona">
-        <phrase id="fldcaption" value="Tipo" />
-      </field>
       <field id="tipo_documento">
         <phrase id="fldcaption" value="Tipo Doc." />
         <phrase id="fldtagvalue1" value="CI" />
@@ -925,6 +936,9 @@
       </field>
       <field id="fecha_registro">
         <phrase id="fldcaption" value="Fecha de registro" />
+      </field>
+      <field id="imagen">
+        <phrase id="fldcaption" value="Foto" />
       </field>
       <field id="observaciones">
         <phrase id="fldcaption" value="Observaciones" />
@@ -961,17 +975,44 @@
     </table>
     <table id="direcciones">
       <phrase id="tblcaption" value="Direcciones" />
+      <phrase id="tblpagecaption1" value="Generales" />
+      <phrase id="tblpagecaption2" value="Dirección" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
       <field id="id_persona">
         <phrase id="fldcaption" value="Persona" />
       </field>
+      <field id="id_ciudad">
+        <phrase id="fldcaption" value="Ciudad" />
+      </field>
+      <field id="tipo_direccion">
+        <phrase id="fldcaption" value="Tipo" />
+        <phrase id="fldtagvalue1" value="Domicilio" />
+        <phrase id="fldtagcaption1" value="Domicilio" />
+        <phrase id="fldtagvalue2" value="Empresa" />
+        <phrase id="fldtagcaption2" value="Empresa" />
+        <phrase id="fldtagvalue3" value="Negocio" />
+        <phrase id="fldtagcaption3" value="Negocio" />
+        <phrase id="fldtagvalue4" value="Institucion" />
+        <phrase id="fldtagcaption4" value="Institucion" />
+        <phrase id="fldtagvalue5" value="Correspondencia" />
+        <phrase id="fldtagcaption5" value="Correspondencia" />
+      </field>
       <field id="direccion">
         <phrase id="fldcaption" value="Dirección" />
       </field>
       <field id="ult_fecha_activo">
         <phrase id="fldcaption" value="Ult. Fecha Activo" />
+      </field>
+      <field id="mapa">
+        <phrase id="fldcaption" value="Mapa" />
+      </field>
+      <field id="longitud">
+        <phrase id="fldcaption" value="Longitud" />
+      </field>
+      <field id="latitud">
+        <phrase id="fldcaption" value="Latitud" />
       </field>
     </table>
     <table id="emails">
@@ -984,6 +1025,56 @@
       </field>
       <field id="_email">
         <phrase id="fldcaption" value="Email" />
+      </field>
+    </table>
+    <table id="vehiculos">
+      <phrase id="tblcaption" value="Vehículos" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="id_persona">
+        <phrase id="fldcaption" value="Persona" />
+      </field>
+      <field id="marca">
+        <phrase id="fldcaption" value="Marca" />
+      </field>
+      <field id="modelo">
+        <phrase id="fldcaption" value="Modelo" />
+      </field>
+      <field id="placa">
+        <phrase id="fldcaption" value="Placa" />
+      </field>
+      <field id="anio">
+        <phrase id="fldcaption" value="Año" />
+      </field>
+    </table>
+    <table id="direccionesadd_php" />
+    <table id="direccionesedit_php" />
+    <table id="deuda_persona">
+      <phrase id="tblcaption" value="Datos Deudas" />
+      <field id="id_persona">
+        <phrase id="fldcaption" value="Persona" />
+      </field>
+      <field id="id_deuda">
+        <phrase id="fldcaption" value="Deuda" />
+      </field>
+      <field id="id_tipopersona">
+        <phrase id="fldcaption" value="Relación" />
+      </field>
+    </table>
+    <table id="deudas">
+      <phrase id="tblcaption" value="Deudas" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="cuenta">
+        <phrase id="fldcaption" value="Cuenta" />
+      </field>
+      <field id="id_cliente">
+        <phrase id="fldcaption" value="Cuenta" />
+      </field>
+      <field id="codigo">
+        <phrase id="fldcaption" value="Código" />
       </field>
     </table>
   </project>

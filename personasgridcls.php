@@ -346,7 +346,6 @@ class cpersonas_grid extends cpersonas {
 		$this->SetupListOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_tipopersona->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
@@ -372,14 +371,6 @@ class cpersonas_grid extends cpersonas {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'telefonos'
-			if (@$_POST["grid"] == "ftelefonosgrid") {
-				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				$GLOBALS["telefonos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
 			// Process auto fill for detail table 'direcciones'
 			if (@$_POST["grid"] == "fdireccionesgrid") {
 				if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
@@ -388,10 +379,26 @@ class cpersonas_grid extends cpersonas {
 				exit();
 			}
 
+			// Process auto fill for detail table 'telefonos'
+			if (@$_POST["grid"] == "ftelefonosgrid") {
+				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
+				$GLOBALS["telefonos_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
 			// Process auto fill for detail table 'emails'
 			if (@$_POST["grid"] == "femailsgrid") {
 				if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
 				$GLOBALS["emails_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'vehiculos'
+			if (@$_POST["grid"] == "fvehiculosgrid") {
+				if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
+				$GLOBALS["vehiculos_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -499,9 +506,10 @@ class cpersonas_grid extends cpersonas {
 	var $MultiSelectKey;
 	var $Command;
 	var $RestoreSearch = FALSE;
-	var $telefonos_Count;
 	var $direcciones_Count;
+	var $telefonos_Count;
 	var $emails_Count;
+	var $vehiculos_Count;
 	var $DetailPages;
 	var $Recordset;
 	var $OldRecordset;
@@ -570,17 +578,17 @@ class cpersonas_grid extends cpersonas {
 		ew_AddFilter($sFilter, $this->SearchWhere);
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "tipo_persona") {
-			global $tipo_persona;
-			$rsmaster = $tipo_persona->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "deuda_persona") {
+			global $deuda_persona;
+			$rsmaster = $deuda_persona->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("tipo_personalist.php"); // Return to master page
+				$this->Page_Terminate("deuda_personalist.php"); // Return to master page
 			} else {
-				$tipo_persona->LoadListRowValues($rsmaster);
-				$tipo_persona->RowType = EW_ROWTYPE_MASTER; // Master row
-				$tipo_persona->RenderListRow();
+				$deuda_persona->LoadListRowValues($rsmaster);
+				$deuda_persona->RowType = EW_ROWTYPE_MASTER; // Master row
+				$deuda_persona->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -847,8 +855,6 @@ class cpersonas_grid extends cpersonas {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
-		if ($objForm->HasValue("x_id_tipopersona") && $objForm->HasValue("o_id_tipopersona") && $this->id_tipopersona->CurrentValue <> $this->id_tipopersona->OldValue)
-			return FALSE;
 		if ($objForm->HasValue("x_tipo_documento") && $objForm->HasValue("o_tipo_documento") && $this->tipo_documento->CurrentValue <> $this->tipo_documento->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_no_documento") && $objForm->HasValue("o_no_documento") && $this->no_documento->CurrentValue <> $this->no_documento->OldValue)
@@ -972,7 +978,7 @@ class cpersonas_grid extends cpersonas {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->id_tipopersona->setSessionValue("");
+				$this->Id->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -1223,8 +1229,6 @@ class cpersonas_grid extends cpersonas {
 	function LoadDefaultValues() {
 		$this->Id->CurrentValue = NULL;
 		$this->Id->OldValue = $this->Id->CurrentValue;
-		$this->id_tipopersona->CurrentValue = 0;
-		$this->id_tipopersona->OldValue = $this->id_tipopersona->CurrentValue;
 		$this->tipo_documento->CurrentValue = NULL;
 		$this->tipo_documento->OldValue = $this->tipo_documento->CurrentValue;
 		$this->no_documento->CurrentValue = NULL;
@@ -1253,10 +1257,6 @@ class cpersonas_grid extends cpersonas {
 		$objForm->FormName = $this->FormName;
 		if (!$this->Id->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->Id->setFormValue($objForm->GetValue("x_Id"));
-		if (!$this->id_tipopersona->FldIsDetailKey) {
-			$this->id_tipopersona->setFormValue($objForm->GetValue("x_id_tipopersona"));
-		}
-		$this->id_tipopersona->setOldValue($objForm->GetValue("o_id_tipopersona"));
 		if (!$this->tipo_documento->FldIsDetailKey) {
 			$this->tipo_documento->setFormValue($objForm->GetValue("x_tipo_documento"));
 		}
@@ -1298,7 +1298,6 @@ class cpersonas_grid extends cpersonas {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->Id->CurrentValue = $this->Id->FormValue;
-		$this->id_tipopersona->CurrentValue = $this->id_tipopersona->FormValue;
 		$this->tipo_documento->CurrentValue = $this->tipo_documento->FormValue;
 		$this->no_documento->CurrentValue = $this->no_documento->FormValue;
 		$this->nombres->CurrentValue = $this->nombres->FormValue;
@@ -1371,7 +1370,6 @@ class cpersonas_grid extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_tipopersona->setDbValue($row['id_tipopersona']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
@@ -1388,7 +1386,6 @@ class cpersonas_grid extends cpersonas {
 		$this->LoadDefaultValues();
 		$row = array();
 		$row['Id'] = $this->Id->CurrentValue;
-		$row['id_tipopersona'] = $this->id_tipopersona->CurrentValue;
 		$row['tipo_documento'] = $this->tipo_documento->CurrentValue;
 		$row['no_documento'] = $this->no_documento->CurrentValue;
 		$row['nombres'] = $this->nombres->CurrentValue;
@@ -1407,7 +1404,6 @@ class cpersonas_grid extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_tipopersona->DbValue = $row['id_tipopersona'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
@@ -1462,7 +1458,6 @@ class cpersonas_grid extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
-		// id_tipopersona
 		// tipo_documento
 		// no_documento
 		// nombres
@@ -1478,31 +1473,6 @@ class cpersonas_grid extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
-
-		// id_tipopersona
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-		$sWhereWrk = "";
-		$this->id_tipopersona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-			}
-		} else {
-			$this->id_tipopersona->ViewValue = NULL;
-		}
-		$this->id_tipopersona->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -1556,11 +1526,6 @@ class cpersonas_grid extends cpersonas {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_tipopersona
-			$this->id_tipopersona->LinkCustomAttributes = "";
-			$this->id_tipopersona->HrefValue = "";
-			$this->id_tipopersona->TooltipValue = "";
-
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -1603,57 +1568,8 @@ class cpersonas_grid extends cpersonas {
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// Id
-			// id_tipopersona
-
-			$this->id_tipopersona->EditAttrs["class"] = "form-control";
-			$this->id_tipopersona->EditCustomAttributes = "";
-			if ($this->id_tipopersona->getSessionValue() <> "") {
-				$this->id_tipopersona->CurrentValue = $this->id_tipopersona->getSessionValue();
-				$this->id_tipopersona->OldValue = $this->id_tipopersona->CurrentValue;
-			if (strval($this->id_tipopersona->CurrentValue) <> "") {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = Conn()->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$arwrk = array();
-					$arwrk[1] = $rswrk->fields('DispFld');
-					$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-					$rswrk->Close();
-				} else {
-					$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-				}
-			} else {
-				$this->id_tipopersona->ViewValue = NULL;
-			}
-			$this->id_tipopersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->id_tipopersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			}
-			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			$this->id_tipopersona->EditValue = $arwrk;
-			}
-
 			// tipo_documento
+
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
 			$this->tipo_documento->EditCustomAttributes = "";
 			$this->tipo_documento->EditValue = $this->tipo_documento->Options(TRUE);
@@ -1704,10 +1620,6 @@ class cpersonas_grid extends cpersonas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 
-			// id_tipopersona
-			$this->id_tipopersona->LinkCustomAttributes = "";
-			$this->id_tipopersona->HrefValue = "";
-
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -1746,55 +1658,6 @@ class cpersonas_grid extends cpersonas {
 			$this->Id->EditCustomAttributes = "";
 			$this->Id->EditValue = $this->Id->CurrentValue;
 			$this->Id->ViewCustomAttributes = "";
-
-			// id_tipopersona
-			$this->id_tipopersona->EditAttrs["class"] = "form-control";
-			$this->id_tipopersona->EditCustomAttributes = "";
-			if ($this->id_tipopersona->getSessionValue() <> "") {
-				$this->id_tipopersona->CurrentValue = $this->id_tipopersona->getSessionValue();
-				$this->id_tipopersona->OldValue = $this->id_tipopersona->CurrentValue;
-			if (strval($this->id_tipopersona->CurrentValue) <> "") {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = Conn()->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$arwrk = array();
-					$arwrk[1] = $rswrk->fields('DispFld');
-					$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-					$rswrk->Close();
-				} else {
-					$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-				}
-			} else {
-				$this->id_tipopersona->ViewValue = NULL;
-			}
-			$this->id_tipopersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->id_tipopersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			}
-			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			$this->id_tipopersona->EditValue = $arwrk;
-			}
 
 			// tipo_documento
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
@@ -1847,10 +1710,6 @@ class cpersonas_grid extends cpersonas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 
-			// id_tipopersona
-			$this->id_tipopersona->LinkCustomAttributes = "";
-			$this->id_tipopersona->HrefValue = "";
-
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -1898,9 +1757,6 @@ class cpersonas_grid extends cpersonas {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->id_tipopersona->FldIsDetailKey && !is_null($this->id_tipopersona->FormValue) && $this->id_tipopersona->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->id_tipopersona->FldCaption(), $this->id_tipopersona->ReqErrMsg));
-		}
 		if (!$this->nombres->FldIsDetailKey && !is_null($this->nombres->FormValue) && $this->nombres->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->nombres->FldCaption(), $this->nombres->ReqErrMsg));
 		}
@@ -1958,6 +1814,50 @@ class cpersonas_grid extends cpersonas {
 			return FALSE;
 		}
 		$rows = ($rs) ? $rs->GetRows() : array();
+
+		// Check if records exist for detail table 'direcciones'
+		if (!isset($GLOBALS["direcciones"])) $GLOBALS["direcciones"] = new cdirecciones();
+		foreach ($rows as $row) {
+			$rsdetail = $GLOBALS["direcciones"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
+			if ($rsdetail && !$rsdetail->EOF) {
+				$sRelatedRecordMsg = str_replace("%t", "direcciones", $Language->Phrase("RelatedRecordExists"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				return FALSE;
+			}
+		}
+
+		// Check if records exist for detail table 'telefonos'
+		if (!isset($GLOBALS["telefonos"])) $GLOBALS["telefonos"] = new ctelefonos();
+		foreach ($rows as $row) {
+			$rsdetail = $GLOBALS["telefonos"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
+			if ($rsdetail && !$rsdetail->EOF) {
+				$sRelatedRecordMsg = str_replace("%t", "telefonos", $Language->Phrase("RelatedRecordExists"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				return FALSE;
+			}
+		}
+
+		// Check if records exist for detail table 'emails'
+		if (!isset($GLOBALS["emails"])) $GLOBALS["emails"] = new cemails();
+		foreach ($rows as $row) {
+			$rsdetail = $GLOBALS["emails"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
+			if ($rsdetail && !$rsdetail->EOF) {
+				$sRelatedRecordMsg = str_replace("%t", "emails", $Language->Phrase("RelatedRecordExists"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				return FALSE;
+			}
+		}
+
+		// Check if records exist for detail table 'vehiculos'
+		if (!isset($GLOBALS["vehiculos"])) $GLOBALS["vehiculos"] = new cvehiculos();
+		foreach ($rows as $row) {
+			$rsdetail = $GLOBALS["vehiculos"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
+			if ($rsdetail && !$rsdetail->EOF) {
+				$sRelatedRecordMsg = str_replace("%t", "vehiculos", $Language->Phrase("RelatedRecordExists"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				return FALSE;
+			}
+		}
 
 		// Clone old rows
 		$rsold = $rows;
@@ -2035,9 +1935,6 @@ class cpersonas_grid extends cpersonas {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// id_tipopersona
-			$this->id_tipopersona->SetDbValueDef($rsnew, $this->id_tipopersona->CurrentValue, 0, $this->id_tipopersona->ReadOnly);
-
 			// tipo_documento
 			$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, $this->tipo_documento->ReadOnly);
 
@@ -2062,23 +1959,23 @@ class cpersonas_grid extends cpersonas {
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, 0, $this->estado->ReadOnly);
 
-			// Check referential integrity for master table 'tipo_persona'
+			// Check referential integrity for master table 'deuda_persona'
 			$bValidMasterRecord = TRUE;
-			$sMasterFilter = $this->SqlMasterFilter_tipo_persona();
-			$KeyValue = isset($rsnew['id_tipopersona']) ? $rsnew['id_tipopersona'] : $rsold['id_tipopersona'];
+			$sMasterFilter = $this->SqlMasterFilter_deuda_persona();
+			$KeyValue = isset($rsnew['Id']) ? $rsnew['Id'] : $rsold['Id'];
 			if (strval($KeyValue) <> "") {
-				$sMasterFilter = str_replace("@Id@", ew_AdjustSql($KeyValue), $sMasterFilter);
+				$sMasterFilter = str_replace("@id_persona@", ew_AdjustSql($KeyValue), $sMasterFilter);
 			} else {
 				$bValidMasterRecord = FALSE;
 			}
 			if ($bValidMasterRecord) {
-				if (!isset($GLOBALS["tipo_persona"])) $GLOBALS["tipo_persona"] = new ctipo_persona();
-				$rsmaster = $GLOBALS["tipo_persona"]->LoadRs($sMasterFilter);
+				if (!isset($GLOBALS["deuda_persona"])) $GLOBALS["deuda_persona"] = new cdeuda_persona();
+				$rsmaster = $GLOBALS["deuda_persona"]->LoadRs($sMasterFilter);
 				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
 				$rsmaster->Close();
 			}
 			if (!$bValidMasterRecord) {
-				$sRelatedRecordMsg = str_replace("%t", "tipo_persona", $Language->Phrase("RelatedRecordRequired"));
+				$sRelatedRecordMsg = str_replace("%t", "deuda_persona", $Language->Phrase("RelatedRecordRequired"));
 				$this->setFailureMessage($sRelatedRecordMsg);
 				$rs->Close();
 				return FALSE;
@@ -2121,26 +2018,26 @@ class cpersonas_grid extends cpersonas {
 		global $Language, $Security;
 
 		// Set up foreign key field value from Session
-			if ($this->getCurrentMasterTable() == "tipo_persona") {
-				$this->id_tipopersona->CurrentValue = $this->id_tipopersona->getSessionValue();
+			if ($this->getCurrentMasterTable() == "deuda_persona") {
+				$this->Id->CurrentValue = $this->Id->getSessionValue();
 			}
 
-		// Check referential integrity for master table 'tipo_persona'
+		// Check referential integrity for master table 'deuda_persona'
 		$bValidMasterRecord = TRUE;
-		$sMasterFilter = $this->SqlMasterFilter_tipo_persona();
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sMasterFilter = str_replace("@Id@", ew_AdjustSql($this->id_tipopersona->CurrentValue, "DB"), $sMasterFilter);
+		$sMasterFilter = $this->SqlMasterFilter_deuda_persona();
+		if (strval($this->Id->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->CurrentValue, "DB"), $sMasterFilter);
 		} else {
 			$bValidMasterRecord = FALSE;
 		}
 		if ($bValidMasterRecord) {
-			if (!isset($GLOBALS["tipo_persona"])) $GLOBALS["tipo_persona"] = new ctipo_persona();
-			$rsmaster = $GLOBALS["tipo_persona"]->LoadRs($sMasterFilter);
+			if (!isset($GLOBALS["deuda_persona"])) $GLOBALS["deuda_persona"] = new cdeuda_persona();
+			$rsmaster = $GLOBALS["deuda_persona"]->LoadRs($sMasterFilter);
 			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
 			$rsmaster->Close();
 		}
 		if (!$bValidMasterRecord) {
-			$sRelatedRecordMsg = str_replace("%t", "tipo_persona", $Language->Phrase("RelatedRecordRequired"));
+			$sRelatedRecordMsg = str_replace("%t", "deuda_persona", $Language->Phrase("RelatedRecordRequired"));
 			$this->setFailureMessage($sRelatedRecordMsg);
 			return FALSE;
 		}
@@ -2151,9 +2048,6 @@ class cpersonas_grid extends cpersonas {
 		if ($rsold) {
 		}
 		$rsnew = array();
-
-		// id_tipopersona
-		$this->id_tipopersona->SetDbValueDef($rsnew, $this->id_tipopersona->CurrentValue, 0, strval($this->id_tipopersona->CurrentValue) == "");
 
 		// tipo_documento
 		$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, FALSE);
@@ -2214,9 +2108,9 @@ class cpersonas_grid extends cpersonas {
 
 		// Hide foreign keys
 		$sMasterTblVar = $this->getCurrentMasterTable();
-		if ($sMasterTblVar == "tipo_persona") {
-			$this->id_tipopersona->Visible = FALSE;
-			if ($GLOBALS["tipo_persona"]->EventCancelled) $this->EventCancelled = TRUE;
+		if ($sMasterTblVar == "deuda_persona") {
+			$this->Id->Visible = FALSE;
+			if ($GLOBALS["deuda_persona"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
@@ -2227,20 +2121,6 @@ class cpersonas_grid extends cpersonas {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
 		switch ($fld->FldVar) {
-		case "x_id_tipopersona":
-			$sSqlWrk = "";
-			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
-			$sSqlWrk = "";
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			if ($sSqlWrk <> "")
-				$fld->LookupFilters["s"] .= $sSqlWrk;
-			break;
 		}
 	}
 

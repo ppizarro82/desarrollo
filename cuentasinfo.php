@@ -8,6 +8,7 @@ $cuentas = NULL;
 //
 class ccuentas extends cTable {
 	var $Id;
+	var $codigo;
 	var $denominacion;
 	var $inicio_contrato;
 	var $fin_contrato;
@@ -50,6 +51,11 @@ class ccuentas extends cTable {
 		$this->Id->Sortable = TRUE; // Allow sort
 		$this->Id->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['Id'] = &$this->Id;
+
+		// codigo
+		$this->codigo = new cField('cuentas', 'cuentas', 'x_codigo', 'codigo', '`codigo`', '`codigo`', 200, -1, FALSE, '`codigo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->codigo->Sortable = TRUE; // Allow sort
+		$this->fields['codigo'] = &$this->codigo;
 
 		// denominacion
 		$this->denominacion = new cField('cuentas', 'cuentas', 'x_denominacion', 'denominacion', '`denominacion`', '`denominacion`', 200, -1, FALSE, '`denominacion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
@@ -117,6 +123,30 @@ class ccuentas extends cTable {
 		} else {
 			$ofld->setSort("");
 		}
+	}
+
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "deudas") {
+			$sDetailUrl = $GLOBALS["deudas"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
+			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "cuentaslist.php";
+		}
+		return $sDetailUrl;
 	}
 
 	// Table level SQL
@@ -377,6 +407,35 @@ class ccuentas extends cTable {
 	// Update
 	function Update(&$rs, $where = "", $rsold = NULL, $curfilter = TRUE) {
 		$conn = &$this->Connection();
+
+		// Cascade Update detail table 'deudas'
+		$bCascadeUpdate = FALSE;
+		$rscascade = array();
+		if (!is_null($rsold) && (isset($rs['Id']) && $rsold['Id'] <> $rs['Id'])) { // Update detail field 'id_cliente'
+			$bCascadeUpdate = TRUE;
+			$rscascade['id_cliente'] = $rs['Id']; 
+		}
+		if ($bCascadeUpdate) {
+			if (!isset($GLOBALS["deudas"])) $GLOBALS["deudas"] = new cdeudas();
+			$rswrk = $GLOBALS["deudas"]->LoadRs("`id_cliente` = " . ew_QuotedValue($rsold['Id'], EW_DATATYPE_NUMBER, 'DB')); 
+			while ($rswrk && !$rswrk->EOF) {
+				$rskey = array();
+				$fldname = 'Id';
+				$rskey[$fldname] = $rswrk->fields[$fldname];
+				$rsdtlold = &$rswrk->fields;
+				$rsdtlnew = array_merge($rsdtlold, $rscascade);
+
+				// Call Row_Updating event
+				$bUpdate = $GLOBALS["deudas"]->Row_Updating($rsdtlold, $rsdtlnew);
+				if ($bUpdate)
+					$bUpdate = $GLOBALS["deudas"]->Update($rscascade, $rskey, $rswrk->fields);
+				if (!$bUpdate) return FALSE;
+
+				// Call Row_Updated event
+				$GLOBALS["deudas"]->Row_Updated($rsdtlold, $rsdtlnew);
+				$rswrk->MoveNext();
+			}
+		}
 		$bUpdate = $conn->Execute($this->UpdateSQL($rs, $where, $curfilter));
 		return $bUpdate;
 	}
@@ -403,6 +462,31 @@ class ccuentas extends cTable {
 	function Delete(&$rs, $where = "", $curfilter = TRUE) {
 		$bDelete = TRUE;
 		$conn = &$this->Connection();
+
+		// Cascade delete detail table 'deudas'
+		if (!isset($GLOBALS["deudas"])) $GLOBALS["deudas"] = new cdeudas();
+		$rscascade = $GLOBALS["deudas"]->LoadRs("`id_cliente` = " . ew_QuotedValue($rs['Id'], EW_DATATYPE_NUMBER, "DB")); 
+		$dtlrows = ($rscascade) ? $rscascade->GetRows() : array();
+
+		// Call Row Deleting event
+		foreach ($dtlrows as $dtlrow) {
+			$bDelete = $GLOBALS["deudas"]->Row_Deleting($dtlrow);
+			if (!$bDelete) break;
+		}
+		if ($bDelete) {
+			foreach ($dtlrows as $dtlrow) {
+				$bDelete = $GLOBALS["deudas"]->Delete($dtlrow); // Delete
+				if ($bDelete === FALSE)
+					break;
+			}
+		}
+
+		// Call Row Deleted event
+		if ($bDelete) {
+			foreach ($dtlrows as $dtlrow) {
+				$GLOBALS["deudas"]->Row_Deleted($dtlrow);
+			}
+		}
 		if ($bDelete)
 			$bDelete = $conn->Execute($this->DeleteSQL($rs, $where, $curfilter));
 		return $bDelete;
@@ -481,7 +565,10 @@ class ccuentas extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		$url = $this->KeyUrl("cuentasedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			$url = $this->KeyUrl("cuentasedit.php", $this->UrlParm($parm));
+		else
+			$url = $this->KeyUrl("cuentasedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 		return $this->AddMasterUrl($url);
 	}
 
@@ -493,7 +580,10 @@ class ccuentas extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		$url = $this->KeyUrl("cuentasadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			$url = $this->KeyUrl("cuentasadd.php", $this->UrlParm($parm));
+		else
+			$url = $this->KeyUrl("cuentasadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 		return $this->AddMasterUrl($url);
 	}
 
@@ -607,6 +697,7 @@ class ccuentas extends cTable {
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
 		$this->Id->setDbValue($rs->fields('Id'));
+		$this->codigo->setDbValue($rs->fields('codigo'));
 		$this->denominacion->setDbValue($rs->fields('denominacion'));
 		$this->inicio_contrato->setDbValue($rs->fields('inicio_contrato'));
 		$this->fin_contrato->setDbValue($rs->fields('fin_contrato'));
@@ -623,6 +714,7 @@ class ccuentas extends cTable {
 
 	// Common render codes
 		// Id
+		// codigo
 		// denominacion
 		// inicio_contrato
 		// fin_contrato
@@ -632,6 +724,10 @@ class ccuentas extends cTable {
 
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// codigo
+		$this->codigo->ViewValue = $this->codigo->CurrentValue;
+		$this->codigo->ViewCustomAttributes = "";
 
 		// denominacion
 		$this->denominacion->ViewValue = $this->denominacion->CurrentValue;
@@ -664,6 +760,11 @@ class ccuentas extends cTable {
 		$this->Id->LinkCustomAttributes = "";
 		$this->Id->HrefValue = "";
 		$this->Id->TooltipValue = "";
+
+		// codigo
+		$this->codigo->LinkCustomAttributes = "";
+		$this->codigo->HrefValue = "";
+		$this->codigo->TooltipValue = "";
 
 		// denominacion
 		$this->denominacion->LinkCustomAttributes = "";
@@ -709,6 +810,12 @@ class ccuentas extends cTable {
 		$this->Id->EditCustomAttributes = "";
 		$this->Id->EditValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// codigo
+		$this->codigo->EditAttrs["class"] = "form-control";
+		$this->codigo->EditCustomAttributes = "";
+		$this->codigo->EditValue = $this->codigo->CurrentValue;
+		$this->codigo->PlaceHolder = ew_RemoveHtml($this->codigo->FldCaption());
 
 		// denominacion
 		$this->denominacion->EditAttrs["class"] = "form-control";
@@ -766,6 +873,7 @@ class ccuentas extends cTable {
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
+					if ($this->codigo->Exportable) $Doc->ExportCaption($this->codigo);
 					if ($this->denominacion->Exportable) $Doc->ExportCaption($this->denominacion);
 					if ($this->inicio_contrato->Exportable) $Doc->ExportCaption($this->inicio_contrato);
 					if ($this->fin_contrato->Exportable) $Doc->ExportCaption($this->fin_contrato);
@@ -773,6 +881,7 @@ class ccuentas extends cTable {
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
+					if ($this->codigo->Exportable) $Doc->ExportCaption($this->codigo);
 					if ($this->denominacion->Exportable) $Doc->ExportCaption($this->denominacion);
 					if ($this->inicio_contrato->Exportable) $Doc->ExportCaption($this->inicio_contrato);
 					if ($this->fin_contrato->Exportable) $Doc->ExportCaption($this->fin_contrato);
@@ -810,6 +919,7 @@ class ccuentas extends cTable {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
+						if ($this->codigo->Exportable) $Doc->ExportField($this->codigo);
 						if ($this->denominacion->Exportable) $Doc->ExportField($this->denominacion);
 						if ($this->inicio_contrato->Exportable) $Doc->ExportField($this->inicio_contrato);
 						if ($this->fin_contrato->Exportable) $Doc->ExportField($this->fin_contrato);
@@ -817,6 +927,7 @@ class ccuentas extends cTable {
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
+						if ($this->codigo->Exportable) $Doc->ExportField($this->codigo);
 						if ($this->denominacion->Exportable) $Doc->ExportField($this->denominacion);
 						if ($this->inicio_contrato->Exportable) $Doc->ExportField($this->inicio_contrato);
 						if ($this->fin_contrato->Exportable) $Doc->ExportField($this->fin_contrato);

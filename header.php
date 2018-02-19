@@ -125,6 +125,9 @@ $.views.settings.debugMode(EW_DEBUG_ENABLED);
 ?>
 var ewVar = <?php echo json_encode($EW_CLIENT_VAR); ?>;
 </script>
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyDFibhqbazLZqySy6EuVE_BHRUvkhyIVLg"></script>
+<script type="text/javascript" src="<?php echo $EW_RELATIVE_PATH ?>phpjs/markerclusterer.js"></script>
+<script type="text/javascript" src="<?php echo $EW_RELATIVE_PATH ?>phpjs/ewgooglemaps.js"></script>
 <script type="text/javascript" src="<?php echo $EW_RELATIVE_PATH ?>phpjs/userfn14.js"></script>
 <script type="text/javascript">
 

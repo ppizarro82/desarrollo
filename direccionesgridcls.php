@@ -347,8 +347,13 @@ class cdirecciones_grid extends cdirecciones {
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 		$this->id_persona->SetVisibility();
+		$this->id_ciudad->SetVisibility();
+		$this->tipo_direccion->SetVisibility();
 		$this->direccion->SetVisibility();
 		$this->ult_fecha_activo->SetVisibility();
+		$this->mapa->SetVisibility();
+		$this->longitud->SetVisibility();
+		$this->latitud->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -816,9 +821,19 @@ class cdirecciones_grid extends cdirecciones {
 		global $objForm;
 		if ($objForm->HasValue("x_id_persona") && $objForm->HasValue("o_id_persona") && $this->id_persona->CurrentValue <> $this->id_persona->OldValue)
 			return FALSE;
+		if ($objForm->HasValue("x_id_ciudad") && $objForm->HasValue("o_id_ciudad") && $this->id_ciudad->CurrentValue <> $this->id_ciudad->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_tipo_direccion") && $objForm->HasValue("o_tipo_direccion") && $this->tipo_direccion->CurrentValue <> $this->tipo_direccion->OldValue)
+			return FALSE;
 		if ($objForm->HasValue("x_direccion") && $objForm->HasValue("o_direccion") && $this->direccion->CurrentValue <> $this->direccion->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_ult_fecha_activo") && $objForm->HasValue("o_ult_fecha_activo") && $this->ult_fecha_activo->CurrentValue <> $this->ult_fecha_activo->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_mapa") && $objForm->HasValue("o_mapa") && $this->mapa->CurrentValue <> $this->mapa->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_longitud") && $objForm->HasValue("o_longitud") && $this->longitud->CurrentValue <> $this->longitud->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_latitud") && $objForm->HasValue("o_latitud") && $this->latitud->CurrentValue <> $this->latitud->OldValue)
 			return FALSE;
 		return TRUE;
 	}
@@ -1037,10 +1052,7 @@ class cdirecciones_grid extends cdirecciones {
 		$oListOpt = &$this->ListOptions->Items["view"];
 		$viewcaption = ew_HtmlTitle($Language->Phrase("ViewLink"));
 		if ($Security->CanView()) {
-			if (ew_IsMobile())
-				$oListOpt->Body = "<a class=\"ewRowLink ewView\" title=\"" . $viewcaption . "\" data-caption=\"" . $viewcaption . "\" href=\"" . ew_HtmlEncode($this->ViewUrl) . "\">" . $Language->Phrase("ViewLink") . "</a>";
-			else
-				$oListOpt->Body = "<a class=\"ewRowLink ewView\" title=\"" . $viewcaption . "\" data-table=\"direcciones\" data-caption=\"" . $viewcaption . "\" href=\"javascript:void(0);\" onclick=\"ew_ModalDialogShow({lnk:this,url:'" . ew_HtmlEncode($this->ViewUrl) . "',btn:null});\">" . $Language->Phrase("ViewLink") . "</a>";
+			$oListOpt->Body = "<a class=\"ewRowLink ewView\" title=\"" . $viewcaption . "\" data-caption=\"" . $viewcaption . "\" href=\"" . ew_HtmlEncode($this->ViewUrl) . "\">" . $Language->Phrase("ViewLink") . "</a>";
 		} else {
 			$oListOpt->Body = "";
 		}
@@ -1181,10 +1193,20 @@ class cdirecciones_grid extends cdirecciones {
 		$this->Id->OldValue = $this->Id->CurrentValue;
 		$this->id_persona->CurrentValue = 0;
 		$this->id_persona->OldValue = $this->id_persona->CurrentValue;
+		$this->id_ciudad->CurrentValue = 0;
+		$this->id_ciudad->OldValue = $this->id_ciudad->CurrentValue;
+		$this->tipo_direccion->CurrentValue = NULL;
+		$this->tipo_direccion->OldValue = $this->tipo_direccion->CurrentValue;
 		$this->direccion->CurrentValue = NULL;
 		$this->direccion->OldValue = $this->direccion->CurrentValue;
 		$this->ult_fecha_activo->CurrentValue = "0000-00-00 00:00:00";
 		$this->ult_fecha_activo->OldValue = $this->ult_fecha_activo->CurrentValue;
+		$this->mapa->CurrentValue = NULL;
+		$this->mapa->OldValue = $this->mapa->CurrentValue;
+		$this->longitud->CurrentValue = NULL;
+		$this->longitud->OldValue = $this->longitud->CurrentValue;
+		$this->latitud->CurrentValue = NULL;
+		$this->latitud->OldValue = $this->latitud->CurrentValue;
 	}
 
 	// Load form values
@@ -1199,6 +1221,14 @@ class cdirecciones_grid extends cdirecciones {
 			$this->id_persona->setFormValue($objForm->GetValue("x_id_persona"));
 		}
 		$this->id_persona->setOldValue($objForm->GetValue("o_id_persona"));
+		if (!$this->id_ciudad->FldIsDetailKey) {
+			$this->id_ciudad->setFormValue($objForm->GetValue("x_id_ciudad"));
+		}
+		$this->id_ciudad->setOldValue($objForm->GetValue("o_id_ciudad"));
+		if (!$this->tipo_direccion->FldIsDetailKey) {
+			$this->tipo_direccion->setFormValue($objForm->GetValue("x_tipo_direccion"));
+		}
+		$this->tipo_direccion->setOldValue($objForm->GetValue("o_tipo_direccion"));
 		if (!$this->direccion->FldIsDetailKey) {
 			$this->direccion->setFormValue($objForm->GetValue("x_direccion"));
 		}
@@ -1208,6 +1238,18 @@ class cdirecciones_grid extends cdirecciones {
 			$this->ult_fecha_activo->CurrentValue = ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7);
 		}
 		$this->ult_fecha_activo->setOldValue($objForm->GetValue("o_ult_fecha_activo"));
+		if (!$this->mapa->FldIsDetailKey) {
+			$this->mapa->setFormValue($objForm->GetValue("x_mapa"));
+		}
+		$this->mapa->setOldValue($objForm->GetValue("o_mapa"));
+		if (!$this->longitud->FldIsDetailKey) {
+			$this->longitud->setFormValue($objForm->GetValue("x_longitud"));
+		}
+		$this->longitud->setOldValue($objForm->GetValue("o_longitud"));
+		if (!$this->latitud->FldIsDetailKey) {
+			$this->latitud->setFormValue($objForm->GetValue("x_latitud"));
+		}
+		$this->latitud->setOldValue($objForm->GetValue("o_latitud"));
 	}
 
 	// Restore form values
@@ -1216,9 +1258,14 @@ class cdirecciones_grid extends cdirecciones {
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->Id->CurrentValue = $this->Id->FormValue;
 		$this->id_persona->CurrentValue = $this->id_persona->FormValue;
+		$this->id_ciudad->CurrentValue = $this->id_ciudad->FormValue;
+		$this->tipo_direccion->CurrentValue = $this->tipo_direccion->FormValue;
 		$this->direccion->CurrentValue = $this->direccion->FormValue;
 		$this->ult_fecha_activo->CurrentValue = $this->ult_fecha_activo->FormValue;
 		$this->ult_fecha_activo->CurrentValue = ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7);
+		$this->mapa->CurrentValue = $this->mapa->FormValue;
+		$this->longitud->CurrentValue = $this->longitud->FormValue;
+		$this->latitud->CurrentValue = $this->latitud->FormValue;
 	}
 
 	// Load recordset
@@ -1282,8 +1329,13 @@ class cdirecciones_grid extends cdirecciones {
 			return;
 		$this->Id->setDbValue($row['Id']);
 		$this->id_persona->setDbValue($row['id_persona']);
+		$this->id_ciudad->setDbValue($row['id_ciudad']);
+		$this->tipo_direccion->setDbValue($row['tipo_direccion']);
 		$this->direccion->setDbValue($row['direccion']);
 		$this->ult_fecha_activo->setDbValue($row['ult_fecha_activo']);
+		$this->mapa->setDbValue($row['mapa']);
+		$this->longitud->setDbValue($row['longitud']);
+		$this->latitud->setDbValue($row['latitud']);
 	}
 
 	// Return a row with default values
@@ -1292,8 +1344,13 @@ class cdirecciones_grid extends cdirecciones {
 		$row = array();
 		$row['Id'] = $this->Id->CurrentValue;
 		$row['id_persona'] = $this->id_persona->CurrentValue;
+		$row['id_ciudad'] = $this->id_ciudad->CurrentValue;
+		$row['tipo_direccion'] = $this->tipo_direccion->CurrentValue;
 		$row['direccion'] = $this->direccion->CurrentValue;
 		$row['ult_fecha_activo'] = $this->ult_fecha_activo->CurrentValue;
+		$row['mapa'] = $this->mapa->CurrentValue;
+		$row['longitud'] = $this->longitud->CurrentValue;
+		$row['latitud'] = $this->latitud->CurrentValue;
 		return $row;
 	}
 
@@ -1304,8 +1361,13 @@ class cdirecciones_grid extends cdirecciones {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
 		$this->id_persona->DbValue = $row['id_persona'];
+		$this->id_ciudad->DbValue = $row['id_ciudad'];
+		$this->tipo_direccion->DbValue = $row['tipo_direccion'];
 		$this->direccion->DbValue = $row['direccion'];
 		$this->ult_fecha_activo->DbValue = $row['ult_fecha_activo'];
+		$this->mapa->DbValue = $row['mapa'];
+		$this->longitud->DbValue = $row['longitud'];
+		$this->latitud->DbValue = $row['latitud'];
 	}
 
 	// Load old record
@@ -1352,8 +1414,13 @@ class cdirecciones_grid extends cdirecciones {
 		// Common render codes for all row types
 		// Id
 		// id_persona
+		// id_ciudad
+		// tipo_direccion
 		// direccion
 		// ult_fecha_activo
+		// mapa
+		// longitud
+		// latitud
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1388,6 +1455,38 @@ class cdirecciones_grid extends cdirecciones {
 		}
 		$this->id_persona->ViewCustomAttributes = "";
 
+		// id_ciudad
+		if (strval($this->id_ciudad->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
+		$sWhereWrk = "";
+		$this->id_ciudad->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_ciudad->ViewValue = $this->id_ciudad->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_ciudad->ViewValue = $this->id_ciudad->CurrentValue;
+			}
+		} else {
+			$this->id_ciudad->ViewValue = NULL;
+		}
+		$this->id_ciudad->ViewCustomAttributes = "";
+
+		// tipo_direccion
+		if (strval($this->tipo_direccion->CurrentValue) <> "") {
+			$this->tipo_direccion->ViewValue = $this->tipo_direccion->OptionCaption($this->tipo_direccion->CurrentValue);
+		} else {
+			$this->tipo_direccion->ViewValue = NULL;
+		}
+		$this->tipo_direccion->ViewCustomAttributes = "";
+
 		// direccion
 		$this->direccion->ViewValue = $this->direccion->CurrentValue;
 		$this->direccion->ViewCustomAttributes = "";
@@ -1397,6 +1496,18 @@ class cdirecciones_grid extends cdirecciones {
 		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
 		$this->ult_fecha_activo->ViewCustomAttributes = "";
 
+		// mapa
+		$this->mapa->ViewValue = $this->mapa->CurrentValue;
+		$this->mapa->ViewCustomAttributes = "";
+
+		// longitud
+		$this->longitud->ViewValue = $this->longitud->CurrentValue;
+		$this->longitud->ViewCustomAttributes = "";
+
+		// latitud
+		$this->latitud->ViewValue = $this->latitud->CurrentValue;
+		$this->latitud->ViewCustomAttributes = "";
+
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
@@ -1405,13 +1516,23 @@ class cdirecciones_grid extends cdirecciones {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
 				$this->id_persona->HrefValue = "";
 			}
 			$this->id_persona->TooltipValue = "";
+
+			// id_ciudad
+			$this->id_ciudad->LinkCustomAttributes = "";
+			$this->id_ciudad->HrefValue = "";
+			$this->id_ciudad->TooltipValue = "";
+
+			// tipo_direccion
+			$this->tipo_direccion->LinkCustomAttributes = "";
+			$this->tipo_direccion->HrefValue = "";
+			$this->tipo_direccion->TooltipValue = "";
 
 			// direccion
 			$this->direccion->LinkCustomAttributes = "";
@@ -1422,6 +1543,21 @@ class cdirecciones_grid extends cdirecciones {
 			$this->ult_fecha_activo->LinkCustomAttributes = "";
 			$this->ult_fecha_activo->HrefValue = "";
 			$this->ult_fecha_activo->TooltipValue = "";
+
+			// mapa
+			$this->mapa->LinkCustomAttributes = "";
+			$this->mapa->HrefValue = "";
+			$this->mapa->TooltipValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+			$this->longitud->TooltipValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
+			$this->latitud->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// Id
@@ -1477,6 +1613,31 @@ class cdirecciones_grid extends cdirecciones {
 			$this->id_persona->EditValue = $arwrk;
 			}
 
+			// id_ciudad
+			$this->id_ciudad->EditAttrs["class"] = "form-control";
+			$this->id_ciudad->EditCustomAttributes = 'onChange=initMap(this);';
+			if (trim(strval($this->id_ciudad->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `ciudades`";
+			$sWhereWrk = "";
+			$this->id_ciudad->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_ciudad->EditValue = $arwrk;
+
+			// tipo_direccion
+			$this->tipo_direccion->EditAttrs["class"] = "form-control";
+			$this->tipo_direccion->EditCustomAttributes = "";
+			$this->tipo_direccion->EditValue = $this->tipo_direccion->Options(TRUE);
+
 			// direccion
 			$this->direccion->EditAttrs["class"] = "form-control";
 			$this->direccion->EditCustomAttributes = "";
@@ -1489,6 +1650,24 @@ class cdirecciones_grid extends cdirecciones {
 			$this->ult_fecha_activo->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->ult_fecha_activo->CurrentValue, 7));
 			$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
 
+			// mapa
+			$this->mapa->EditAttrs["class"] = "form-control";
+			$this->mapa->EditCustomAttributes = "";
+			$this->mapa->EditValue = ew_HtmlEncode($this->mapa->CurrentValue);
+			$this->mapa->PlaceHolder = ew_RemoveHtml($this->mapa->FldCaption());
+
+			// longitud
+			$this->longitud->EditAttrs["class"] = "form-control";
+			$this->longitud->EditCustomAttributes = 'readonly=true';
+			$this->longitud->EditValue = ew_HtmlEncode($this->longitud->CurrentValue);
+			$this->longitud->PlaceHolder = ew_RemoveHtml($this->longitud->FldCaption());
+
+			// latitud
+			$this->latitud->EditAttrs["class"] = "form-control";
+			$this->latitud->EditCustomAttributes = 'readonly=true';
+			$this->latitud->EditValue = ew_HtmlEncode($this->latitud->CurrentValue);
+			$this->latitud->PlaceHolder = ew_RemoveHtml($this->latitud->FldCaption());
+
 			// Add refer script
 			// Id
 
@@ -1498,12 +1677,20 @@ class cdirecciones_grid extends cdirecciones {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
 				$this->id_persona->HrefValue = "";
 			}
+
+			// id_ciudad
+			$this->id_ciudad->LinkCustomAttributes = "";
+			$this->id_ciudad->HrefValue = "";
+
+			// tipo_direccion
+			$this->tipo_direccion->LinkCustomAttributes = "";
+			$this->tipo_direccion->HrefValue = "";
 
 			// direccion
 			$this->direccion->LinkCustomAttributes = "";
@@ -1512,6 +1699,18 @@ class cdirecciones_grid extends cdirecciones {
 			// ult_fecha_activo
 			$this->ult_fecha_activo->LinkCustomAttributes = "";
 			$this->ult_fecha_activo->HrefValue = "";
+
+			// mapa
+			$this->mapa->LinkCustomAttributes = "";
+			$this->mapa->HrefValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// Id
@@ -1571,6 +1770,31 @@ class cdirecciones_grid extends cdirecciones {
 			$this->id_persona->EditValue = $arwrk;
 			}
 
+			// id_ciudad
+			$this->id_ciudad->EditAttrs["class"] = "form-control";
+			$this->id_ciudad->EditCustomAttributes = 'onChange=initMap(this);';
+			if (trim(strval($this->id_ciudad->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `ciudades`";
+			$sWhereWrk = "";
+			$this->id_ciudad->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_ciudad->EditValue = $arwrk;
+
+			// tipo_direccion
+			$this->tipo_direccion->EditAttrs["class"] = "form-control";
+			$this->tipo_direccion->EditCustomAttributes = "";
+			$this->tipo_direccion->EditValue = $this->tipo_direccion->Options(TRUE);
+
 			// direccion
 			$this->direccion->EditAttrs["class"] = "form-control";
 			$this->direccion->EditCustomAttributes = "";
@@ -1583,6 +1807,24 @@ class cdirecciones_grid extends cdirecciones {
 			$this->ult_fecha_activo->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->ult_fecha_activo->CurrentValue, 7));
 			$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
 
+			// mapa
+			$this->mapa->EditAttrs["class"] = "form-control";
+			$this->mapa->EditCustomAttributes = "";
+			$this->mapa->EditValue = ew_HtmlEncode($this->mapa->CurrentValue);
+			$this->mapa->PlaceHolder = ew_RemoveHtml($this->mapa->FldCaption());
+
+			// longitud
+			$this->longitud->EditAttrs["class"] = "form-control";
+			$this->longitud->EditCustomAttributes = 'readonly=true';
+			$this->longitud->EditValue = ew_HtmlEncode($this->longitud->CurrentValue);
+			$this->longitud->PlaceHolder = ew_RemoveHtml($this->longitud->FldCaption());
+
+			// latitud
+			$this->latitud->EditAttrs["class"] = "form-control";
+			$this->latitud->EditCustomAttributes = 'readonly=true';
+			$this->latitud->EditValue = ew_HtmlEncode($this->latitud->CurrentValue);
+			$this->latitud->PlaceHolder = ew_RemoveHtml($this->latitud->FldCaption());
+
 			// Edit refer script
 			// Id
 
@@ -1592,12 +1834,20 @@ class cdirecciones_grid extends cdirecciones {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
 				$this->id_persona->HrefValue = "";
 			}
+
+			// id_ciudad
+			$this->id_ciudad->LinkCustomAttributes = "";
+			$this->id_ciudad->HrefValue = "";
+
+			// tipo_direccion
+			$this->tipo_direccion->LinkCustomAttributes = "";
+			$this->tipo_direccion->HrefValue = "";
 
 			// direccion
 			$this->direccion->LinkCustomAttributes = "";
@@ -1606,6 +1856,18 @@ class cdirecciones_grid extends cdirecciones {
 			// ult_fecha_activo
 			$this->ult_fecha_activo->LinkCustomAttributes = "";
 			$this->ult_fecha_activo->HrefValue = "";
+
+			// mapa
+			$this->mapa->LinkCustomAttributes = "";
+			$this->mapa->HrefValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->SetupFieldTitles();
@@ -1624,6 +1886,12 @@ class cdirecciones_grid extends cdirecciones {
 			return ($gsFormError == "");
 		if (!$this->id_persona->FldIsDetailKey && !is_null($this->id_persona->FormValue) && $this->id_persona->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->id_persona->FldCaption(), $this->id_persona->ReqErrMsg));
+		}
+		if (!$this->id_ciudad->FldIsDetailKey && !is_null($this->id_ciudad->FormValue) && $this->id_ciudad->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->id_ciudad->FldCaption(), $this->id_ciudad->ReqErrMsg));
+		}
+		if (!$this->tipo_direccion->FldIsDetailKey && !is_null($this->tipo_direccion->FormValue) && $this->tipo_direccion->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->tipo_direccion->FldCaption(), $this->tipo_direccion->ReqErrMsg));
 		}
 		if (!$this->direccion->FldIsDetailKey && !is_null($this->direccion->FormValue) && $this->direccion->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->direccion->FldCaption(), $this->direccion->ReqErrMsg));
@@ -1750,11 +2018,26 @@ class cdirecciones_grid extends cdirecciones {
 			// id_persona
 			$this->id_persona->SetDbValueDef($rsnew, $this->id_persona->CurrentValue, 0, $this->id_persona->ReadOnly);
 
+			// id_ciudad
+			$this->id_ciudad->SetDbValueDef($rsnew, $this->id_ciudad->CurrentValue, 0, $this->id_ciudad->ReadOnly);
+
+			// tipo_direccion
+			$this->tipo_direccion->SetDbValueDef($rsnew, $this->tipo_direccion->CurrentValue, "", $this->tipo_direccion->ReadOnly);
+
 			// direccion
 			$this->direccion->SetDbValueDef($rsnew, $this->direccion->CurrentValue, "", $this->direccion->ReadOnly);
 
 			// ult_fecha_activo
 			$this->ult_fecha_activo->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7), ew_CurrentDate(), $this->ult_fecha_activo->ReadOnly);
+
+			// mapa
+			$this->mapa->SetDbValueDef($rsnew, $this->mapa->CurrentValue, NULL, $this->mapa->ReadOnly);
+
+			// longitud
+			$this->longitud->SetDbValueDef($rsnew, $this->longitud->CurrentValue, NULL, $this->longitud->ReadOnly);
+
+			// latitud
+			$this->latitud->SetDbValueDef($rsnew, $this->latitud->CurrentValue, NULL, $this->latitud->ReadOnly);
 
 			// Check referential integrity for master table 'personas'
 			$bValidMasterRecord = TRUE;
@@ -1849,11 +2132,26 @@ class cdirecciones_grid extends cdirecciones {
 		// id_persona
 		$this->id_persona->SetDbValueDef($rsnew, $this->id_persona->CurrentValue, 0, strval($this->id_persona->CurrentValue) == "");
 
+		// id_ciudad
+		$this->id_ciudad->SetDbValueDef($rsnew, $this->id_ciudad->CurrentValue, 0, strval($this->id_ciudad->CurrentValue) == "");
+
+		// tipo_direccion
+		$this->tipo_direccion->SetDbValueDef($rsnew, $this->tipo_direccion->CurrentValue, "", FALSE);
+
 		// direccion
 		$this->direccion->SetDbValueDef($rsnew, $this->direccion->CurrentValue, "", FALSE);
 
 		// ult_fecha_activo
 		$this->ult_fecha_activo->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7), ew_CurrentDate(), strval($this->ult_fecha_activo->CurrentValue) == "");
+
+		// mapa
+		$this->mapa->SetDbValueDef($rsnew, $this->mapa->CurrentValue, NULL, FALSE);
+
+		// longitud
+		$this->longitud->SetDbValueDef($rsnew, $this->longitud->CurrentValue, NULL, FALSE);
+
+		// latitud
+		$this->latitud->SetDbValueDef($rsnew, $this->latitud->CurrentValue, NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1914,6 +2212,19 @@ class cdirecciones_grid extends cdirecciones {
 			$sSqlWrk = "";
 			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_ciudad":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
+			$sWhereWrk = "";
+			$this->id_ciudad->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			if ($sSqlWrk <> "")
 				$fld->LookupFilters["s"] .= $sSqlWrk;
 			break;

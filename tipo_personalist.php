@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "tipo_personainfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -305,7 +304,7 @@ class ctipo_persona_list extends ctipo_persona {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "tipo_personaadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
+		$this->AddUrl = "tipo_personaadd.php";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -465,14 +464,6 @@ class ctipo_persona_list extends ctipo_persona {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'personas'
-			if (@$_POST["grid"] == "fpersonasgrid") {
-				if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid;
-				$GLOBALS["personas_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -589,7 +580,6 @@ class ctipo_persona_list extends ctipo_persona {
 	var $MultiSelectKey;
 	var $Command;
 	var $RestoreSearch = FALSE;
-	var $personas_Count;
 	var $DetailPages;
 	var $Recordset;
 	var $OldRecordset;
@@ -1090,28 +1080,6 @@ class ctipo_persona_list extends ctipo_persona {
 		$item->Visible = $Security->CanAdd();
 		$item->OnLeft = TRUE;
 
-		// "detail_personas"
-		$item = &$this->ListOptions->Add("detail_personas");
-		$item->CssClass = "text-nowrap";
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'personas') && !$this->ShowMultipleDetails;
-		$item->OnLeft = TRUE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$this->ListOptions->Add("details");
-			$item->CssClass = "text-nowrap";
-			$item->Visible = $this->ShowMultipleDetails;
-			$item->OnLeft = TRUE;
-			$item->ShowInButtonGroup = FALSE;
-		}
-
-		// Set up detail pages
-		$pages = new cSubPages();
-		$pages->Add("personas");
-		$this->DetailPages = $pages;
-
 		// List actions
 		$item = &$this->ListOptions->Add("listactions");
 		$item->CssClass = "text-nowrap";
@@ -1217,69 +1185,6 @@ class ctipo_persona_list extends ctipo_persona {
 				$oListOpt->Visible = TRUE;
 			}
 		}
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_personas"
-		$oListOpt = &$this->ListOptions->Items["detail_personas"];
-		if ($Security->AllowList(CurrentProjectID() . 'personas')) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("personas", "TblCaption");
-			$body .= "&nbsp;" . str_replace("%c", $this->personas_Count, $Language->Phrase("DetailCount"));
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("personaslist.php?" . EW_TABLE_SHOW_MASTER . "=tipo_persona&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["personas_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'personas')) {
-				$caption = $Language->Phrase("MasterDetailViewLink");
-				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=personas");
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "personas";
-			}
-			if ($GLOBALS["personas_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'personas')) {
-				$caption = $Language->Phrase("MasterDetailEditLink");
-				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=personas");
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "personas";
-			}
-			if ($GLOBALS["personas_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'personas')) {
-				$caption = $Language->Phrase("MasterDetailCopyLink");
-				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=personas");
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-				$DetailCopyTblVar .= "personas";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$this->ListOptions->Items["details"];
-			$oListOpt->Body = $body;
-		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -1304,34 +1209,6 @@ class ctipo_persona_list extends ctipo_persona {
 		else
 			$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . $addcaption . "\" data-table=\"tipo_persona\" data-caption=\"" . $addcaption . "\" href=\"javascript:void(0);\" onclick=\"ew_ModalDialogShow({lnk:this,btn:'AddBtn',url:'" . ew_HtmlEncode($this->AddUrl) . "'});\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
-		$option = $options["detail"];
-		$DetailTableLink = "";
-		$item = &$option->Add("detailadd_personas");
-		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=personas");
-		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["personas"]->TableCaption();
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
-		$item->Visible = ($GLOBALS["personas"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'personas') && $Security->CanAdd());
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "personas";
-		}
-
-		// Add multiple details
-		if ($this->ShowMultipleDetails) {
-			$item = &$option->Add("detailsadd");
-			$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink);
-			$caption = $Language->Phrase("AddMasterDetailLink");
-			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
-			$item->Visible = ($DetailTableLink <> "" && $Security->CanAdd());
-
-			// Hide single master/detail items
-			$ar = explode(",", $DetailTableLink);
-			$cnt = count($ar);
-			for ($i = 0; $i < $cnt; $i++) {
-				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
-					$item->Visible = FALSE;
-			}
-		}
 		$option = $options["action"];
 
 		// Add multi delete
@@ -1628,12 +1505,6 @@ class ctipo_persona_list extends ctipo_persona {
 		$this->Id->setDbValue($row['Id']);
 		$this->nombre->setDbValue($row['nombre']);
 		$this->estado->setDbValue($row['estado']);
-		if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid;
-		$sDetailFilter = $GLOBALS["personas"]->SqlDetailFilter_tipo_persona();
-		$sDetailFilter = str_replace("@id_tipopersona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["personas"]->setCurrentMasterTable("tipo_persona");
-		$sDetailFilter = $GLOBALS["personas"]->ApplyUserIDFilters($sDetailFilter);
-		$this->personas_Count = $GLOBALS["personas"]->LoadRecordCount($sDetailFilter);
 	}
 
 	// Return a row with default values
@@ -1773,7 +1644,7 @@ class ctipo_persona_list extends ctipo_persona {
 		// Export to Pdf
 		$item = &$this->ExportOptions->Add("pdf");
 		$item->Body = "<a href=\"" . $this->ExportPdfUrl . "\" class=\"ewExportLink ewPdf\" title=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\" data-caption=\"" . ew_HtmlEncode($Language->Phrase("ExportToPDFText")) . "\">" . $Language->Phrase("ExportToPDF") . "</a>";
-		$item->Visible = FALSE;
+		$item->Visible = TRUE;
 
 		// Export to Email
 		$item = &$this->ExportOptions->Add("email");

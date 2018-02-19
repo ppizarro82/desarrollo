@@ -303,8 +303,10 @@ class cdefault {
 			$this->setFailureMessage($Language->Phrase("SessionExpired"));
 		if (!$Security->IsLoggedIn()) $Security->AutoLogin();
 		$Security->LoadUserLevel(); // Load User Level
+		if ($Security->AllowList(CurrentProjectID() . 'personas'))
+		$this->Page_Terminate("personaslist.php"); // Exit and go to default page
 		if ($Security->AllowList(CurrentProjectID() . 'userlevelpermissions'))
-		$this->Page_Terminate("userlevelpermissionslist.php"); // Exit and go to default page
+			$this->Page_Terminate("userlevelpermissionslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'userlevels'))
 			$this->Page_Terminate("userlevelslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'users'))
@@ -321,14 +323,22 @@ class cdefault {
 			$this->Page_Terminate("cuentaslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'ciudades'))
 			$this->Page_Terminate("ciudadeslist.php");
-		if ($Security->AllowList(CurrentProjectID() . 'personas'))
-			$this->Page_Terminate("personaslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'telefonos'))
 			$this->Page_Terminate("telefonoslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'direcciones'))
 			$this->Page_Terminate("direccioneslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'emails'))
 			$this->Page_Terminate("emailslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'vehiculos'))
+			$this->Page_Terminate("vehiculoslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'direccionesadd.php'))
+			$this->Page_Terminate("direccionesadd.php");
+		if ($Security->AllowList(CurrentProjectID() . 'direccionesedit.php'))
+			$this->Page_Terminate("direccionesedit.php");
+		if ($Security->AllowList(CurrentProjectID() . 'deuda_persona'))
+			$this->Page_Terminate("deuda_personalist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'deudas'))
+			$this->Page_Terminate("deudaslist.php");
 		if ($Security->IsLoggedIn()) {
 			$this->setFailureMessage(ew_DeniedMsg() . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
 		} else {

@@ -1383,7 +1383,7 @@ class cemails_grid extends cemails {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
@@ -1465,7 +1465,7 @@ class cemails_grid extends cemails {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
@@ -1549,7 +1549,7 @@ class cemails_grid extends cemails {
 			// id_persona
 			$this->id_persona->LinkCustomAttributes = "";
 			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 				$this->id_persona->LinkAttrs["target"] = ""; // Add target
 				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 			} else {
@@ -1703,6 +1703,28 @@ class cemails_grid extends cemails {
 			// email
 			$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, "", $this->_email->ReadOnly);
 
+			// Check referential integrity for master table 'personas'
+			$bValidMasterRecord = TRUE;
+			$sMasterFilter = $this->SqlMasterFilter_personas();
+			$KeyValue = isset($rsnew['id_persona']) ? $rsnew['id_persona'] : $rsold['id_persona'];
+			if (strval($KeyValue) <> "") {
+				$sMasterFilter = str_replace("@Id@", ew_AdjustSql($KeyValue), $sMasterFilter);
+			} else {
+				$bValidMasterRecord = FALSE;
+			}
+			if ($bValidMasterRecord) {
+				if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
+				$rsmaster = $GLOBALS["personas"]->LoadRs($sMasterFilter);
+				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+				$rsmaster->Close();
+			}
+			if (!$bValidMasterRecord) {
+				$sRelatedRecordMsg = str_replace("%t", "personas", $Language->Phrase("RelatedRecordRequired"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				$rs->Close();
+				return FALSE;
+			}
+
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
 			if ($bUpdateRow) {
@@ -1743,6 +1765,26 @@ class cemails_grid extends cemails {
 			if ($this->getCurrentMasterTable() == "personas") {
 				$this->id_persona->CurrentValue = $this->id_persona->getSessionValue();
 			}
+
+		// Check referential integrity for master table 'personas'
+		$bValidMasterRecord = TRUE;
+		$sMasterFilter = $this->SqlMasterFilter_personas();
+		if (strval($this->id_persona->CurrentValue) <> "") {
+			$sMasterFilter = str_replace("@Id@", ew_AdjustSql($this->id_persona->CurrentValue, "DB"), $sMasterFilter);
+		} else {
+			$bValidMasterRecord = FALSE;
+		}
+		if ($bValidMasterRecord) {
+			if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
+			$rsmaster = $GLOBALS["personas"]->LoadRs($sMasterFilter);
+			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
+			$rsmaster->Close();
+		}
+		if (!$bValidMasterRecord) {
+			$sRelatedRecordMsg = str_replace("%t", "personas", $Language->Phrase("RelatedRecordRequired"));
+			$this->setFailureMessage($sRelatedRecordMsg);
+			return FALSE;
+		}
 		$conn = &$this->Connection();
 
 		// Load db values from rsold

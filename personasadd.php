@@ -7,10 +7,11 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "personasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "tipo_personainfo.php" ?>
-<?php include_once "telefonosgridcls.php" ?>
 <?php include_once "direccionesgridcls.php" ?>
+<?php include_once "telefonosgridcls.php" ?>
 <?php include_once "emailsgridcls.php" ?>
+<?php include_once "vehiculosgridcls.php" ?>
+<?php include_once "deuda_personagridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -263,9 +264,6 @@ class cpersonas_add extends cpersonas {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (tipo_persona)
-		if (!isset($GLOBALS['tipo_persona'])) $GLOBALS['tipo_persona'] = new ctipo_persona();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'add', TRUE);
@@ -327,13 +325,13 @@ class cpersonas_add extends cpersonas {
 
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->id_tipopersona->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
 		$this->paterno->SetVisibility();
 		$this->materno->SetVisibility();
 		$this->fecha_nacimiento->SetVisibility();
+		$this->imagen->SetVisibility();
 		$this->observaciones->SetVisibility();
 		$this->estado->SetVisibility();
 
@@ -356,14 +354,6 @@ class cpersonas_add extends cpersonas {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'telefonos'
-			if (@$_POST["grid"] == "ftelefonosgrid") {
-				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				$GLOBALS["telefonos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
 			// Process auto fill for detail table 'direcciones'
 			if (@$_POST["grid"] == "fdireccionesgrid") {
 				if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
@@ -372,10 +362,34 @@ class cpersonas_add extends cpersonas {
 				exit();
 			}
 
+			// Process auto fill for detail table 'telefonos'
+			if (@$_POST["grid"] == "ftelefonosgrid") {
+				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
+				$GLOBALS["telefonos_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
 			// Process auto fill for detail table 'emails'
 			if (@$_POST["grid"] == "femailsgrid") {
 				if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
 				$GLOBALS["emails_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'vehiculos'
+			if (@$_POST["grid"] == "fvehiculosgrid") {
+				if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
+				$GLOBALS["vehiculos_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
+
+			// Process auto fill for detail table 'deuda_persona'
+			if (@$_POST["grid"] == "fdeuda_personagrid") {
+				if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
+				$GLOBALS["deuda_persona_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -477,9 +491,6 @@ class cpersonas_add extends cpersonas {
 		$this->IsMobileOrModal = ew_IsMobile() || $this->IsModal;
 		$this->FormClassName = "ewForm ewAddForm form-horizontal";
 
-		// Set up master/detail parameters
-		$this->SetupMasterParms();
-
 		// Set up current action
 		if (@$_POST["a_add"] <> "") {
 			$this->CurrentAction = $_POST["a_add"]; // Get form action
@@ -574,13 +585,15 @@ class cpersonas_add extends cpersonas {
 		global $objForm, $Language;
 
 		// Get upload data
+		$this->imagen->Upload->Index = $objForm->Index;
+		$this->imagen->Upload->UploadFile();
+		$this->imagen->CurrentValue = $this->imagen->Upload->FileName;
 	}
 
 	// Load default values
 	function LoadDefaultValues() {
 		$this->Id->CurrentValue = NULL;
 		$this->Id->OldValue = $this->Id->CurrentValue;
-		$this->id_tipopersona->CurrentValue = 0;
 		$this->tipo_documento->CurrentValue = NULL;
 		$this->tipo_documento->OldValue = $this->tipo_documento->CurrentValue;
 		$this->no_documento->CurrentValue = NULL;
@@ -594,6 +607,9 @@ class cpersonas_add extends cpersonas {
 		$this->fecha_nacimiento->CurrentValue = NULL;
 		$this->fecha_nacimiento->OldValue = $this->fecha_nacimiento->CurrentValue;
 		$this->fecha_registro->CurrentValue = "0000-00-00 00:00:00";
+		$this->imagen->Upload->DbValue = NULL;
+		$this->imagen->OldValue = $this->imagen->Upload->DbValue;
+		$this->imagen->CurrentValue = NULL; // Clear file related field
 		$this->observaciones->CurrentValue = NULL;
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
 		$this->estado->CurrentValue = 1;
@@ -604,9 +620,7 @@ class cpersonas_add extends cpersonas {
 
 		// Load from form
 		global $objForm;
-		if (!$this->id_tipopersona->FldIsDetailKey) {
-			$this->id_tipopersona->setFormValue($objForm->GetValue("x_id_tipopersona"));
-		}
+		$this->GetUploadFiles(); // Get upload files
 		if (!$this->tipo_documento->FldIsDetailKey) {
 			$this->tipo_documento->setFormValue($objForm->GetValue("x_tipo_documento"));
 		}
@@ -637,7 +651,6 @@ class cpersonas_add extends cpersonas {
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
-		$this->id_tipopersona->CurrentValue = $this->id_tipopersona->FormValue;
 		$this->tipo_documento->CurrentValue = $this->tipo_documento->FormValue;
 		$this->no_documento->CurrentValue = $this->no_documento->FormValue;
 		$this->nombres->CurrentValue = $this->nombres->FormValue;
@@ -683,7 +696,6 @@ class cpersonas_add extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_tipopersona->setDbValue($row['id_tipopersona']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
@@ -691,6 +703,8 @@ class cpersonas_add extends cpersonas {
 		$this->materno->setDbValue($row['materno']);
 		$this->fecha_nacimiento->setDbValue($row['fecha_nacimiento']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
+		$this->imagen->Upload->DbValue = $row['imagen'];
+		$this->imagen->CurrentValue = $this->imagen->Upload->DbValue;
 		$this->observaciones->setDbValue($row['observaciones']);
 		$this->estado->setDbValue($row['estado']);
 	}
@@ -700,7 +714,6 @@ class cpersonas_add extends cpersonas {
 		$this->LoadDefaultValues();
 		$row = array();
 		$row['Id'] = $this->Id->CurrentValue;
-		$row['id_tipopersona'] = $this->id_tipopersona->CurrentValue;
 		$row['tipo_documento'] = $this->tipo_documento->CurrentValue;
 		$row['no_documento'] = $this->no_documento->CurrentValue;
 		$row['nombres'] = $this->nombres->CurrentValue;
@@ -708,6 +721,7 @@ class cpersonas_add extends cpersonas {
 		$row['materno'] = $this->materno->CurrentValue;
 		$row['fecha_nacimiento'] = $this->fecha_nacimiento->CurrentValue;
 		$row['fecha_registro'] = $this->fecha_registro->CurrentValue;
+		$row['imagen'] = $this->imagen->Upload->DbValue;
 		$row['observaciones'] = $this->observaciones->CurrentValue;
 		$row['estado'] = $this->estado->CurrentValue;
 		return $row;
@@ -719,7 +733,6 @@ class cpersonas_add extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_tipopersona->DbValue = $row['id_tipopersona'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
@@ -727,6 +740,7 @@ class cpersonas_add extends cpersonas {
 		$this->materno->DbValue = $row['materno'];
 		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
 		$this->fecha_registro->DbValue = $row['fecha_registro'];
+		$this->imagen->Upload->DbValue = $row['imagen'];
 		$this->observaciones->DbValue = $row['observaciones'];
 		$this->estado->DbValue = $row['estado'];
 	}
@@ -764,7 +778,6 @@ class cpersonas_add extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
-		// id_tipopersona
 		// tipo_documento
 		// no_documento
 		// nombres
@@ -772,6 +785,7 @@ class cpersonas_add extends cpersonas {
 		// materno
 		// fecha_nacimiento
 		// fecha_registro
+		// imagen
 		// observaciones
 		// estado
 
@@ -780,31 +794,6 @@ class cpersonas_add extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
-
-		// id_tipopersona
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-		$sWhereWrk = "";
-		$this->id_tipopersona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-			}
-		} else {
-			$this->id_tipopersona->ViewValue = NULL;
-		}
-		$this->id_tipopersona->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -841,6 +830,18 @@ class cpersonas_add extends cpersonas {
 		$this->fecha_registro->ViewValue = ew_FormatDateTime($this->fecha_registro->ViewValue, 11);
 		$this->fecha_registro->ViewCustomAttributes = "";
 
+		// imagen
+		$this->imagen->UploadPath = 'uploads/';
+		if (!ew_Empty($this->imagen->Upload->DbValue)) {
+			$this->imagen->ImageWidth = 120;
+			$this->imagen->ImageHeight = 120;
+			$this->imagen->ImageAlt = $this->imagen->FldAlt();
+			$this->imagen->ViewValue = $this->imagen->Upload->DbValue;
+		} else {
+			$this->imagen->ViewValue = "";
+		}
+		$this->imagen->ViewCustomAttributes = "";
+
 		// observaciones
 		$this->observaciones->ViewValue = $this->observaciones->CurrentValue;
 		$this->observaciones->ViewCustomAttributes = "";
@@ -852,11 +853,6 @@ class cpersonas_add extends cpersonas {
 			$this->estado->ViewValue = NULL;
 		}
 		$this->estado->ViewCustomAttributes = "";
-
-			// id_tipopersona
-			$this->id_tipopersona->LinkCustomAttributes = "";
-			$this->id_tipopersona->HrefValue = "";
-			$this->id_tipopersona->TooltipValue = "";
 
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
@@ -888,6 +884,25 @@ class cpersonas_add extends cpersonas {
 			$this->fecha_nacimiento->HrefValue = "";
 			$this->fecha_nacimiento->TooltipValue = "";
 
+			// imagen
+			$this->imagen->LinkCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+				$this->imagen->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+			} else {
+				$this->imagen->HrefValue = "";
+			}
+			$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
+			$this->imagen->TooltipValue = "";
+			if ($this->imagen->UseColorbox) {
+				if (ew_Empty($this->imagen->TooltipValue))
+					$this->imagen->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->imagen->LinkAttrs["data-rel"] = "personas_x_imagen";
+				ew_AppendClass($this->imagen->LinkAttrs["class"], "ewLightbox");
+			}
+
 			// observaciones
 			$this->observaciones->LinkCustomAttributes = "";
 			$this->observaciones->HrefValue = "";
@@ -898,54 +913,6 @@ class cpersonas_add extends cpersonas {
 			$this->estado->HrefValue = "";
 			$this->estado->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
-
-			// id_tipopersona
-			$this->id_tipopersona->EditAttrs["class"] = "form-control";
-			$this->id_tipopersona->EditCustomAttributes = "";
-			if ($this->id_tipopersona->getSessionValue() <> "") {
-				$this->id_tipopersona->CurrentValue = $this->id_tipopersona->getSessionValue();
-			if (strval($this->id_tipopersona->CurrentValue) <> "") {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = Conn()->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$arwrk = array();
-					$arwrk[1] = $rswrk->fields('DispFld');
-					$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-					$rswrk->Close();
-				} else {
-					$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-				}
-			} else {
-				$this->id_tipopersona->ViewValue = NULL;
-			}
-			$this->id_tipopersona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->id_tipopersona->CurrentValue)) == "") {
-				$sFilterWrk = "0=1";
-			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			}
-			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
-			if ($rswrk) $rswrk->Close();
-			$this->id_tipopersona->EditValue = $arwrk;
-			}
 
 			// tipo_documento
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
@@ -982,6 +949,22 @@ class cpersonas_add extends cpersonas {
 			$this->fecha_nacimiento->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_nacimiento->CurrentValue, 7));
 			$this->fecha_nacimiento->PlaceHolder = ew_RemoveHtml($this->fecha_nacimiento->FldCaption());
 
+			// imagen
+			$this->imagen->EditAttrs["class"] = "form-control";
+			$this->imagen->EditCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->ImageWidth = 120;
+				$this->imagen->ImageHeight = 120;
+				$this->imagen->ImageAlt = $this->imagen->FldAlt();
+				$this->imagen->EditValue = $this->imagen->Upload->DbValue;
+			} else {
+				$this->imagen->EditValue = "";
+			}
+			if (!ew_Empty($this->imagen->CurrentValue))
+				$this->imagen->Upload->FileName = $this->imagen->CurrentValue;
+			if (($this->CurrentAction == "I" || $this->CurrentAction == "C") && !$this->EventCancelled) ew_RenderUploadField($this->imagen);
+
 			// observaciones
 			$this->observaciones->EditAttrs["class"] = "form-control";
 			$this->observaciones->EditCustomAttributes = "";
@@ -993,12 +976,8 @@ class cpersonas_add extends cpersonas {
 			$this->estado->EditValue = $this->estado->Options(FALSE);
 
 			// Add refer script
-			// id_tipopersona
-
-			$this->id_tipopersona->LinkCustomAttributes = "";
-			$this->id_tipopersona->HrefValue = "";
-
 			// tipo_documento
+
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
 
@@ -1021,6 +1000,18 @@ class cpersonas_add extends cpersonas {
 			// fecha_nacimiento
 			$this->fecha_nacimiento->LinkCustomAttributes = "";
 			$this->fecha_nacimiento->HrefValue = "";
+
+			// imagen
+			$this->imagen->LinkCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+				$this->imagen->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+			} else {
+				$this->imagen->HrefValue = "";
+			}
+			$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
 
 			// observaciones
 			$this->observaciones->LinkCustomAttributes = "";
@@ -1048,9 +1039,6 @@ class cpersonas_add extends cpersonas {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->id_tipopersona->FldIsDetailKey && !is_null($this->id_tipopersona->FormValue) && $this->id_tipopersona->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->id_tipopersona->FldCaption(), $this->id_tipopersona->ReqErrMsg));
-		}
 		if (!$this->nombres->FldIsDetailKey && !is_null($this->nombres->FormValue) && $this->nombres->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->nombres->FldCaption(), $this->nombres->ReqErrMsg));
 		}
@@ -1069,17 +1057,25 @@ class cpersonas_add extends cpersonas {
 
 		// Validate detail grid
 		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("telefonos", $DetailTblVar) && $GLOBALS["telefonos"]->DetailAdd) {
-			if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid(); // get detail page object
-			$GLOBALS["telefonos_grid"]->ValidateGridForm();
-		}
 		if (in_array("direcciones", $DetailTblVar) && $GLOBALS["direcciones"]->DetailAdd) {
 			if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid(); // get detail page object
 			$GLOBALS["direcciones_grid"]->ValidateGridForm();
 		}
+		if (in_array("telefonos", $DetailTblVar) && $GLOBALS["telefonos"]->DetailAdd) {
+			if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid(); // get detail page object
+			$GLOBALS["telefonos_grid"]->ValidateGridForm();
+		}
 		if (in_array("emails", $DetailTblVar) && $GLOBALS["emails"]->DetailAdd) {
 			if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid(); // get detail page object
 			$GLOBALS["emails_grid"]->ValidateGridForm();
+		}
+		if (in_array("vehiculos", $DetailTblVar) && $GLOBALS["vehiculos"]->DetailAdd) {
+			if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid(); // get detail page object
+			$GLOBALS["vehiculos_grid"]->ValidateGridForm();
+		}
+		if (in_array("deuda_persona", $DetailTblVar) && $GLOBALS["deuda_persona"]->DetailAdd) {
+			if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid(); // get detail page object
+			$GLOBALS["deuda_persona_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -1097,26 +1093,6 @@ class cpersonas_add extends cpersonas {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $Language, $Security;
-
-		// Check referential integrity for master table 'tipo_persona'
-		$bValidMasterRecord = TRUE;
-		$sMasterFilter = $this->SqlMasterFilter_tipo_persona();
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sMasterFilter = str_replace("@Id@", ew_AdjustSql($this->id_tipopersona->CurrentValue, "DB"), $sMasterFilter);
-		} else {
-			$bValidMasterRecord = FALSE;
-		}
-		if ($bValidMasterRecord) {
-			if (!isset($GLOBALS["tipo_persona"])) $GLOBALS["tipo_persona"] = new ctipo_persona();
-			$rsmaster = $GLOBALS["tipo_persona"]->LoadRs($sMasterFilter);
-			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-			$rsmaster->Close();
-		}
-		if (!$bValidMasterRecord) {
-			$sRelatedRecordMsg = str_replace("%t", "tipo_persona", $Language->Phrase("RelatedRecordRequired"));
-			$this->setFailureMessage($sRelatedRecordMsg);
-			return FALSE;
-		}
 		$conn = &$this->Connection();
 
 		// Begin transaction
@@ -1126,11 +1102,10 @@ class cpersonas_add extends cpersonas {
 		// Load db values from rsold
 		$this->LoadDbValues($rsold);
 		if ($rsold) {
+			$this->imagen->OldUploadPath = 'uploads/';
+			$this->imagen->UploadPath = $this->imagen->OldUploadPath;
 		}
 		$rsnew = array();
-
-		// id_tipopersona
-		$this->id_tipopersona->SetDbValueDef($rsnew, $this->id_tipopersona->CurrentValue, 0, strval($this->id_tipopersona->CurrentValue) == "");
 
 		// tipo_documento
 		$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, FALSE);
@@ -1150,11 +1125,27 @@ class cpersonas_add extends cpersonas {
 		// fecha_nacimiento
 		$this->fecha_nacimiento->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_nacimiento->CurrentValue, 7), NULL, FALSE);
 
+		// imagen
+		if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+			$this->imagen->Upload->DbValue = ""; // No need to delete old file
+			if ($this->imagen->Upload->FileName == "") {
+				$rsnew['imagen'] = NULL;
+			} else {
+				$rsnew['imagen'] = $this->imagen->Upload->FileName;
+			}
+		}
+
 		// observaciones
 		$this->observaciones->SetDbValueDef($rsnew, $this->observaciones->CurrentValue, NULL, FALSE);
 
 		// estado
 		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, 0, strval($this->estado->CurrentValue) == "");
+		if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->Value)) {
+				$rsnew['imagen'] = ew_UploadFileNameEx($this->imagen->PhysicalUploadPath(), $rsnew['imagen']); // Get new file name
+			}
+		}
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -1164,6 +1155,14 @@ class cpersonas_add extends cpersonas {
 			$AddRow = $this->Insert($rsnew);
 			$conn->raiseErrorFn = '';
 			if ($AddRow) {
+				if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+					if (!ew_Empty($this->imagen->Upload->Value)) {
+						if (!$this->imagen->Upload->SaveToFile($rsnew['imagen'], TRUE)) {
+							$this->setFailureMessage($Language->Phrase("UploadErrMsg7"));
+							return FALSE;
+						}
+					}
+				}
 			}
 		} else {
 			if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -1181,15 +1180,6 @@ class cpersonas_add extends cpersonas {
 		// Add detail records
 		if ($AddRow) {
 			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-			if (in_array("telefonos", $DetailTblVar) && $GLOBALS["telefonos"]->DetailAdd) {
-				$GLOBALS["telefonos"]->id_persona->setSessionValue($this->Id->CurrentValue); // Set master key
-				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid(); // Get detail page object
-				$Security->LoadCurrentUserLevel($this->ProjectID . "telefonos"); // Load user level of detail table
-				$AddRow = $GLOBALS["telefonos_grid"]->GridInsert();
-				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
-				if (!$AddRow)
-					$GLOBALS["telefonos"]->id_persona->setSessionValue(""); // Clear master key if insert failed
-			}
 			if (in_array("direcciones", $DetailTblVar) && $GLOBALS["direcciones"]->DetailAdd) {
 				$GLOBALS["direcciones"]->id_persona->setSessionValue($this->Id->CurrentValue); // Set master key
 				if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid(); // Get detail page object
@@ -1199,6 +1189,15 @@ class cpersonas_add extends cpersonas {
 				if (!$AddRow)
 					$GLOBALS["direcciones"]->id_persona->setSessionValue(""); // Clear master key if insert failed
 			}
+			if (in_array("telefonos", $DetailTblVar) && $GLOBALS["telefonos"]->DetailAdd) {
+				$GLOBALS["telefonos"]->id_persona->setSessionValue($this->Id->CurrentValue); // Set master key
+				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid(); // Get detail page object
+				$Security->LoadCurrentUserLevel($this->ProjectID . "telefonos"); // Load user level of detail table
+				$AddRow = $GLOBALS["telefonos_grid"]->GridInsert();
+				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
+				if (!$AddRow)
+					$GLOBALS["telefonos"]->id_persona->setSessionValue(""); // Clear master key if insert failed
+			}
 			if (in_array("emails", $DetailTblVar) && $GLOBALS["emails"]->DetailAdd) {
 				$GLOBALS["emails"]->id_persona->setSessionValue($this->Id->CurrentValue); // Set master key
 				if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid(); // Get detail page object
@@ -1207,6 +1206,24 @@ class cpersonas_add extends cpersonas {
 				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
 				if (!$AddRow)
 					$GLOBALS["emails"]->id_persona->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("vehiculos", $DetailTblVar) && $GLOBALS["vehiculos"]->DetailAdd) {
+				$GLOBALS["vehiculos"]->id_persona->setSessionValue($this->Id->CurrentValue); // Set master key
+				if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid(); // Get detail page object
+				$Security->LoadCurrentUserLevel($this->ProjectID . "vehiculos"); // Load user level of detail table
+				$AddRow = $GLOBALS["vehiculos_grid"]->GridInsert();
+				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
+				if (!$AddRow)
+					$GLOBALS["vehiculos"]->id_persona->setSessionValue(""); // Clear master key if insert failed
+			}
+			if (in_array("deuda_persona", $DetailTblVar) && $GLOBALS["deuda_persona"]->DetailAdd) {
+				$GLOBALS["deuda_persona"]->id_persona->setSessionValue($this->Id->CurrentValue); // Set master key
+				if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid(); // Get detail page object
+				$Security->LoadCurrentUserLevel($this->ProjectID . "deuda_persona"); // Load user level of detail table
+				$AddRow = $GLOBALS["deuda_persona_grid"]->GridInsert();
+				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
+				if (!$AddRow)
+					$GLOBALS["deuda_persona"]->id_persona->setSessionValue(""); // Clear master key if insert failed
 			}
 		}
 
@@ -1224,67 +1241,10 @@ class cpersonas_add extends cpersonas {
 			$rs = ($rsold == NULL) ? NULL : $rsold->fields;
 			$this->Row_Inserted($rs, $rsnew);
 		}
+
+		// imagen
+		ew_CleanUploadTempPath($this->imagen, $this->imagen->Upload->Index);
 		return $AddRow;
-	}
-
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "tipo_persona") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["tipo_persona"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_tipopersona->setQueryStringValue($GLOBALS["tipo_persona"]->Id->QueryStringValue);
-					$this->id_tipopersona->setSessionValue($this->id_tipopersona->QueryStringValue);
-					if (!is_numeric($GLOBALS["tipo_persona"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "tipo_persona") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["tipo_persona"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_tipopersona->setFormValue($GLOBALS["tipo_persona"]->Id->FormValue);
-					$this->id_tipopersona->setSessionValue($this->id_tipopersona->FormValue);
-					if (!is_numeric($GLOBALS["tipo_persona"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "tipo_persona") {
-				if ($this->id_tipopersona->CurrentValue == "") $this->id_tipopersona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up detail parms based on QueryString
@@ -1299,24 +1259,6 @@ class cpersonas_add extends cpersonas {
 		}
 		if ($sDetailTblVar <> "") {
 			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("telefonos", $DetailTblVar)) {
-				if (!isset($GLOBALS["telefonos_grid"]))
-					$GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				if ($GLOBALS["telefonos_grid"]->DetailAdd) {
-					if ($this->CopyRecord)
-						$GLOBALS["telefonos_grid"]->CurrentMode = "copy";
-					else
-						$GLOBALS["telefonos_grid"]->CurrentMode = "add";
-					$GLOBALS["telefonos_grid"]->CurrentAction = "gridadd";
-
-					// Save current master table to detail table
-					$GLOBALS["telefonos_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["telefonos_grid"]->setStartRecordNumber(1);
-					$GLOBALS["telefonos_grid"]->id_persona->FldIsDetailKey = TRUE;
-					$GLOBALS["telefonos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["telefonos_grid"]->id_persona->setSessionValue($GLOBALS["telefonos_grid"]->id_persona->CurrentValue);
-				}
-			}
 			if (in_array("direcciones", $DetailTblVar)) {
 				if (!isset($GLOBALS["direcciones_grid"]))
 					$GLOBALS["direcciones_grid"] = new cdirecciones_grid;
@@ -1333,6 +1275,24 @@ class cpersonas_add extends cpersonas {
 					$GLOBALS["direcciones_grid"]->id_persona->FldIsDetailKey = TRUE;
 					$GLOBALS["direcciones_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
 					$GLOBALS["direcciones_grid"]->id_persona->setSessionValue($GLOBALS["direcciones_grid"]->id_persona->CurrentValue);
+				}
+			}
+			if (in_array("telefonos", $DetailTblVar)) {
+				if (!isset($GLOBALS["telefonos_grid"]))
+					$GLOBALS["telefonos_grid"] = new ctelefonos_grid;
+				if ($GLOBALS["telefonos_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["telefonos_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["telefonos_grid"]->CurrentMode = "add";
+					$GLOBALS["telefonos_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["telefonos_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["telefonos_grid"]->setStartRecordNumber(1);
+					$GLOBALS["telefonos_grid"]->id_persona->FldIsDetailKey = TRUE;
+					$GLOBALS["telefonos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["telefonos_grid"]->id_persona->setSessionValue($GLOBALS["telefonos_grid"]->id_persona->CurrentValue);
 				}
 			}
 			if (in_array("emails", $DetailTblVar)) {
@@ -1353,6 +1313,42 @@ class cpersonas_add extends cpersonas {
 					$GLOBALS["emails_grid"]->id_persona->setSessionValue($GLOBALS["emails_grid"]->id_persona->CurrentValue);
 				}
 			}
+			if (in_array("vehiculos", $DetailTblVar)) {
+				if (!isset($GLOBALS["vehiculos_grid"]))
+					$GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
+				if ($GLOBALS["vehiculos_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["vehiculos_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["vehiculos_grid"]->CurrentMode = "add";
+					$GLOBALS["vehiculos_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["vehiculos_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["vehiculos_grid"]->setStartRecordNumber(1);
+					$GLOBALS["vehiculos_grid"]->id_persona->FldIsDetailKey = TRUE;
+					$GLOBALS["vehiculos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["vehiculos_grid"]->id_persona->setSessionValue($GLOBALS["vehiculos_grid"]->id_persona->CurrentValue);
+				}
+			}
+			if (in_array("deuda_persona", $DetailTblVar)) {
+				if (!isset($GLOBALS["deuda_persona_grid"]))
+					$GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
+				if ($GLOBALS["deuda_persona_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["deuda_persona_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["deuda_persona_grid"]->CurrentMode = "add";
+					$GLOBALS["deuda_persona_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["deuda_persona_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["deuda_persona_grid"]->setStartRecordNumber(1);
+					$GLOBALS["deuda_persona_grid"]->id_persona->FldIsDetailKey = TRUE;
+					$GLOBALS["deuda_persona_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["deuda_persona_grid"]->id_persona->setSessionValue($GLOBALS["deuda_persona_grid"]->id_persona->CurrentValue);
+				}
+			}
 		}
 	}
 
@@ -1370,9 +1366,11 @@ class cpersonas_add extends cpersonas {
 	function SetupDetailPages() {
 		$pages = new cSubPages();
 		$pages->Style = "tabs";
-		$pages->Add('telefonos');
 		$pages->Add('direcciones');
+		$pages->Add('telefonos');
 		$pages->Add('emails');
+		$pages->Add('vehiculos');
+		$pages->Add('deuda_persona');
 		$this->DetailPages = $pages;
 	}
 
@@ -1381,20 +1379,6 @@ class cpersonas_add extends cpersonas {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
 		switch ($fld->FldVar) {
-		case "x_id_tipopersona":
-			$sSqlWrk = "";
-			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-			$sWhereWrk = "";
-			$this->id_tipopersona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
-			$sSqlWrk = "";
-			$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			if ($sSqlWrk <> "")
-				$fld->LookupFilters["s"] .= $sSqlWrk;
-			break;
 		}
 	}
 
@@ -1514,9 +1498,6 @@ fpersonasadd.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_id_tipopersona");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $personas->id_tipopersona->FldCaption(), $personas->id_tipopersona->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_nombres");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $personas->nombres->FldCaption(), $personas->nombres->ReqErrMsg)) ?>");
@@ -1561,8 +1542,6 @@ fpersonasadd.Form_CustomValidate =
 fpersonasadd.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fpersonasadd.Lists["x_id_tipopersona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"tipo_persona"};
-fpersonasadd.Lists["x_id_tipopersona"].Data = "<?php echo $personas_add->id_tipopersona->LookupFilterQuery(FALSE, "add") ?>";
 fpersonasadd.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonasadd.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_add->tipo_documento->Options()) ?>;
 fpersonasadd.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -1585,31 +1564,7 @@ $personas_add->ShowMessage();
 <input type="hidden" name="t" value="personas">
 <input type="hidden" name="a_add" id="a_add" value="A">
 <input type="hidden" name="modal" value="<?php echo intval($personas_add->IsModal) ?>">
-<?php if ($personas->getCurrentMasterTable() == "tipo_persona") { ?>
-<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="tipo_persona">
-<input type="hidden" name="fk_Id" value="<?php echo $personas->id_tipopersona->getSessionValue() ?>">
-<?php } ?>
 <div class="ewAddDiv"><!-- page* -->
-<?php if ($personas->id_tipopersona->Visible) { // id_tipopersona ?>
-	<div id="r_id_tipopersona" class="form-group">
-		<label id="elh_personas_id_tipopersona" for="x_id_tipopersona" class="<?php echo $personas_add->LeftColumnClass ?>"><?php echo $personas->id_tipopersona->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $personas_add->RightColumnClass ?>"><div<?php echo $personas->id_tipopersona->CellAttributes() ?>>
-<?php if ($personas->id_tipopersona->getSessionValue() <> "") { ?>
-<span id="el_personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $personas->id_tipopersona->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x_id_tipopersona" name="x_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el_personas_id_tipopersona">
-<select data-table="personas" data-field="x_id_tipopersona" data-value-separator="<?php echo $personas->id_tipopersona->DisplayValueSeparatorAttribute() ?>" id="x_id_tipopersona" name="x_id_tipopersona"<?php echo $personas->id_tipopersona->EditAttributes() ?>>
-<?php echo $personas->id_tipopersona->SelectOptionListHtml("x_id_tipopersona") ?>
-</select>
-</span>
-<?php } ?>
-<?php echo $personas->id_tipopersona->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 <?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
 	<div id="r_tipo_documento" class="form-group">
 		<label id="elh_personas_tipo_documento" for="x_tipo_documento" class="<?php echo $personas_add->LeftColumnClass ?>"><?php echo $personas->tipo_documento->FldCaption() ?></label>
@@ -1677,6 +1632,27 @@ ew_CreateDateTimePicker("fpersonasadd", "x_fecha_nacimiento", {"ignoreReadonly":
 <?php echo $personas->fecha_nacimiento->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($personas->imagen->Visible) { // imagen ?>
+	<div id="r_imagen" class="form-group">
+		<label id="elh_personas_imagen" class="<?php echo $personas_add->LeftColumnClass ?>"><?php echo $personas->imagen->FldCaption() ?></label>
+		<div class="<?php echo $personas_add->RightColumnClass ?>"><div<?php echo $personas->imagen->CellAttributes() ?>>
+<span id="el_personas_imagen">
+<div id="fd_x_imagen">
+<span title="<?php echo $personas->imagen->FldTitle() ? $personas->imagen->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($personas->imagen->ReadOnly || $personas->imagen->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-table="personas" data-field="x_imagen" name="x_imagen" id="x_imagen"<?php echo $personas->imagen->EditAttributes() ?>>
+</span>
+<input type="hidden" name="fn_x_imagen" id= "fn_x_imagen" value="<?php echo $personas->imagen->Upload->FileName ?>">
+<input type="hidden" name="fa_x_imagen" id= "fa_x_imagen" value="0">
+<input type="hidden" name="fs_x_imagen" id= "fs_x_imagen" value="100">
+<input type="hidden" name="fx_x_imagen" id= "fx_x_imagen" value="<?php echo $personas->imagen->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x_imagen" id= "fm_x_imagen" value="<?php echo $personas->imagen->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x_imagen" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<?php echo $personas->imagen->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
 <?php if ($personas->observaciones->Visible) { // observaciones ?>
 	<div id="r_observaciones" class="form-group">
 		<label id="elh_personas_observaciones" for="x_observaciones" class="<?php echo $personas_add->LeftColumnClass ?>"><?php echo $personas->observaciones->FldCaption() ?></label>
@@ -1710,22 +1686,22 @@ ew_CreateDateTimePicker("fpersonasadd", "x_fecha_nacimiento", {"ignoreReadonly":
 <div class="nav-tabs-custom" id="personas_add_details"><!-- .nav-tabs-custom -->
 	<ul class="nav<?php echo $personas_add->DetailPages->NavStyle() ?>"><!-- .nav -->
 <?php
-	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailAdd) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
-			$FirstActiveDetailTable = "telefonos";
-		}
-?>
-		<li<?php echo $personas_add->DetailPages->TabStyle("telefonos") ?>><a href="#tab_telefonos" data-toggle="tab"><?php echo $Language->TablePhrase("telefonos", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-<?php
 	if (in_array("direcciones", explode(",", $personas->getCurrentDetailTable())) && $direcciones->DetailAdd) {
 		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "direcciones") {
 			$FirstActiveDetailTable = "direcciones";
 		}
 ?>
 		<li<?php echo $personas_add->DetailPages->TabStyle("direcciones") ?>><a href="#tab_direcciones" data-toggle="tab"><?php echo $Language->TablePhrase("direcciones", "TblCaption") ?></a></li>
+<?php
+	}
+?>
+<?php
+	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailAdd) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
+			$FirstActiveDetailTable = "telefonos";
+		}
+?>
+		<li<?php echo $personas_add->DetailPages->TabStyle("telefonos") ?>><a href="#tab_telefonos" data-toggle="tab"><?php echo $Language->TablePhrase("telefonos", "TblCaption") ?></a></li>
 <?php
 	}
 ?>
@@ -1739,18 +1715,28 @@ ew_CreateDateTimePicker("fpersonasadd", "x_fecha_nacimiento", {"ignoreReadonly":
 <?php
 	}
 ?>
-	</ul><!-- /.nav -->
-	<div class="tab-content"><!-- .tab-content -->
 <?php
-	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailAdd) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
-			$FirstActiveDetailTable = "telefonos";
+	if (in_array("vehiculos", explode(",", $personas->getCurrentDetailTable())) && $vehiculos->DetailAdd) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "vehiculos") {
+			$FirstActiveDetailTable = "vehiculos";
 		}
 ?>
-		<div class="tab-pane<?php echo $personas_add->DetailPages->PageStyle("telefonos") ?>" id="tab_telefonos"><!-- page* -->
-<?php include_once "telefonosgrid.php" ?>
-		</div><!-- /page* -->
-<?php } ?>
+		<li<?php echo $personas_add->DetailPages->TabStyle("vehiculos") ?>><a href="#tab_vehiculos" data-toggle="tab"><?php echo $Language->TablePhrase("vehiculos", "TblCaption") ?></a></li>
+<?php
+	}
+?>
+<?php
+	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailAdd) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "deuda_persona") {
+			$FirstActiveDetailTable = "deuda_persona";
+		}
+?>
+		<li<?php echo $personas_add->DetailPages->TabStyle("deuda_persona") ?>><a href="#tab_deuda_persona" data-toggle="tab"><?php echo $Language->TablePhrase("deuda_persona", "TblCaption") ?></a></li>
+<?php
+	}
+?>
+	</ul><!-- /.nav -->
+	<div class="tab-content"><!-- .tab-content -->
 <?php
 	if (in_array("direcciones", explode(",", $personas->getCurrentDetailTable())) && $direcciones->DetailAdd) {
 		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "direcciones") {
@@ -1762,6 +1748,16 @@ ew_CreateDateTimePicker("fpersonasadd", "x_fecha_nacimiento", {"ignoreReadonly":
 		</div><!-- /page* -->
 <?php } ?>
 <?php
+	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailAdd) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
+			$FirstActiveDetailTable = "telefonos";
+		}
+?>
+		<div class="tab-pane<?php echo $personas_add->DetailPages->PageStyle("telefonos") ?>" id="tab_telefonos"><!-- page* -->
+<?php include_once "telefonosgrid.php" ?>
+		</div><!-- /page* -->
+<?php } ?>
+<?php
 	if (in_array("emails", explode(",", $personas->getCurrentDetailTable())) && $emails->DetailAdd) {
 		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "emails") {
 			$FirstActiveDetailTable = "emails";
@@ -1769,6 +1765,26 @@ ew_CreateDateTimePicker("fpersonasadd", "x_fecha_nacimiento", {"ignoreReadonly":
 ?>
 		<div class="tab-pane<?php echo $personas_add->DetailPages->PageStyle("emails") ?>" id="tab_emails"><!-- page* -->
 <?php include_once "emailsgrid.php" ?>
+		</div><!-- /page* -->
+<?php } ?>
+<?php
+	if (in_array("vehiculos", explode(",", $personas->getCurrentDetailTable())) && $vehiculos->DetailAdd) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "vehiculos") {
+			$FirstActiveDetailTable = "vehiculos";
+		}
+?>
+		<div class="tab-pane<?php echo $personas_add->DetailPages->PageStyle("vehiculos") ?>" id="tab_vehiculos"><!-- page* -->
+<?php include_once "vehiculosgrid.php" ?>
+		</div><!-- /page* -->
+<?php } ?>
+<?php
+	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailAdd) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "deuda_persona") {
+			$FirstActiveDetailTable = "deuda_persona";
+		}
+?>
+		<div class="tab-pane<?php echo $personas_add->DetailPages->PageStyle("deuda_persona") ?>" id="tab_deuda_persona"><!-- page* -->
+<?php include_once "deuda_personagrid.php" ?>
 		</div><!-- /page* -->
 <?php } ?>
 	</div><!-- /.tab-content -->

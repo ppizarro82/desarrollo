@@ -9,8 +9,13 @@ $direcciones = NULL;
 class cdirecciones extends cTable {
 	var $Id;
 	var $id_persona;
+	var $id_ciudad;
+	var $tipo_direccion;
 	var $direccion;
 	var $ult_fecha_activo;
+	var $mapa;
+	var $longitud;
+	var $latitud;
 
 	//
 	// Table class constructor
@@ -57,6 +62,22 @@ class cdirecciones extends cTable {
 		$this->id_persona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['id_persona'] = &$this->id_persona;
 
+		// id_ciudad
+		$this->id_ciudad = new cField('direcciones', 'direcciones', 'x_id_ciudad', 'id_ciudad', '`id_ciudad`', '`id_ciudad`', 3, -1, FALSE, '`id_ciudad`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_ciudad->Sortable = TRUE; // Allow sort
+		$this->id_ciudad->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_ciudad->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_ciudad->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_ciudad'] = &$this->id_ciudad;
+
+		// tipo_direccion
+		$this->tipo_direccion = new cField('direcciones', 'direcciones', 'x_tipo_direccion', 'tipo_direccion', '`tipo_direccion`', '`tipo_direccion`', 200, -1, FALSE, '`tipo_direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->tipo_direccion->Sortable = TRUE; // Allow sort
+		$this->tipo_direccion->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->tipo_direccion->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->tipo_direccion->OptionCount = 5;
+		$this->fields['tipo_direccion'] = &$this->tipo_direccion;
+
 		// direccion
 		$this->direccion = new cField('direcciones', 'direcciones', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
 		$this->direccion->Sortable = TRUE; // Allow sort
@@ -67,6 +88,21 @@ class cdirecciones extends cTable {
 		$this->ult_fecha_activo->Sortable = TRUE; // Allow sort
 		$this->ult_fecha_activo->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_SEPARATOR"], $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['ult_fecha_activo'] = &$this->ult_fecha_activo;
+
+		// mapa
+		$this->mapa = new cField('direcciones', 'direcciones', 'x_mapa', 'mapa', '`mapa`', '`mapa`', 200, -1, FALSE, '`mapa`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->mapa->Sortable = TRUE; // Allow sort
+		$this->fields['mapa'] = &$this->mapa;
+
+		// longitud
+		$this->longitud = new cField('direcciones', 'direcciones', 'x_longitud', 'longitud', '`longitud`', '`longitud`', 200, -1, FALSE, '`longitud`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->longitud->Sortable = TRUE; // Allow sort
+		$this->fields['longitud'] = &$this->longitud;
+
+		// latitud
+		$this->latitud = new cField('direcciones', 'direcciones', 'x_latitud', 'latitud', '`latitud`', '`latitud`', 200, -1, FALSE, '`latitud`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->latitud->Sortable = TRUE; // Allow sort
+		$this->fields['latitud'] = &$this->latitud;
 	}
 
 	// Set Field Visibility
@@ -646,8 +682,13 @@ class cdirecciones extends cTable {
 	function LoadListRowValues(&$rs) {
 		$this->Id->setDbValue($rs->fields('Id'));
 		$this->id_persona->setDbValue($rs->fields('id_persona'));
+		$this->id_ciudad->setDbValue($rs->fields('id_ciudad'));
+		$this->tipo_direccion->setDbValue($rs->fields('tipo_direccion'));
 		$this->direccion->setDbValue($rs->fields('direccion'));
 		$this->ult_fecha_activo->setDbValue($rs->fields('ult_fecha_activo'));
+		$this->mapa->setDbValue($rs->fields('mapa'));
+		$this->longitud->setDbValue($rs->fields('longitud'));
+		$this->latitud->setDbValue($rs->fields('latitud'));
 	}
 
 	// Render list row values
@@ -660,8 +701,13 @@ class cdirecciones extends cTable {
 	// Common render codes
 		// Id
 		// id_persona
+		// id_ciudad
+		// tipo_direccion
 		// direccion
 		// ult_fecha_activo
+		// mapa
+		// longitud
+		// latitud
 		// Id
 
 		$this->Id->ViewValue = $this->Id->CurrentValue;
@@ -694,6 +740,38 @@ class cdirecciones extends cTable {
 		}
 		$this->id_persona->ViewCustomAttributes = "";
 
+		// id_ciudad
+		if (strval($this->id_ciudad->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
+		$sWhereWrk = "";
+		$this->id_ciudad->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_ciudad->ViewValue = $this->id_ciudad->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_ciudad->ViewValue = $this->id_ciudad->CurrentValue;
+			}
+		} else {
+			$this->id_ciudad->ViewValue = NULL;
+		}
+		$this->id_ciudad->ViewCustomAttributes = "";
+
+		// tipo_direccion
+		if (strval($this->tipo_direccion->CurrentValue) <> "") {
+			$this->tipo_direccion->ViewValue = $this->tipo_direccion->OptionCaption($this->tipo_direccion->CurrentValue);
+		} else {
+			$this->tipo_direccion->ViewValue = NULL;
+		}
+		$this->tipo_direccion->ViewCustomAttributes = "";
+
 		// direccion
 		$this->direccion->ViewValue = $this->direccion->CurrentValue;
 		$this->direccion->ViewCustomAttributes = "";
@@ -703,6 +781,18 @@ class cdirecciones extends cTable {
 		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
 		$this->ult_fecha_activo->ViewCustomAttributes = "";
 
+		// mapa
+		$this->mapa->ViewValue = $this->mapa->CurrentValue;
+		$this->mapa->ViewCustomAttributes = "";
+
+		// longitud
+		$this->longitud->ViewValue = $this->longitud->CurrentValue;
+		$this->longitud->ViewCustomAttributes = "";
+
+		// latitud
+		$this->latitud->ViewValue = $this->latitud->CurrentValue;
+		$this->latitud->ViewCustomAttributes = "";
+
 		// Id
 		$this->Id->LinkCustomAttributes = "";
 		$this->Id->HrefValue = "";
@@ -711,13 +801,23 @@ class cdirecciones extends cTable {
 		// id_persona
 		$this->id_persona->LinkCustomAttributes = "";
 		if (!ew_Empty($this->id_persona->CurrentValue)) {
-			$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+			$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 			$this->id_persona->LinkAttrs["target"] = ""; // Add target
 			if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 		} else {
 			$this->id_persona->HrefValue = "";
 		}
 		$this->id_persona->TooltipValue = "";
+
+		// id_ciudad
+		$this->id_ciudad->LinkCustomAttributes = "";
+		$this->id_ciudad->HrefValue = "";
+		$this->id_ciudad->TooltipValue = "";
+
+		// tipo_direccion
+		$this->tipo_direccion->LinkCustomAttributes = "";
+		$this->tipo_direccion->HrefValue = "";
+		$this->tipo_direccion->TooltipValue = "";
 
 		// direccion
 		$this->direccion->LinkCustomAttributes = "";
@@ -728,6 +828,21 @@ class cdirecciones extends cTable {
 		$this->ult_fecha_activo->LinkCustomAttributes = "";
 		$this->ult_fecha_activo->HrefValue = "";
 		$this->ult_fecha_activo->TooltipValue = "";
+
+		// mapa
+		$this->mapa->LinkCustomAttributes = "";
+		$this->mapa->HrefValue = "";
+		$this->mapa->TooltipValue = "";
+
+		// longitud
+		$this->longitud->LinkCustomAttributes = "";
+		$this->longitud->HrefValue = "";
+		$this->longitud->TooltipValue = "";
+
+		// latitud
+		$this->latitud->LinkCustomAttributes = "";
+		$this->latitud->HrefValue = "";
+		$this->latitud->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -782,6 +897,15 @@ class cdirecciones extends cTable {
 		} else {
 		}
 
+		// id_ciudad
+		$this->id_ciudad->EditAttrs["class"] = "form-control";
+		$this->id_ciudad->EditCustomAttributes = 'onChange=initMap(this);';
+
+		// tipo_direccion
+		$this->tipo_direccion->EditAttrs["class"] = "form-control";
+		$this->tipo_direccion->EditCustomAttributes = "";
+		$this->tipo_direccion->EditValue = $this->tipo_direccion->Options(TRUE);
+
 		// direccion
 		$this->direccion->EditAttrs["class"] = "form-control";
 		$this->direccion->EditCustomAttributes = "";
@@ -793,6 +917,24 @@ class cdirecciones extends cTable {
 		$this->ult_fecha_activo->EditCustomAttributes = "";
 		$this->ult_fecha_activo->EditValue = ew_FormatDateTime($this->ult_fecha_activo->CurrentValue, 7);
 		$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
+
+		// mapa
+		$this->mapa->EditAttrs["class"] = "form-control";
+		$this->mapa->EditCustomAttributes = "";
+		$this->mapa->EditValue = $this->mapa->CurrentValue;
+		$this->mapa->PlaceHolder = ew_RemoveHtml($this->mapa->FldCaption());
+
+		// longitud
+		$this->longitud->EditAttrs["class"] = "form-control";
+		$this->longitud->EditCustomAttributes = 'readonly=true';
+		$this->longitud->EditValue = $this->longitud->CurrentValue;
+		$this->longitud->PlaceHolder = ew_RemoveHtml($this->longitud->FldCaption());
+
+		// latitud
+		$this->latitud->EditAttrs["class"] = "form-control";
+		$this->latitud->EditCustomAttributes = 'readonly=true';
+		$this->latitud->EditValue = $this->latitud->CurrentValue;
+		$this->latitud->PlaceHolder = ew_RemoveHtml($this->latitud->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -823,13 +965,23 @@ class cdirecciones extends cTable {
 				if ($ExportPageType == "view") {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
 					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
+					if ($this->id_ciudad->Exportable) $Doc->ExportCaption($this->id_ciudad);
+					if ($this->tipo_direccion->Exportable) $Doc->ExportCaption($this->tipo_direccion);
 					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
 					if ($this->ult_fecha_activo->Exportable) $Doc->ExportCaption($this->ult_fecha_activo);
+					if ($this->mapa->Exportable) $Doc->ExportCaption($this->mapa);
+					if ($this->longitud->Exportable) $Doc->ExportCaption($this->longitud);
+					if ($this->latitud->Exportable) $Doc->ExportCaption($this->latitud);
 				} else {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
 					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
+					if ($this->id_ciudad->Exportable) $Doc->ExportCaption($this->id_ciudad);
+					if ($this->tipo_direccion->Exportable) $Doc->ExportCaption($this->tipo_direccion);
 					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
 					if ($this->ult_fecha_activo->Exportable) $Doc->ExportCaption($this->ult_fecha_activo);
+					if ($this->mapa->Exportable) $Doc->ExportCaption($this->mapa);
+					if ($this->longitud->Exportable) $Doc->ExportCaption($this->longitud);
+					if ($this->latitud->Exportable) $Doc->ExportCaption($this->latitud);
 				}
 				$Doc->EndExportRow();
 			}
@@ -863,13 +1015,23 @@ class cdirecciones extends cTable {
 					if ($ExportPageType == "view") {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
 						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
+						if ($this->id_ciudad->Exportable) $Doc->ExportField($this->id_ciudad);
+						if ($this->tipo_direccion->Exportable) $Doc->ExportField($this->tipo_direccion);
 						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
 						if ($this->ult_fecha_activo->Exportable) $Doc->ExportField($this->ult_fecha_activo);
+						if ($this->mapa->Exportable) $Doc->ExportField($this->mapa);
+						if ($this->longitud->Exportable) $Doc->ExportField($this->longitud);
+						if ($this->latitud->Exportable) $Doc->ExportField($this->latitud);
 					} else {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
 						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
+						if ($this->id_ciudad->Exportable) $Doc->ExportField($this->id_ciudad);
+						if ($this->tipo_direccion->Exportable) $Doc->ExportField($this->tipo_direccion);
 						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
 						if ($this->ult_fecha_activo->Exportable) $Doc->ExportField($this->ult_fecha_activo);
+						if ($this->mapa->Exportable) $Doc->ExportField($this->mapa);
+						if ($this->longitud->Exportable) $Doc->ExportField($this->longitud);
+						if ($this->latitud->Exportable) $Doc->ExportField($this->latitud);
 					}
 					$Doc->EndExportRow($RowCnt);
 				}

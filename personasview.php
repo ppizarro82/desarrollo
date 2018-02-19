@@ -7,10 +7,11 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "personasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "tipo_personainfo.php" ?>
-<?php include_once "telefonosgridcls.php" ?>
 <?php include_once "direccionesgridcls.php" ?>
+<?php include_once "telefonosgridcls.php" ?>
 <?php include_once "emailsgridcls.php" ?>
+<?php include_once "vehiculosgridcls.php" ?>
+<?php include_once "deuda_personagridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -307,9 +308,6 @@ class cpersonas_view extends cpersonas {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (tipo_persona)
-		if (!isset($GLOBALS['tipo_persona'])) $GLOBALS['tipo_persona'] = new ctipo_persona();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
@@ -429,7 +427,6 @@ class cpersonas_view extends cpersonas {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_tipopersona->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
@@ -437,6 +434,7 @@ class cpersonas_view extends cpersonas {
 		$this->materno->SetVisibility();
 		$this->fecha_nacimiento->SetVisibility();
 		$this->fecha_registro->SetVisibility();
+		$this->imagen->SetVisibility();
 		$this->observaciones->SetVisibility();
 		$this->estado->SetVisibility();
 
@@ -530,9 +528,11 @@ class cpersonas_view extends cpersonas {
 	var $RecCnt;
 	var $RecKey = array();
 	var $IsModal = FALSE;
-	var $telefonos_Count;
 	var $direcciones_Count;
+	var $telefonos_Count;
 	var $emails_Count;
+	var $vehiculos_Count;
+	var $deuda_persona_Count;
 	var $Recordset;
 	var $DetailPages; // Detail pages object
 
@@ -550,9 +550,6 @@ class cpersonas_view extends cpersonas {
 		$bLoadCurrentRecord = FALSE;
 		$sReturnUrl = "";
 		$bMatchRecord = FALSE;
-
-		// Set up master/detail parameters
-		$this->SetupMasterParms();
 		if ($this->IsPageRequest()) { // Validate request
 			if (@$_GET["Id"] <> "") {
 				$this->Id->setQueryStringValue($_GET["Id"]);
@@ -643,40 +640,6 @@ class cpersonas_view extends cpersonas {
 		$DetailCopyTblVar = "";
 		$DetailEditTblVar = "";
 
-		// "detail_telefonos"
-		$item = &$option->Add("detail_telefonos");
-		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("telefonos", "TblCaption");
-		$body .= str_replace("%c", $this->telefonos_Count, $Language->Phrase("DetailCount"));
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("telefonoslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["telefonos_grid"] && $GLOBALS["telefonos_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'telefonos')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=telefonos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "telefonos";
-		}
-		if ($GLOBALS["telefonos_grid"] && $GLOBALS["telefonos_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'telefonos')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=telefonos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "telefonos";
-		}
-		if ($GLOBALS["telefonos_grid"] && $GLOBALS["telefonos_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'telefonos')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=telefonos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-			$DetailCopyTblVar .= "telefonos";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'telefonos');
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "telefonos";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
 		// "detail_direcciones"
 		$item = &$option->Add("detail_direcciones");
 		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("direcciones", "TblCaption");
@@ -711,6 +674,40 @@ class cpersonas_view extends cpersonas {
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
+		// "detail_telefonos"
+		$item = &$option->Add("detail_telefonos");
+		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("telefonos", "TblCaption");
+		$body .= str_replace("%c", $this->telefonos_Count, $Language->Phrase("DetailCount"));
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("telefonoslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["telefonos_grid"] && $GLOBALS["telefonos_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'telefonos')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=telefonos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "telefonos";
+		}
+		if ($GLOBALS["telefonos_grid"] && $GLOBALS["telefonos_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'telefonos')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=telefonos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "telefonos";
+		}
+		if ($GLOBALS["telefonos_grid"] && $GLOBALS["telefonos_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'telefonos')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=telefonos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+			$DetailCopyTblVar .= "telefonos";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'telefonos');
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "telefonos";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
 		// "detail_emails"
 		$item = &$option->Add("detail_emails");
 		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("emails", "TblCaption");
@@ -742,6 +739,74 @@ class cpersonas_view extends cpersonas {
 		if ($item->Visible) {
 			if ($DetailTableLink <> "") $DetailTableLink .= ",";
 			$DetailTableLink .= "emails";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
+		// "detail_vehiculos"
+		$item = &$option->Add("detail_vehiculos");
+		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("vehiculos", "TblCaption");
+		$body .= str_replace("%c", $this->vehiculos_Count, $Language->Phrase("DetailCount"));
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("vehiculoslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["vehiculos_grid"] && $GLOBALS["vehiculos_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'vehiculos')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "vehiculos";
+		}
+		if ($GLOBALS["vehiculos_grid"] && $GLOBALS["vehiculos_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'vehiculos')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "vehiculos";
+		}
+		if ($GLOBALS["vehiculos_grid"] && $GLOBALS["vehiculos_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'vehiculos')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+			$DetailCopyTblVar .= "vehiculos";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'vehiculos');
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "vehiculos";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
+		// "detail_deuda_persona"
+		$item = &$option->Add("detail_deuda_persona");
+		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("deuda_persona", "TblCaption");
+		$body .= str_replace("%c", $this->deuda_persona_Count, $Language->Phrase("DetailCount"));
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("deuda_personalist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["deuda_persona_grid"] && $GLOBALS["deuda_persona_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'deuda_persona')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=deuda_persona")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "deuda_persona";
+		}
+		if ($GLOBALS["deuda_persona_grid"] && $GLOBALS["deuda_persona_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'deuda_persona')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=deuda_persona")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "deuda_persona";
+		}
+		if ($GLOBALS["deuda_persona_grid"] && $GLOBALS["deuda_persona_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'deuda_persona')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=deuda_persona")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+			$DetailCopyTblVar .= "deuda_persona";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'deuda_persona');
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "deuda_persona";
 		}
 		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
 
@@ -889,7 +954,6 @@ class cpersonas_view extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_tipopersona->setDbValue($row['id_tipopersona']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
@@ -897,33 +961,46 @@ class cpersonas_view extends cpersonas {
 		$this->materno->setDbValue($row['materno']);
 		$this->fecha_nacimiento->setDbValue($row['fecha_nacimiento']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
+		$this->imagen->Upload->DbValue = $row['imagen'];
+		$this->imagen->CurrentValue = $this->imagen->Upload->DbValue;
 		$this->observaciones->setDbValue($row['observaciones']);
 		$this->estado->setDbValue($row['estado']);
-		if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-		$sDetailFilter = $GLOBALS["telefonos"]->SqlDetailFilter_personas();
-		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["telefonos"]->setCurrentMasterTable("personas");
-		$sDetailFilter = $GLOBALS["telefonos"]->ApplyUserIDFilters($sDetailFilter);
-		$this->telefonos_Count = $GLOBALS["telefonos"]->LoadRecordCount($sDetailFilter);
 		if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
 		$sDetailFilter = $GLOBALS["direcciones"]->SqlDetailFilter_personas();
 		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
 		$GLOBALS["direcciones"]->setCurrentMasterTable("personas");
 		$sDetailFilter = $GLOBALS["direcciones"]->ApplyUserIDFilters($sDetailFilter);
 		$this->direcciones_Count = $GLOBALS["direcciones"]->LoadRecordCount($sDetailFilter);
+		if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
+		$sDetailFilter = $GLOBALS["telefonos"]->SqlDetailFilter_personas();
+		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
+		$GLOBALS["telefonos"]->setCurrentMasterTable("personas");
+		$sDetailFilter = $GLOBALS["telefonos"]->ApplyUserIDFilters($sDetailFilter);
+		$this->telefonos_Count = $GLOBALS["telefonos"]->LoadRecordCount($sDetailFilter);
 		if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
 		$sDetailFilter = $GLOBALS["emails"]->SqlDetailFilter_personas();
 		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
 		$GLOBALS["emails"]->setCurrentMasterTable("personas");
 		$sDetailFilter = $GLOBALS["emails"]->ApplyUserIDFilters($sDetailFilter);
 		$this->emails_Count = $GLOBALS["emails"]->LoadRecordCount($sDetailFilter);
+		if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
+		$sDetailFilter = $GLOBALS["vehiculos"]->SqlDetailFilter_personas();
+		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
+		$GLOBALS["vehiculos"]->setCurrentMasterTable("personas");
+		$sDetailFilter = $GLOBALS["vehiculos"]->ApplyUserIDFilters($sDetailFilter);
+		$this->vehiculos_Count = $GLOBALS["vehiculos"]->LoadRecordCount($sDetailFilter);
+		if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
+		$sDetailFilter = $GLOBALS["deuda_persona"]->SqlDetailFilter_personas();
+		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
+		$GLOBALS["deuda_persona"]->setCurrentMasterTable("personas");
+		$sDetailFilter = $GLOBALS["deuda_persona"]->ApplyUserIDFilters($sDetailFilter);
+		$this->deuda_persona_Count = $GLOBALS["deuda_persona"]->LoadRecordCount($sDetailFilter);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_tipopersona'] = NULL;
 		$row['tipo_documento'] = NULL;
 		$row['no_documento'] = NULL;
 		$row['nombres'] = NULL;
@@ -931,6 +1008,7 @@ class cpersonas_view extends cpersonas {
 		$row['materno'] = NULL;
 		$row['fecha_nacimiento'] = NULL;
 		$row['fecha_registro'] = NULL;
+		$row['imagen'] = NULL;
 		$row['observaciones'] = NULL;
 		$row['estado'] = NULL;
 		return $row;
@@ -942,7 +1020,6 @@ class cpersonas_view extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_tipopersona->DbValue = $row['id_tipopersona'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
@@ -950,6 +1027,7 @@ class cpersonas_view extends cpersonas {
 		$this->materno->DbValue = $row['materno'];
 		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
 		$this->fecha_registro->DbValue = $row['fecha_registro'];
+		$this->imagen->Upload->DbValue = $row['imagen'];
 		$this->observaciones->DbValue = $row['observaciones'];
 		$this->estado->DbValue = $row['estado'];
 	}
@@ -971,7 +1049,6 @@ class cpersonas_view extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
-		// id_tipopersona
 		// tipo_documento
 		// no_documento
 		// nombres
@@ -979,6 +1056,7 @@ class cpersonas_view extends cpersonas {
 		// materno
 		// fecha_nacimiento
 		// fecha_registro
+		// imagen
 		// observaciones
 		// estado
 
@@ -987,31 +1065,6 @@ class cpersonas_view extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
-
-		// id_tipopersona
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-		$sWhereWrk = "";
-		$this->id_tipopersona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-			}
-		} else {
-			$this->id_tipopersona->ViewValue = NULL;
-		}
-		$this->id_tipopersona->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -1048,6 +1101,18 @@ class cpersonas_view extends cpersonas {
 		$this->fecha_registro->ViewValue = ew_FormatDateTime($this->fecha_registro->ViewValue, 11);
 		$this->fecha_registro->ViewCustomAttributes = "";
 
+		// imagen
+		$this->imagen->UploadPath = 'uploads/';
+		if (!ew_Empty($this->imagen->Upload->DbValue)) {
+			$this->imagen->ImageWidth = 120;
+			$this->imagen->ImageHeight = 120;
+			$this->imagen->ImageAlt = $this->imagen->FldAlt();
+			$this->imagen->ViewValue = $this->imagen->Upload->DbValue;
+		} else {
+			$this->imagen->ViewValue = "";
+		}
+		$this->imagen->ViewCustomAttributes = "";
+
 		// observaciones
 		$this->observaciones->ViewValue = $this->observaciones->CurrentValue;
 		$this->observaciones->ViewCustomAttributes = "";
@@ -1064,11 +1129,6 @@ class cpersonas_view extends cpersonas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
-
-			// id_tipopersona
-			$this->id_tipopersona->LinkCustomAttributes = "";
-			$this->id_tipopersona->HrefValue = "";
-			$this->id_tipopersona->TooltipValue = "";
 
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
@@ -1104,6 +1164,25 @@ class cpersonas_view extends cpersonas {
 			$this->fecha_registro->LinkCustomAttributes = "";
 			$this->fecha_registro->HrefValue = "";
 			$this->fecha_registro->TooltipValue = "";
+
+			// imagen
+			$this->imagen->LinkCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+				$this->imagen->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+			} else {
+				$this->imagen->HrefValue = "";
+			}
+			$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
+			$this->imagen->TooltipValue = "";
+			if ($this->imagen->UseColorbox) {
+				if (ew_Empty($this->imagen->TooltipValue))
+					$this->imagen->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->imagen->LinkAttrs["data-rel"] = "personas_x_imagen";
+				ew_AppendClass($this->imagen->LinkAttrs["class"], "ewLightbox");
+			}
 
 			// observaciones
 			$this->observaciones->LinkCustomAttributes = "";
@@ -1234,27 +1313,6 @@ class cpersonas_view extends cpersonas {
 		$Doc->Text .= $sHeader;
 		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "view");
 
-		// Export detail records (telefonos)
-		if (EW_EXPORT_DETAIL_RECORDS && in_array("telefonos", explode(",", $this->getCurrentDetailTable()))) {
-			global $telefonos;
-			if (!isset($telefonos)) $telefonos = new ctelefonos;
-			$rsdetail = $telefonos->LoadRs($telefonos->GetDetailFilter()); // Load detail records
-			if ($rsdetail && !$rsdetail->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("h"); // Change to horizontal
-				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
-					$Doc->ExportEmptyRow();
-					$detailcnt = $rsdetail->RecordCount();
-					$oldtbl = $Doc->Table;
-					$Doc->Table = $telefonos;
-					$telefonos->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
-					$Doc->Table = $oldtbl;
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsdetail->Close();
-			}
-		}
-
 		// Export detail records (direcciones)
 		if (EW_EXPORT_DETAIL_RECORDS && in_array("direcciones", explode(",", $this->getCurrentDetailTable()))) {
 			global $direcciones;
@@ -1276,6 +1334,27 @@ class cpersonas_view extends cpersonas {
 			}
 		}
 
+		// Export detail records (telefonos)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("telefonos", explode(",", $this->getCurrentDetailTable()))) {
+			global $telefonos;
+			if (!isset($telefonos)) $telefonos = new ctelefonos;
+			$rsdetail = $telefonos->LoadRs($telefonos->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$oldtbl = $Doc->Table;
+					$Doc->Table = $telefonos;
+					$telefonos->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+					$Doc->Table = $oldtbl;
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
+
 		// Export detail records (emails)
 		if (EW_EXPORT_DETAIL_RECORDS && in_array("emails", explode(",", $this->getCurrentDetailTable()))) {
 			global $emails;
@@ -1290,6 +1369,48 @@ class cpersonas_view extends cpersonas {
 					$oldtbl = $Doc->Table;
 					$Doc->Table = $emails;
 					$emails->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+					$Doc->Table = $oldtbl;
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
+
+		// Export detail records (vehiculos)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("vehiculos", explode(",", $this->getCurrentDetailTable()))) {
+			global $vehiculos;
+			if (!isset($vehiculos)) $vehiculos = new cvehiculos;
+			$rsdetail = $vehiculos->LoadRs($vehiculos->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$oldtbl = $Doc->Table;
+					$Doc->Table = $vehiculos;
+					$vehiculos->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+					$Doc->Table = $oldtbl;
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
+
+		// Export detail records (deuda_persona)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("deuda_persona", explode(",", $this->getCurrentDetailTable()))) {
+			global $deuda_persona;
+			if (!isset($deuda_persona)) $deuda_persona = new cdeuda_persona;
+			$rsdetail = $deuda_persona->LoadRs($deuda_persona->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$oldtbl = $Doc->Table;
+					$Doc->Table = $deuda_persona;
+					$deuda_persona->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
 					$Doc->Table = $oldtbl;
 				}
 				$Doc->SetStyle($ExportStyle); // Restore
@@ -1422,67 +1543,6 @@ class cpersonas_view extends cpersonas {
 		return $sQry;
 	}
 
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "tipo_persona") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["tipo_persona"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_tipopersona->setQueryStringValue($GLOBALS["tipo_persona"]->Id->QueryStringValue);
-					$this->id_tipopersona->setSessionValue($this->id_tipopersona->QueryStringValue);
-					if (!is_numeric($GLOBALS["tipo_persona"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "tipo_persona") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["tipo_persona"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_tipopersona->setFormValue($GLOBALS["tipo_persona"]->Id->FormValue);
-					$this->id_tipopersona->setSessionValue($this->id_tipopersona->FormValue);
-					if (!is_numeric($GLOBALS["tipo_persona"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-			$this->setSessionWhere($this->GetDetailFilter());
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "tipo_persona") {
-				if ($this->id_tipopersona->CurrentValue == "") $this->id_tipopersona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
 	// Set up detail parms based on QueryString
 	function SetupDetailParms() {
 
@@ -1495,20 +1555,6 @@ class cpersonas_view extends cpersonas {
 		}
 		if ($sDetailTblVar <> "") {
 			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("telefonos", $DetailTblVar)) {
-				if (!isset($GLOBALS["telefonos_grid"]))
-					$GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				if ($GLOBALS["telefonos_grid"]->DetailView) {
-					$GLOBALS["telefonos_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["telefonos_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["telefonos_grid"]->setStartRecordNumber(1);
-					$GLOBALS["telefonos_grid"]->id_persona->FldIsDetailKey = TRUE;
-					$GLOBALS["telefonos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["telefonos_grid"]->id_persona->setSessionValue($GLOBALS["telefonos_grid"]->id_persona->CurrentValue);
-				}
-			}
 			if (in_array("direcciones", $DetailTblVar)) {
 				if (!isset($GLOBALS["direcciones_grid"]))
 					$GLOBALS["direcciones_grid"] = new cdirecciones_grid;
@@ -1523,6 +1569,20 @@ class cpersonas_view extends cpersonas {
 					$GLOBALS["direcciones_grid"]->id_persona->setSessionValue($GLOBALS["direcciones_grid"]->id_persona->CurrentValue);
 				}
 			}
+			if (in_array("telefonos", $DetailTblVar)) {
+				if (!isset($GLOBALS["telefonos_grid"]))
+					$GLOBALS["telefonos_grid"] = new ctelefonos_grid;
+				if ($GLOBALS["telefonos_grid"]->DetailView) {
+					$GLOBALS["telefonos_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["telefonos_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["telefonos_grid"]->setStartRecordNumber(1);
+					$GLOBALS["telefonos_grid"]->id_persona->FldIsDetailKey = TRUE;
+					$GLOBALS["telefonos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["telefonos_grid"]->id_persona->setSessionValue($GLOBALS["telefonos_grid"]->id_persona->CurrentValue);
+				}
+			}
 			if (in_array("emails", $DetailTblVar)) {
 				if (!isset($GLOBALS["emails_grid"]))
 					$GLOBALS["emails_grid"] = new cemails_grid;
@@ -1535,6 +1595,34 @@ class cpersonas_view extends cpersonas {
 					$GLOBALS["emails_grid"]->id_persona->FldIsDetailKey = TRUE;
 					$GLOBALS["emails_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
 					$GLOBALS["emails_grid"]->id_persona->setSessionValue($GLOBALS["emails_grid"]->id_persona->CurrentValue);
+				}
+			}
+			if (in_array("vehiculos", $DetailTblVar)) {
+				if (!isset($GLOBALS["vehiculos_grid"]))
+					$GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
+				if ($GLOBALS["vehiculos_grid"]->DetailView) {
+					$GLOBALS["vehiculos_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["vehiculos_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["vehiculos_grid"]->setStartRecordNumber(1);
+					$GLOBALS["vehiculos_grid"]->id_persona->FldIsDetailKey = TRUE;
+					$GLOBALS["vehiculos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["vehiculos_grid"]->id_persona->setSessionValue($GLOBALS["vehiculos_grid"]->id_persona->CurrentValue);
+				}
+			}
+			if (in_array("deuda_persona", $DetailTblVar)) {
+				if (!isset($GLOBALS["deuda_persona_grid"]))
+					$GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
+				if ($GLOBALS["deuda_persona_grid"]->DetailView) {
+					$GLOBALS["deuda_persona_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["deuda_persona_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["deuda_persona_grid"]->setStartRecordNumber(1);
+					$GLOBALS["deuda_persona_grid"]->id_persona->FldIsDetailKey = TRUE;
+					$GLOBALS["deuda_persona_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
+					$GLOBALS["deuda_persona_grid"]->id_persona->setSessionValue($GLOBALS["deuda_persona_grid"]->id_persona->CurrentValue);
 				}
 			}
 		}
@@ -1554,9 +1642,11 @@ class cpersonas_view extends cpersonas {
 	function SetupDetailPages() {
 		$pages = new cSubPages();
 		$pages->Style = "tabs";
-		$pages->Add('telefonos');
 		$pages->Add('direcciones');
+		$pages->Add('telefonos');
 		$pages->Add('emails');
+		$pages->Add('vehiculos');
+		$pages->Add('deuda_persona');
 		$this->DetailPages = $pages;
 	}
 
@@ -1701,8 +1791,6 @@ fpersonasview.Form_CustomValidate =
 fpersonasview.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fpersonasview.Lists["x_id_tipopersona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"tipo_persona"};
-fpersonasview.Lists["x_id_tipopersona"].Data = "<?php echo $personas_view->id_tipopersona->LookupFilterQuery(FALSE, "view") ?>";
 fpersonasview.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonasview.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_view->tipo_documento->Options()) ?>;
 fpersonasview.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -1743,17 +1831,6 @@ $personas_view->ShowMessage();
 <span id="el_personas_Id">
 <span<?php echo $personas->Id->ViewAttributes() ?>>
 <?php echo $personas->Id->ViewValue ?></span>
-</span>
-</td>
-	</tr>
-<?php } ?>
-<?php if ($personas->id_tipopersona->Visible) { // id_tipopersona ?>
-	<tr id="r_id_tipopersona">
-		<td class="col-sm-2"><span id="elh_personas_id_tipopersona"><?php echo $personas->id_tipopersona->FldCaption() ?></span></td>
-		<td data-name="id_tipopersona"<?php echo $personas->id_tipopersona->CellAttributes() ?>>
-<span id="el_personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<?php echo $personas->id_tipopersona->ViewValue ?></span>
 </span>
 </td>
 	</tr>
@@ -1835,6 +1912,18 @@ $personas_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
+<?php if ($personas->imagen->Visible) { // imagen ?>
+	<tr id="r_imagen">
+		<td class="col-sm-2"><span id="elh_personas_imagen"><?php echo $personas->imagen->FldCaption() ?></span></td>
+		<td data-name="imagen"<?php echo $personas->imagen->CellAttributes() ?>>
+<span id="el_personas_imagen">
+<span>
+<?php echo ew_GetFileViewTag($personas->imagen, $personas->imagen->ViewValue) ?>
+</span>
+</span>
+</td>
+	</tr>
+<?php } ?>
 <?php if ($personas->observaciones->Visible) { // observaciones ?>
 	<tr id="r_observaciones">
 		<td class="col-sm-2"><span id="elh_personas_observaciones"><?php echo $personas->observaciones->FldCaption() ?></span></td>
@@ -1867,22 +1956,22 @@ $personas_view->ShowMessage();
 <div class="nav-tabs-custom" id="personas_view_details"><!-- .nav-tabs-custom -->
 	<ul class="nav<?php echo $personas_view->DetailPages->NavStyle() ?>"><!-- .nav -->
 <?php
-	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailView) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
-			$FirstActiveDetailTable = "telefonos";
-		}
-?>
-		<li<?php echo $personas_view->DetailPages->TabStyle("telefonos") ?>><a href="#tab_telefonos" data-toggle="tab"><?php echo $Language->TablePhrase("telefonos", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-<?php
 	if (in_array("direcciones", explode(",", $personas->getCurrentDetailTable())) && $direcciones->DetailView) {
 		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "direcciones") {
 			$FirstActiveDetailTable = "direcciones";
 		}
 ?>
 		<li<?php echo $personas_view->DetailPages->TabStyle("direcciones") ?>><a href="#tab_direcciones" data-toggle="tab"><?php echo $Language->TablePhrase("direcciones", "TblCaption") ?></a></li>
+<?php
+	}
+?>
+<?php
+	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailView) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
+			$FirstActiveDetailTable = "telefonos";
+		}
+?>
+		<li<?php echo $personas_view->DetailPages->TabStyle("telefonos") ?>><a href="#tab_telefonos" data-toggle="tab"><?php echo $Language->TablePhrase("telefonos", "TblCaption") ?></a></li>
 <?php
 	}
 ?>
@@ -1896,18 +1985,28 @@ $personas_view->ShowMessage();
 <?php
 	}
 ?>
-	</ul><!-- /.nav -->
-	<div class="tab-content"><!-- .tab-content -->
 <?php
-	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailView) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
-			$FirstActiveDetailTable = "telefonos";
+	if (in_array("vehiculos", explode(",", $personas->getCurrentDetailTable())) && $vehiculos->DetailView) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "vehiculos") {
+			$FirstActiveDetailTable = "vehiculos";
 		}
 ?>
-		<div class="tab-pane<?php echo $personas_view->DetailPages->PageStyle("telefonos") ?>" id="tab_telefonos"><!-- page* -->
-<?php include_once "telefonosgrid.php" ?>
-		</div><!-- /page* -->
-<?php } ?>
+		<li<?php echo $personas_view->DetailPages->TabStyle("vehiculos") ?>><a href="#tab_vehiculos" data-toggle="tab"><?php echo $Language->TablePhrase("vehiculos", "TblCaption") ?></a></li>
+<?php
+	}
+?>
+<?php
+	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailView) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "deuda_persona") {
+			$FirstActiveDetailTable = "deuda_persona";
+		}
+?>
+		<li<?php echo $personas_view->DetailPages->TabStyle("deuda_persona") ?>><a href="#tab_deuda_persona" data-toggle="tab"><?php echo $Language->TablePhrase("deuda_persona", "TblCaption") ?></a></li>
+<?php
+	}
+?>
+	</ul><!-- /.nav -->
+	<div class="tab-content"><!-- .tab-content -->
 <?php
 	if (in_array("direcciones", explode(",", $personas->getCurrentDetailTable())) && $direcciones->DetailView) {
 		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "direcciones") {
@@ -1919,6 +2018,16 @@ $personas_view->ShowMessage();
 		</div><!-- /page* -->
 <?php } ?>
 <?php
+	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailView) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
+			$FirstActiveDetailTable = "telefonos";
+		}
+?>
+		<div class="tab-pane<?php echo $personas_view->DetailPages->PageStyle("telefonos") ?>" id="tab_telefonos"><!-- page* -->
+<?php include_once "telefonosgrid.php" ?>
+		</div><!-- /page* -->
+<?php } ?>
+<?php
 	if (in_array("emails", explode(",", $personas->getCurrentDetailTable())) && $emails->DetailView) {
 		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "emails") {
 			$FirstActiveDetailTable = "emails";
@@ -1926,6 +2035,26 @@ $personas_view->ShowMessage();
 ?>
 		<div class="tab-pane<?php echo $personas_view->DetailPages->PageStyle("emails") ?>" id="tab_emails"><!-- page* -->
 <?php include_once "emailsgrid.php" ?>
+		</div><!-- /page* -->
+<?php } ?>
+<?php
+	if (in_array("vehiculos", explode(",", $personas->getCurrentDetailTable())) && $vehiculos->DetailView) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "vehiculos") {
+			$FirstActiveDetailTable = "vehiculos";
+		}
+?>
+		<div class="tab-pane<?php echo $personas_view->DetailPages->PageStyle("vehiculos") ?>" id="tab_vehiculos"><!-- page* -->
+<?php include_once "vehiculosgrid.php" ?>
+		</div><!-- /page* -->
+<?php } ?>
+<?php
+	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailView) {
+		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "deuda_persona") {
+			$FirstActiveDetailTable = "deuda_persona";
+		}
+?>
+		<div class="tab-pane<?php echo $personas_view->DetailPages->PageStyle("deuda_persona") ?>" id="tab_deuda_persona"><!-- page* -->
+<?php include_once "deuda_personagrid.php" ?>
 		</div><!-- /page* -->
 <?php } ?>
 	</div><!-- /.tab-content -->

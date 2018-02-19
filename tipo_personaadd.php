@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "tipo_personainfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -339,14 +338,6 @@ class ctipo_persona_add extends ctipo_persona {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'personas'
-			if (@$_POST["grid"] == "fpersonasgrid") {
-				if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid;
-				$GLOBALS["personas_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -473,9 +464,6 @@ class ctipo_persona_add extends ctipo_persona {
 			$this->LoadFormValues(); // Load form values
 		}
 
-		// Set up detail parameters
-		$this->SetupDetailParms();
-
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -495,19 +483,13 @@ class ctipo_persona_add extends ctipo_persona {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("tipo_personalist.php"); // No matching record, return to list
 				}
-
-				// Set up detail parameters
-				$this->SetupDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					if ($this->getCurrentDetailTable() <> "") // Master/detail add
-						$sReturnUrl = $this->GetDetailUrl();
-					else
-						$sReturnUrl = $this->getReturnUrl();
+					$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "tipo_personalist.php")
 						$sReturnUrl = $this->AddMasterUrl($sReturnUrl); // List page, return to List page with correct master key if necessary
 					elseif (ew_GetPageName($sReturnUrl) == "tipo_personaview.php")
@@ -516,9 +498,6 @@ class ctipo_persona_add extends ctipo_persona {
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
-
-					// Set up detail parameters
-					$this->SetupDetailParms();
 				}
 		}
 
@@ -737,13 +716,6 @@ class ctipo_persona_add extends ctipo_persona {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->estado->FldCaption(), $this->estado->ReqErrMsg));
 		}
 
-		// Validate detail grid
-		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("personas", $DetailTblVar) && $GLOBALS["personas"]->DetailAdd) {
-			if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid(); // get detail page object
-			$GLOBALS["personas_grid"]->ValidateGridForm();
-		}
-
 		// Return validate result
 		$ValidateForm = ($gsFormError == "");
 
@@ -760,10 +732,6 @@ class ctipo_persona_add extends ctipo_persona {
 	function AddRow($rsold = NULL) {
 		global $Language, $Security;
 		$conn = &$this->Connection();
-
-		// Begin transaction
-		if ($this->getCurrentDetailTable() <> "")
-			$conn->BeginTrans();
 
 		// Load db values from rsold
 		$this->LoadDbValues($rsold);
@@ -798,29 +766,6 @@ class ctipo_persona_add extends ctipo_persona {
 			}
 			$AddRow = FALSE;
 		}
-
-		// Add detail records
-		if ($AddRow) {
-			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-			if (in_array("personas", $DetailTblVar) && $GLOBALS["personas"]->DetailAdd) {
-				$GLOBALS["personas"]->id_tipopersona->setSessionValue($this->Id->CurrentValue); // Set master key
-				if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid(); // Get detail page object
-				$Security->LoadCurrentUserLevel($this->ProjectID . "personas"); // Load user level of detail table
-				$AddRow = $GLOBALS["personas_grid"]->GridInsert();
-				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
-				if (!$AddRow)
-					$GLOBALS["personas"]->id_tipopersona->setSessionValue(""); // Clear master key if insert failed
-			}
-		}
-
-		// Commit/Rollback transaction
-		if ($this->getCurrentDetailTable() <> "") {
-			if ($AddRow) {
-				$conn->CommitTrans(); // Commit transaction
-			} else {
-				$conn->RollbackTrans(); // Rollback transaction
-			}
-		}
 		if ($AddRow) {
 
 			// Call Row Inserted event
@@ -828,39 +773,6 @@ class ctipo_persona_add extends ctipo_persona {
 			$this->Row_Inserted($rs, $rsnew);
 		}
 		return $AddRow;
-	}
-
-	// Set up detail parms based on QueryString
-	function SetupDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("personas", $DetailTblVar)) {
-				if (!isset($GLOBALS["personas_grid"]))
-					$GLOBALS["personas_grid"] = new cpersonas_grid;
-				if ($GLOBALS["personas_grid"]->DetailAdd) {
-					if ($this->CopyRecord)
-						$GLOBALS["personas_grid"]->CurrentMode = "copy";
-					else
-						$GLOBALS["personas_grid"]->CurrentMode = "add";
-					$GLOBALS["personas_grid"]->CurrentAction = "gridadd";
-
-					// Save current master table to detail table
-					$GLOBALS["personas_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["personas_grid"]->setStartRecordNumber(1);
-					$GLOBALS["personas_grid"]->id_tipopersona->FldIsDetailKey = TRUE;
-					$GLOBALS["personas_grid"]->id_tipopersona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["personas_grid"]->id_tipopersona->setSessionValue($GLOBALS["personas_grid"]->id_tipopersona->CurrentValue);
-				}
-			}
-		}
 	}
 
 	// Set up Breadcrumb
@@ -1077,14 +989,6 @@ $tipo_persona_add->ShowMessage();
 	</div>
 <?php } ?>
 </div><!-- /page* -->
-<?php
-	if (in_array("personas", explode(",", $tipo_persona->getCurrentDetailTable())) && $personas->DetailAdd) {
-?>
-<?php if ($tipo_persona->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("personas", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "personasgrid.php" ?>
-<?php } ?>
 <?php if (!$tipo_persona_add->IsModal) { ?>
 <div class="form-group"><!-- buttons .form-group -->
 	<div class="<?php echo $tipo_persona_add->OffsetColumnClass ?>"><!-- buttons offset -->

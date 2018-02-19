@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "tipo_personainfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -513,7 +512,6 @@ class ctipo_persona_view extends ctipo_persona {
 	var $RecCnt;
 	var $RecKey = array();
 	var $IsModal = FALSE;
-	var $personas_Count;
 	var $Recordset;
 
 	//
@@ -572,9 +570,6 @@ class ctipo_persona_view extends ctipo_persona {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
-
-		// Set up detail parameters
-		$this->SetupDetailParms();
 	}
 
 	// Set up other options
@@ -614,82 +609,6 @@ class ctipo_persona_view extends ctipo_persona {
 		$item = &$option->Add("delete");
 		$item->Body = "<a onclick=\"return ew_ConfirmDelete(this);\" class=\"ewAction ewDelete\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageDeleteLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageDeleteLink")) . "\" href=\"" . ew_HtmlEncode($this->DeleteUrl) . "\">" . $Language->Phrase("ViewPageDeleteLink") . "</a>";
 		$item->Visible = ($this->DeleteUrl <> "" && $Security->CanDelete());
-		$option = &$options["detail"];
-		$DetailTableLink = "";
-		$DetailViewTblVar = "";
-		$DetailCopyTblVar = "";
-		$DetailEditTblVar = "";
-
-		// "detail_personas"
-		$item = &$option->Add("detail_personas");
-		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("personas", "TblCaption");
-		$body .= str_replace("%c", $this->personas_Count, $Language->Phrase("DetailCount"));
-		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("personaslist.php?" . EW_TABLE_SHOW_MASTER . "=tipo_persona&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-		$links = "";
-		if ($GLOBALS["personas_grid"] && $GLOBALS["personas_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'personas')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=personas")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-			$DetailViewTblVar .= "personas";
-		}
-		if ($GLOBALS["personas_grid"] && $GLOBALS["personas_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'personas')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=personas")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-			$DetailEditTblVar .= "personas";
-		}
-		if ($GLOBALS["personas_grid"] && $GLOBALS["personas_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'personas')) {
-			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=personas")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-			$DetailCopyTblVar .= "personas";
-		}
-		if ($links <> "") {
-			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-		}
-		$body = "<div class=\"btn-group\">" . $body . "</div>";
-		$item->Body = $body;
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'personas');
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "personas";
-		}
-		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
-
-		// Multiple details
-		if ($this->ShowMultipleDetails) {
-			$body = $Language->Phrase("MultipleMasterDetails");
-			$body = "<div class=\"btn-group\">";
-			$links = "";
-			if ($DetailViewTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
-			}
-			if ($DetailEditTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
-			}
-			if ($DetailCopyTblVar <> "") {
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
-			}
-			$body .= "</div>";
-
-			// Multiple details
-			$oListOpt = &$option->Add("details");
-			$oListOpt->Body = $body;
-		}
-
-		// Set up detail default
-		$option = &$options["detail"];
-		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
-		$option->UseImageAndText = TRUE;
-		$ar = explode(",", $DetailTableLink);
-		$cnt = count($ar);
-		$option->UseDropDownButton = ($cnt > 1);
-		$option->UseButtonGroup = TRUE;
-		$item = &$option->Add($option->GroupOptionName);
-		$item->Body = "";
-		$item->Visible = FALSE;
 
 		// Set up action default
 		$option = &$options["action"];
@@ -800,12 +719,6 @@ class ctipo_persona_view extends ctipo_persona {
 		$this->Id->setDbValue($row['Id']);
 		$this->nombre->setDbValue($row['nombre']);
 		$this->estado->setDbValue($row['estado']);
-		if (!isset($GLOBALS["personas_grid"])) $GLOBALS["personas_grid"] = new cpersonas_grid;
-		$sDetailFilter = $GLOBALS["personas"]->SqlDetailFilter_tipo_persona();
-		$sDetailFilter = str_replace("@id_tipopersona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["personas"]->setCurrentMasterTable("tipo_persona");
-		$sDetailFilter = $GLOBALS["personas"]->ApplyUserIDFilters($sDetailFilter);
-		$this->personas_Count = $GLOBALS["personas"]->LoadRecordCount($sDetailFilter);
 	}
 
 	// Return a row with default values
@@ -998,27 +911,6 @@ class ctipo_persona_view extends ctipo_persona {
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
 		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "view");
-
-		// Export detail records (personas)
-		if (EW_EXPORT_DETAIL_RECORDS && in_array("personas", explode(",", $this->getCurrentDetailTable()))) {
-			global $personas;
-			if (!isset($personas)) $personas = new cpersonas;
-			$rsdetail = $personas->LoadRs($personas->GetDetailFilter()); // Load detail records
-			if ($rsdetail && !$rsdetail->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("h"); // Change to horizontal
-				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
-					$Doc->ExportEmptyRow();
-					$detailcnt = $rsdetail->RecordCount();
-					$oldtbl = $Doc->Table;
-					$Doc->Table = $personas;
-					$personas->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
-					$Doc->Table = $oldtbl;
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsdetail->Close();
-			}
-		}
 		$sFooter = $this->PageFooter;
 		$this->Page_DataRendered($sFooter);
 		$Doc->Text .= $sFooter;
@@ -1143,35 +1035,6 @@ class ctipo_persona_view extends ctipo_persona {
 		// Add record key QueryString
 		$sQry .= "&" . substr($this->KeyUrl("", ""), 1);
 		return $sQry;
-	}
-
-	// Set up detail parms based on QueryString
-	function SetupDetailParms() {
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
-			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
-			$this->setCurrentDetailTable($sDetailTblVar);
-		} else {
-			$sDetailTblVar = $this->getCurrentDetailTable();
-		}
-		if ($sDetailTblVar <> "") {
-			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("personas", $DetailTblVar)) {
-				if (!isset($GLOBALS["personas_grid"]))
-					$GLOBALS["personas_grid"] = new cpersonas_grid;
-				if ($GLOBALS["personas_grid"]->DetailView) {
-					$GLOBALS["personas_grid"]->CurrentMode = "view";
-
-					// Save current master table to detail table
-					$GLOBALS["personas_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["personas_grid"]->setStartRecordNumber(1);
-					$GLOBALS["personas_grid"]->id_tipopersona->FldIsDetailKey = TRUE;
-					$GLOBALS["personas_grid"]->id_tipopersona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["personas_grid"]->id_tipopersona->setSessionValue($GLOBALS["personas_grid"]->id_tipopersona->CurrentValue);
-				}
-			}
-		}
 	}
 
 	// Set up Breadcrumb
@@ -1390,14 +1253,6 @@ $tipo_persona_view->ShowMessage();
 	</tr>
 <?php } ?>
 </table>
-<?php
-	if (in_array("personas", explode(",", $tipo_persona->getCurrentDetailTable())) && $personas->DetailView) {
-?>
-<?php if ($tipo_persona->getCurrentDetailTable() <> "") { ?>
-<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("personas", "TblCaption") ?></h4>
-<?php } ?>
-<?php include_once "personasgrid.php" ?>
-<?php } ?>
 </form>
 <?php if ($tipo_persona->Export == "") { ?>
 <script type="text/javascript">

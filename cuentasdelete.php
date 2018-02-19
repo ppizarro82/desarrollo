@@ -317,6 +317,7 @@ class ccuentas_delete extends ccuentas {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->codigo->SetVisibility();
 		$this->denominacion->SetVisibility();
 		$this->inicio_contrato->SetVisibility();
 		$this->fin_contrato->SetVisibility();
@@ -502,6 +503,7 @@ class ccuentas_delete extends ccuentas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->codigo->setDbValue($row['codigo']);
 		$this->denominacion->setDbValue($row['denominacion']);
 		$this->inicio_contrato->setDbValue($row['inicio_contrato']);
 		$this->fin_contrato->setDbValue($row['fin_contrato']);
@@ -513,6 +515,7 @@ class ccuentas_delete extends ccuentas {
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['codigo'] = NULL;
 		$row['denominacion'] = NULL;
 		$row['inicio_contrato'] = NULL;
 		$row['fin_contrato'] = NULL;
@@ -527,6 +530,7 @@ class ccuentas_delete extends ccuentas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->codigo->DbValue = $row['codigo'];
 		$this->denominacion->DbValue = $row['denominacion'];
 		$this->inicio_contrato->DbValue = $row['inicio_contrato'];
 		$this->fin_contrato->DbValue = $row['fin_contrato'];
@@ -545,6 +549,7 @@ class ccuentas_delete extends ccuentas {
 
 		// Common render codes for all row types
 		// Id
+		// codigo
 		// denominacion
 		// inicio_contrato
 		// fin_contrato
@@ -556,6 +561,10 @@ class ccuentas_delete extends ccuentas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// codigo
+		$this->codigo->ViewValue = $this->codigo->CurrentValue;
+		$this->codigo->ViewCustomAttributes = "";
 
 		// denominacion
 		$this->denominacion->ViewValue = $this->denominacion->CurrentValue;
@@ -588,6 +597,11 @@ class ccuentas_delete extends ccuentas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
+
+			// codigo
+			$this->codigo->LinkCustomAttributes = "";
+			$this->codigo->HrefValue = "";
+			$this->codigo->TooltipValue = "";
 
 			// denominacion
 			$this->denominacion->LinkCustomAttributes = "";
@@ -855,6 +869,9 @@ $cuentas_delete->ShowMessage();
 <?php if ($cuentas->Id->Visible) { // Id ?>
 		<th class="<?php echo $cuentas->Id->HeaderCellClass() ?>"><span id="elh_cuentas_Id" class="cuentas_Id"><?php echo $cuentas->Id->FldCaption() ?></span></th>
 <?php } ?>
+<?php if ($cuentas->codigo->Visible) { // codigo ?>
+		<th class="<?php echo $cuentas->codigo->HeaderCellClass() ?>"><span id="elh_cuentas_codigo" class="cuentas_codigo"><?php echo $cuentas->codigo->FldCaption() ?></span></th>
+<?php } ?>
 <?php if ($cuentas->denominacion->Visible) { // denominacion ?>
 		<th class="<?php echo $cuentas->denominacion->HeaderCellClass() ?>"><span id="elh_cuentas_denominacion" class="cuentas_denominacion"><?php echo $cuentas->denominacion->FldCaption() ?></span></th>
 <?php } ?>
@@ -896,6 +913,14 @@ while (!$cuentas_delete->Recordset->EOF) {
 <span id="el<?php echo $cuentas_delete->RowCnt ?>_cuentas_Id" class="cuentas_Id">
 <span<?php echo $cuentas->Id->ViewAttributes() ?>>
 <?php echo $cuentas->Id->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($cuentas->codigo->Visible) { // codigo ?>
+		<td<?php echo $cuentas->codigo->CellAttributes() ?>>
+<span id="el<?php echo $cuentas_delete->RowCnt ?>_cuentas_codigo" class="cuentas_codigo">
+<span<?php echo $cuentas->codigo->ViewAttributes() ?>>
+<?php echo $cuentas->codigo->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

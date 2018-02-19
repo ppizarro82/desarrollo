@@ -42,9 +42,6 @@ fpersonasgrid.Validate = function() {
 		var checkrow = (gridinsert) ? !this.EmptyRow(infix) : true;
 		if (checkrow) {
 			addcnt++;
-			elm = this.GetElements("x" + infix + "_id_tipopersona");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $personas->id_tipopersona->FldCaption(), $personas->id_tipopersona->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_nombres");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $personas->nombres->FldCaption(), $personas->nombres->ReqErrMsg)) ?>");
@@ -78,7 +75,6 @@ fpersonasgrid.Validate = function() {
 // Check empty row
 fpersonasgrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
-	if (ew_ValueChanged(fobj, infix, "id_tipopersona", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "tipo_documento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "no_documento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombres", false)) return false;
@@ -102,8 +98,6 @@ fpersonasgrid.Form_CustomValidate =
 fpersonasgrid.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fpersonasgrid.Lists["x_id_tipopersona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"tipo_persona"};
-fpersonasgrid.Lists["x_id_tipopersona"].Data = "<?php echo $personas_grid->id_tipopersona->LookupFilterQuery(FALSE, "grid") ?>";
 fpersonasgrid.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonasgrid.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_grid->tipo_documento->Options()) ?>;
 fpersonasgrid.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -195,15 +189,6 @@ $personas_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="Id" class="<?php echo $personas->Id->HeaderCellClass() ?>"><div><div id="elh_personas_Id" class="personas_Id">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->Id->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->Id->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->Id->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
-		</div></div></th>
-	<?php } ?>
-<?php } ?>
-<?php if ($personas->id_tipopersona->Visible) { // id_tipopersona ?>
-	<?php if ($personas->SortUrl($personas->id_tipopersona) == "") { ?>
-		<th data-name="id_tipopersona" class="<?php echo $personas->id_tipopersona->HeaderCellClass() ?>"><div id="elh_personas_id_tipopersona" class="personas_id_tipopersona"><div class="ewTableHeaderCaption"><?php echo $personas->id_tipopersona->FldCaption() ?></div></div></th>
-	<?php } else { ?>
-		<th data-name="id_tipopersona" class="<?php echo $personas->id_tipopersona->HeaderCellClass() ?>"><div><div id="elh_personas_id_tipopersona" class="personas_id_tipopersona">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_tipopersona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_tipopersona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_tipopersona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -411,54 +396,6 @@ $personas_grid->ListOptions->Render("body", "left", $personas_grid->RowCnt);
 <?php } else { ?>
 <input type="hidden" data-table="personas" data-field="x_Id" name="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_Id" id="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->FormValue) ?>">
 <input type="hidden" data-table="personas" data-field="x_Id" name="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_Id" id="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->OldValue) ?>">
-<?php } ?>
-<?php } ?>
-</td>
-	<?php } ?>
-	<?php if ($personas->id_tipopersona->Visible) { // id_tipopersona ?>
-		<td data-name="id_tipopersona"<?php echo $personas->id_tipopersona->CellAttributes() ?>>
-<?php if ($personas->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<?php if ($personas->id_tipopersona->getSessionValue() <> "") { ?>
-<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $personas->id_tipopersona->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<select data-table="personas" data-field="x_id_tipopersona" data-value-separator="<?php echo $personas->id_tipopersona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona"<?php echo $personas->id_tipopersona->EditAttributes() ?>>
-<?php echo $personas->id_tipopersona->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_tipopersona") ?>
-</select>
-</span>
-<?php } ?>
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->OldValue) ?>">
-<?php } ?>
-<?php if ($personas->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<?php if ($personas->id_tipopersona->getSessionValue() <> "") { ?>
-<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $personas->id_tipopersona->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<select data-table="personas" data-field="x_id_tipopersona" data-value-separator="<?php echo $personas->id_tipopersona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona"<?php echo $personas->id_tipopersona->EditAttributes() ?>>
-<?php echo $personas->id_tipopersona->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_tipopersona") ?>
-</select>
-</span>
-<?php } ?>
-<?php } ?>
-<?php if ($personas->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_tipopersona" class="personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<?php echo $personas->id_tipopersona->ListViewValue() ?></span>
-</span>
-<?php if ($personas->CurrentAction <> "F") { ?>
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->FormValue) ?>">
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->OldValue) ?>">
-<?php } else { ?>
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->FormValue) ?>">
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
@@ -770,32 +707,6 @@ $personas_grid->ListOptions->Render("body", "left", $personas_grid->RowIndex);
 <input type="hidden" data-table="personas" data-field="x_Id" name="x<?php echo $personas_grid->RowIndex ?>_Id" id="x<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-table="personas" data-field="x_Id" name="o<?php echo $personas_grid->RowIndex ?>_Id" id="o<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->OldValue) ?>">
-</td>
-	<?php } ?>
-	<?php if ($personas->id_tipopersona->Visible) { // id_tipopersona ?>
-		<td data-name="id_tipopersona">
-<?php if ($personas->CurrentAction <> "F") { ?>
-<?php if ($personas->id_tipopersona->getSessionValue() <> "") { ?>
-<span id="el$rowindex$_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $personas->id_tipopersona->ViewValue ?></p></span>
-</span>
-<input type="hidden" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el$rowindex$_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<select data-table="personas" data-field="x_id_tipopersona" data-value-separator="<?php echo $personas->id_tipopersona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona"<?php echo $personas->id_tipopersona->EditAttributes() ?>>
-<?php echo $personas->id_tipopersona->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_tipopersona") ?>
-</select>
-</span>
-<?php } ?>
-<?php } else { ?>
-<span id="el$rowindex$_personas_id_tipopersona" class="form-group personas_id_tipopersona">
-<span<?php echo $personas->id_tipopersona->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $personas->id_tipopersona->ViewValue ?></p></span>
-</span>
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="x<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->FormValue) ?>">
-<?php } ?>
-<input type="hidden" data-table="personas" data-field="x_id_tipopersona" name="o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" id="o<?php echo $personas_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($personas->id_tipopersona->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>

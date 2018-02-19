@@ -698,7 +698,7 @@ class cemails extends cTable {
 		// id_persona
 		$this->id_persona->LinkCustomAttributes = "";
 		if (!ew_Empty($this->id_persona->CurrentValue)) {
-			$this->id_persona->HrefValue = "personasview.php?showdetail=telefonos,direcciones,emails&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
+			$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
 			$this->id_persona->LinkAttrs["target"] = ""; // Add target
 			if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
 		} else {

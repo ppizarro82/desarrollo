@@ -98,30 +98,6 @@ class ctipo_persona extends cTable {
 		}
 	}
 
-	// Current detail table name
-	function getCurrentDetailTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
-	}
-
-	function setCurrentDetailTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
-	}
-
-	// Get detail url
-	function GetDetailUrl() {
-
-		// Detail url
-		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "personas") {
-			$sDetailUrl = $GLOBALS["personas"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
-			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
-		}
-		if ($sDetailUrl == "") {
-			$sDetailUrl = "tipo_personalist.php";
-		}
-		return $sDetailUrl;
-	}
-
 	// Table level SQL
 	var $_SqlFrom = "";
 
@@ -380,35 +356,6 @@ class ctipo_persona extends cTable {
 	// Update
 	function Update(&$rs, $where = "", $rsold = NULL, $curfilter = TRUE) {
 		$conn = &$this->Connection();
-
-		// Cascade Update detail table 'personas'
-		$bCascadeUpdate = FALSE;
-		$rscascade = array();
-		if (!is_null($rsold) && (isset($rs['Id']) && $rsold['Id'] <> $rs['Id'])) { // Update detail field 'id_tipopersona'
-			$bCascadeUpdate = TRUE;
-			$rscascade['id_tipopersona'] = $rs['Id']; 
-		}
-		if ($bCascadeUpdate) {
-			if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
-			$rswrk = $GLOBALS["personas"]->LoadRs("`id_tipopersona` = " . ew_QuotedValue($rsold['Id'], EW_DATATYPE_NUMBER, 'DB')); 
-			while ($rswrk && !$rswrk->EOF) {
-				$rskey = array();
-				$fldname = 'Id';
-				$rskey[$fldname] = $rswrk->fields[$fldname];
-				$rsdtlold = &$rswrk->fields;
-				$rsdtlnew = array_merge($rsdtlold, $rscascade);
-
-				// Call Row_Updating event
-				$bUpdate = $GLOBALS["personas"]->Row_Updating($rsdtlold, $rsdtlnew);
-				if ($bUpdate)
-					$bUpdate = $GLOBALS["personas"]->Update($rscascade, $rskey, $rswrk->fields);
-				if (!$bUpdate) return FALSE;
-
-				// Call Row_Updated event
-				$GLOBALS["personas"]->Row_Updated($rsdtlold, $rsdtlnew);
-				$rswrk->MoveNext();
-			}
-		}
 		$bUpdate = $conn->Execute($this->UpdateSQL($rs, $where, $curfilter));
 		return $bUpdate;
 	}
@@ -435,31 +382,6 @@ class ctipo_persona extends cTable {
 	function Delete(&$rs, $where = "", $curfilter = TRUE) {
 		$bDelete = TRUE;
 		$conn = &$this->Connection();
-
-		// Cascade delete detail table 'personas'
-		if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
-		$rscascade = $GLOBALS["personas"]->LoadRs("`id_tipopersona` = " . ew_QuotedValue($rs['Id'], EW_DATATYPE_NUMBER, "DB")); 
-		$dtlrows = ($rscascade) ? $rscascade->GetRows() : array();
-
-		// Call Row Deleting event
-		foreach ($dtlrows as $dtlrow) {
-			$bDelete = $GLOBALS["personas"]->Row_Deleting($dtlrow);
-			if (!$bDelete) break;
-		}
-		if ($bDelete) {
-			foreach ($dtlrows as $dtlrow) {
-				$bDelete = $GLOBALS["personas"]->Delete($dtlrow); // Delete
-				if ($bDelete === FALSE)
-					break;
-			}
-		}
-
-		// Call Row Deleted event
-		if ($bDelete) {
-			foreach ($dtlrows as $dtlrow) {
-				$GLOBALS["personas"]->Row_Deleted($dtlrow);
-			}
-		}
 		if ($bDelete)
 			$bDelete = $conn->Execute($this->DeleteSQL($rs, $where, $curfilter));
 		return $bDelete;
@@ -538,10 +460,7 @@ class ctipo_persona extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		if ($parm <> "")
-			$url = $this->KeyUrl("tipo_personaedit.php", $this->UrlParm($parm));
-		else
-			$url = $this->KeyUrl("tipo_personaedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		$url = $this->KeyUrl("tipo_personaedit.php", $this->UrlParm($parm));
 		return $this->AddMasterUrl($url);
 	}
 
@@ -553,10 +472,7 @@ class ctipo_persona extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		if ($parm <> "")
-			$url = $this->KeyUrl("tipo_personaadd.php", $this->UrlParm($parm));
-		else
-			$url = $this->KeyUrl("tipo_personaadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
+		$url = $this->KeyUrl("tipo_personaadd.php", $this->UrlParm($parm));
 		return $this->AddMasterUrl($url);
 	}
 

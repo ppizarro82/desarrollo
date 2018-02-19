@@ -8,7 +8,6 @@ $personas = NULL;
 //
 class cpersonas extends cTable {
 	var $Id;
-	var $id_tipopersona;
 	var $tipo_documento;
 	var $no_documento;
 	var $nombres;
@@ -16,6 +15,7 @@ class cpersonas extends cTable {
 	var $materno;
 	var $fecha_nacimiento;
 	var $fecha_registro;
+	var $imagen;
 	var $observaciones;
 	var $estado;
 
@@ -56,14 +56,6 @@ class cpersonas extends cTable {
 		$this->Id->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['Id'] = &$this->Id;
 
-		// id_tipopersona
-		$this->id_tipopersona = new cField('personas', 'personas', 'x_id_tipopersona', 'id_tipopersona', '`id_tipopersona`', '`id_tipopersona`', 3, -1, FALSE, '`id_tipopersona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
-		$this->id_tipopersona->Sortable = TRUE; // Allow sort
-		$this->id_tipopersona->UsePleaseSelect = TRUE; // Use PleaseSelect by default
-		$this->id_tipopersona->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
-		$this->id_tipopersona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['id_tipopersona'] = &$this->id_tipopersona;
-
 		// tipo_documento
 		$this->tipo_documento = new cField('personas', 'personas', 'x_tipo_documento', 'tipo_documento', '`tipo_documento`', '`tipo_documento`', 200, -1, FALSE, '`tipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
 		$this->tipo_documento->Sortable = TRUE; // Allow sort
@@ -103,6 +95,11 @@ class cpersonas extends cTable {
 		$this->fecha_registro->Sortable = TRUE; // Allow sort
 		$this->fecha_registro->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_SEPARATOR"], $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_registro'] = &$this->fecha_registro;
+
+		// imagen
+		$this->imagen = new cField('personas', 'personas', 'x_imagen', 'imagen', '`imagen`', '`imagen`', 200, -1, TRUE, '`imagen`', FALSE, FALSE, FALSE, 'IMAGE', 'FILE');
+		$this->imagen->Sortable = TRUE; // Allow sort
+		$this->fields['imagen'] = &$this->imagen;
 
 		// observaciones
 		$this->observaciones = new cField('personas', 'personas', 'x_observaciones', 'observaciones', '`observaciones`', '`observaciones`', 201, -1, FALSE, '`observaciones`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXTAREA');
@@ -154,53 +151,6 @@ class cpersonas extends cTable {
 		}
 	}
 
-	// Current master table name
-	function getCurrentMasterTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
-	}
-
-	function setCurrentMasterTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
-	}
-
-	// Session master WHERE clause
-	function GetMasterFilter() {
-
-		// Master filter
-		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "tipo_persona") {
-			if ($this->id_tipopersona->getSessionValue() <> "")
-				$sMasterFilter .= "`Id`=" . ew_QuotedValue($this->id_tipopersona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
-		return $sMasterFilter;
-	}
-
-	// Session detail WHERE clause
-	function GetDetailFilter() {
-
-		// Detail filter
-		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "tipo_persona") {
-			if ($this->id_tipopersona->getSessionValue() <> "")
-				$sDetailFilter .= "`id_tipopersona`=" . ew_QuotedValue($this->id_tipopersona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
-		return $sDetailFilter;
-	}
-
-	// Master filter
-	function SqlMasterFilter_tipo_persona() {
-		return "`Id`=@Id@";
-	}
-
-	// Detail filter
-	function SqlDetailFilter_tipo_persona() {
-		return "`id_tipopersona`=@id_tipopersona@";
-	}
-
 	// Current detail table name
 	function getCurrentDetailTable() {
 		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
@@ -215,16 +165,24 @@ class cpersonas extends cTable {
 
 		// Detail url
 		$sDetailUrl = "";
-		if ($this->getCurrentDetailTable() == "telefonos") {
-			$sDetailUrl = $GLOBALS["telefonos"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
-			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
-		}
 		if ($this->getCurrentDetailTable() == "direcciones") {
 			$sDetailUrl = $GLOBALS["direcciones"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
 			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
 		}
+		if ($this->getCurrentDetailTable() == "telefonos") {
+			$sDetailUrl = $GLOBALS["telefonos"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
+			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
+		}
 		if ($this->getCurrentDetailTable() == "emails") {
 			$sDetailUrl = $GLOBALS["emails"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
+			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
+		}
+		if ($this->getCurrentDetailTable() == "vehiculos") {
+			$sDetailUrl = $GLOBALS["vehiculos"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
+			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
+		}
+		if ($this->getCurrentDetailTable() == "deuda_persona") {
+			$sDetailUrl = $GLOBALS["deuda_persona"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
 			$sDetailUrl .= "&fk_Id=" . urlencode($this->Id->CurrentValue);
 		}
 		if ($sDetailUrl == "") {
@@ -491,64 +449,6 @@ class cpersonas extends cTable {
 	// Update
 	function Update(&$rs, $where = "", $rsold = NULL, $curfilter = TRUE) {
 		$conn = &$this->Connection();
-
-		// Cascade Update detail table 'telefonos'
-		$bCascadeUpdate = FALSE;
-		$rscascade = array();
-		if (!is_null($rsold) && (isset($rs['Id']) && $rsold['Id'] <> $rs['Id'])) { // Update detail field 'id_persona'
-			$bCascadeUpdate = TRUE;
-			$rscascade['id_persona'] = $rs['Id']; 
-		}
-		if ($bCascadeUpdate) {
-			if (!isset($GLOBALS["telefonos"])) $GLOBALS["telefonos"] = new ctelefonos();
-			$rswrk = $GLOBALS["telefonos"]->LoadRs("`id_persona` = " . ew_QuotedValue($rsold['Id'], EW_DATATYPE_NUMBER, 'DB')); 
-			while ($rswrk && !$rswrk->EOF) {
-				$rskey = array();
-				$fldname = 'Id';
-				$rskey[$fldname] = $rswrk->fields[$fldname];
-				$rsdtlold = &$rswrk->fields;
-				$rsdtlnew = array_merge($rsdtlold, $rscascade);
-
-				// Call Row_Updating event
-				$bUpdate = $GLOBALS["telefonos"]->Row_Updating($rsdtlold, $rsdtlnew);
-				if ($bUpdate)
-					$bUpdate = $GLOBALS["telefonos"]->Update($rscascade, $rskey, $rswrk->fields);
-				if (!$bUpdate) return FALSE;
-
-				// Call Row_Updated event
-				$GLOBALS["telefonos"]->Row_Updated($rsdtlold, $rsdtlnew);
-				$rswrk->MoveNext();
-			}
-		}
-
-		// Cascade Update detail table 'direcciones'
-		$bCascadeUpdate = FALSE;
-		$rscascade = array();
-		if (!is_null($rsold) && (isset($rs['Id']) && $rsold['Id'] <> $rs['Id'])) { // Update detail field 'id_persona'
-			$bCascadeUpdate = TRUE;
-			$rscascade['id_persona'] = $rs['Id']; 
-		}
-		if ($bCascadeUpdate) {
-			if (!isset($GLOBALS["direcciones"])) $GLOBALS["direcciones"] = new cdirecciones();
-			$rswrk = $GLOBALS["direcciones"]->LoadRs("`id_persona` = " . ew_QuotedValue($rsold['Id'], EW_DATATYPE_NUMBER, 'DB')); 
-			while ($rswrk && !$rswrk->EOF) {
-				$rskey = array();
-				$fldname = 'Id';
-				$rskey[$fldname] = $rswrk->fields[$fldname];
-				$rsdtlold = &$rswrk->fields;
-				$rsdtlnew = array_merge($rsdtlold, $rscascade);
-
-				// Call Row_Updating event
-				$bUpdate = $GLOBALS["direcciones"]->Row_Updating($rsdtlold, $rsdtlnew);
-				if ($bUpdate)
-					$bUpdate = $GLOBALS["direcciones"]->Update($rscascade, $rskey, $rswrk->fields);
-				if (!$bUpdate) return FALSE;
-
-				// Call Row_Updated event
-				$GLOBALS["direcciones"]->Row_Updated($rsdtlold, $rsdtlnew);
-				$rswrk->MoveNext();
-			}
-		}
 		$bUpdate = $conn->Execute($this->UpdateSQL($rs, $where, $curfilter));
 		return $bUpdate;
 	}
@@ -575,56 +475,6 @@ class cpersonas extends cTable {
 	function Delete(&$rs, $where = "", $curfilter = TRUE) {
 		$bDelete = TRUE;
 		$conn = &$this->Connection();
-
-		// Cascade delete detail table 'telefonos'
-		if (!isset($GLOBALS["telefonos"])) $GLOBALS["telefonos"] = new ctelefonos();
-		$rscascade = $GLOBALS["telefonos"]->LoadRs("`id_persona` = " . ew_QuotedValue($rs['Id'], EW_DATATYPE_NUMBER, "DB")); 
-		$dtlrows = ($rscascade) ? $rscascade->GetRows() : array();
-
-		// Call Row Deleting event
-		foreach ($dtlrows as $dtlrow) {
-			$bDelete = $GLOBALS["telefonos"]->Row_Deleting($dtlrow);
-			if (!$bDelete) break;
-		}
-		if ($bDelete) {
-			foreach ($dtlrows as $dtlrow) {
-				$bDelete = $GLOBALS["telefonos"]->Delete($dtlrow); // Delete
-				if ($bDelete === FALSE)
-					break;
-			}
-		}
-
-		// Call Row Deleted event
-		if ($bDelete) {
-			foreach ($dtlrows as $dtlrow) {
-				$GLOBALS["telefonos"]->Row_Deleted($dtlrow);
-			}
-		}
-
-		// Cascade delete detail table 'direcciones'
-		if (!isset($GLOBALS["direcciones"])) $GLOBALS["direcciones"] = new cdirecciones();
-		$rscascade = $GLOBALS["direcciones"]->LoadRs("`id_persona` = " . ew_QuotedValue($rs['Id'], EW_DATATYPE_NUMBER, "DB")); 
-		$dtlrows = ($rscascade) ? $rscascade->GetRows() : array();
-
-		// Call Row Deleting event
-		foreach ($dtlrows as $dtlrow) {
-			$bDelete = $GLOBALS["direcciones"]->Row_Deleting($dtlrow);
-			if (!$bDelete) break;
-		}
-		if ($bDelete) {
-			foreach ($dtlrows as $dtlrow) {
-				$bDelete = $GLOBALS["direcciones"]->Delete($dtlrow); // Delete
-				if ($bDelete === FALSE)
-					break;
-			}
-		}
-
-		// Call Row Deleted event
-		if ($bDelete) {
-			foreach ($dtlrows as $dtlrow) {
-				$GLOBALS["direcciones"]->Row_Deleted($dtlrow);
-			}
-		}
 		if ($bDelete)
 			$bDelete = $conn->Execute($this->DeleteSQL($rs, $where, $curfilter));
 		return $bDelete;
@@ -738,10 +588,6 @@ class cpersonas extends cTable {
 
 	// Add master url
 	function AddMasterUrl($url) {
-		if ($this->getCurrentMasterTable() == "tipo_persona" && strpos($url, EW_TABLE_SHOW_MASTER . "=") === FALSE) {
-			$url .= (strpos($url, "?") !== FALSE ? "&" : "?") . EW_TABLE_SHOW_MASTER . "=" . $this->getCurrentMasterTable();
-			$url .= "&fk_Id=" . urlencode($this->id_tipopersona->CurrentValue);
-		}
 		return $url;
 	}
 
@@ -839,7 +685,6 @@ class cpersonas extends cTable {
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
 		$this->Id->setDbValue($rs->fields('Id'));
-		$this->id_tipopersona->setDbValue($rs->fields('id_tipopersona'));
 		$this->tipo_documento->setDbValue($rs->fields('tipo_documento'));
 		$this->no_documento->setDbValue($rs->fields('no_documento'));
 		$this->nombres->setDbValue($rs->fields('nombres'));
@@ -847,6 +692,7 @@ class cpersonas extends cTable {
 		$this->materno->setDbValue($rs->fields('materno'));
 		$this->fecha_nacimiento->setDbValue($rs->fields('fecha_nacimiento'));
 		$this->fecha_registro->setDbValue($rs->fields('fecha_registro'));
+		$this->imagen->Upload->DbValue = $rs->fields('imagen');
 		$this->observaciones->setDbValue($rs->fields('observaciones'));
 		$this->estado->setDbValue($rs->fields('estado'));
 	}
@@ -860,7 +706,6 @@ class cpersonas extends cTable {
 
 	// Common render codes
 		// Id
-		// id_tipopersona
 		// tipo_documento
 		// no_documento
 		// nombres
@@ -868,37 +713,13 @@ class cpersonas extends cTable {
 		// materno
 		// fecha_nacimiento
 		// fecha_registro
+		// imagen
 		// observaciones
 		// estado
 		// Id
 
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
-
-		// id_tipopersona
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-		$sWhereWrk = "";
-		$this->id_tipopersona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-			}
-		} else {
-			$this->id_tipopersona->ViewValue = NULL;
-		}
-		$this->id_tipopersona->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -935,6 +756,18 @@ class cpersonas extends cTable {
 		$this->fecha_registro->ViewValue = ew_FormatDateTime($this->fecha_registro->ViewValue, 11);
 		$this->fecha_registro->ViewCustomAttributes = "";
 
+		// imagen
+		$this->imagen->UploadPath = 'uploads/';
+		if (!ew_Empty($this->imagen->Upload->DbValue)) {
+			$this->imagen->ImageWidth = 120;
+			$this->imagen->ImageHeight = 120;
+			$this->imagen->ImageAlt = $this->imagen->FldAlt();
+			$this->imagen->ViewValue = $this->imagen->Upload->DbValue;
+		} else {
+			$this->imagen->ViewValue = "";
+		}
+		$this->imagen->ViewCustomAttributes = "";
+
 		// observaciones
 		$this->observaciones->ViewValue = $this->observaciones->CurrentValue;
 		$this->observaciones->ViewCustomAttributes = "";
@@ -951,11 +784,6 @@ class cpersonas extends cTable {
 		$this->Id->LinkCustomAttributes = "";
 		$this->Id->HrefValue = "";
 		$this->Id->TooltipValue = "";
-
-		// id_tipopersona
-		$this->id_tipopersona->LinkCustomAttributes = "";
-		$this->id_tipopersona->HrefValue = "";
-		$this->id_tipopersona->TooltipValue = "";
 
 		// tipo_documento
 		$this->tipo_documento->LinkCustomAttributes = "";
@@ -992,6 +820,25 @@ class cpersonas extends cTable {
 		$this->fecha_registro->HrefValue = "";
 		$this->fecha_registro->TooltipValue = "";
 
+		// imagen
+		$this->imagen->LinkCustomAttributes = "";
+		$this->imagen->UploadPath = 'uploads/';
+		if (!ew_Empty($this->imagen->Upload->DbValue)) {
+			$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+			$this->imagen->LinkAttrs["target"] = ""; // Add target
+			if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+		} else {
+			$this->imagen->HrefValue = "";
+		}
+		$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
+		$this->imagen->TooltipValue = "";
+		if ($this->imagen->UseColorbox) {
+			if (ew_Empty($this->imagen->TooltipValue))
+				$this->imagen->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+			$this->imagen->LinkAttrs["data-rel"] = "personas_x_imagen";
+			ew_AppendClass($this->imagen->LinkAttrs["class"], "ewLightbox");
+		}
+
 		// observaciones
 		$this->observaciones->LinkCustomAttributes = "";
 		$this->observaciones->HrefValue = "";
@@ -1021,37 +868,6 @@ class cpersonas extends cTable {
 		$this->Id->EditCustomAttributes = "";
 		$this->Id->EditValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
-
-		// id_tipopersona
-		$this->id_tipopersona->EditAttrs["class"] = "form-control";
-		$this->id_tipopersona->EditCustomAttributes = "";
-		if ($this->id_tipopersona->getSessionValue() <> "") {
-			$this->id_tipopersona->CurrentValue = $this->id_tipopersona->getSessionValue();
-		if (strval($this->id_tipopersona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipopersona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_persona`";
-		$sWhereWrk = "";
-		$this->id_tipopersona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_tipopersona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_tipopersona->ViewValue = $this->id_tipopersona->CurrentValue;
-			}
-		} else {
-			$this->id_tipopersona->ViewValue = NULL;
-		}
-		$this->id_tipopersona->ViewCustomAttributes = "";
-		} else {
-		}
 
 		// tipo_documento
 		$this->tipo_documento->EditAttrs["class"] = "form-control";
@@ -1094,6 +910,21 @@ class cpersonas extends cTable {
 		$this->fecha_registro->EditValue = ew_FormatDateTime($this->fecha_registro->CurrentValue, 11);
 		$this->fecha_registro->PlaceHolder = ew_RemoveHtml($this->fecha_registro->FldCaption());
 
+		// imagen
+		$this->imagen->EditAttrs["class"] = "form-control";
+		$this->imagen->EditCustomAttributes = "";
+		$this->imagen->UploadPath = 'uploads/';
+		if (!ew_Empty($this->imagen->Upload->DbValue)) {
+			$this->imagen->ImageWidth = 120;
+			$this->imagen->ImageHeight = 120;
+			$this->imagen->ImageAlt = $this->imagen->FldAlt();
+			$this->imagen->EditValue = $this->imagen->Upload->DbValue;
+		} else {
+			$this->imagen->EditValue = "";
+		}
+		if (!ew_Empty($this->imagen->CurrentValue))
+			$this->imagen->Upload->FileName = $this->imagen->CurrentValue;
+
 		// observaciones
 		$this->observaciones->EditAttrs["class"] = "form-control";
 		$this->observaciones->EditCustomAttributes = "";
@@ -1132,7 +963,6 @@ class cpersonas extends cTable {
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
-					if ($this->id_tipopersona->Exportable) $Doc->ExportCaption($this->id_tipopersona);
 					if ($this->tipo_documento->Exportable) $Doc->ExportCaption($this->tipo_documento);
 					if ($this->no_documento->Exportable) $Doc->ExportCaption($this->no_documento);
 					if ($this->nombres->Exportable) $Doc->ExportCaption($this->nombres);
@@ -1140,11 +970,11 @@ class cpersonas extends cTable {
 					if ($this->materno->Exportable) $Doc->ExportCaption($this->materno);
 					if ($this->fecha_nacimiento->Exportable) $Doc->ExportCaption($this->fecha_nacimiento);
 					if ($this->fecha_registro->Exportable) $Doc->ExportCaption($this->fecha_registro);
+					if ($this->imagen->Exportable) $Doc->ExportCaption($this->imagen);
 					if ($this->observaciones->Exportable) $Doc->ExportCaption($this->observaciones);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				} else {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
-					if ($this->id_tipopersona->Exportable) $Doc->ExportCaption($this->id_tipopersona);
 					if ($this->tipo_documento->Exportable) $Doc->ExportCaption($this->tipo_documento);
 					if ($this->no_documento->Exportable) $Doc->ExportCaption($this->no_documento);
 					if ($this->nombres->Exportable) $Doc->ExportCaption($this->nombres);
@@ -1152,6 +982,7 @@ class cpersonas extends cTable {
 					if ($this->materno->Exportable) $Doc->ExportCaption($this->materno);
 					if ($this->fecha_nacimiento->Exportable) $Doc->ExportCaption($this->fecha_nacimiento);
 					if ($this->fecha_registro->Exportable) $Doc->ExportCaption($this->fecha_registro);
+					if ($this->imagen->Exportable) $Doc->ExportCaption($this->imagen);
 					if ($this->observaciones->Exportable) $Doc->ExportCaption($this->observaciones);
 					if ($this->estado->Exportable) $Doc->ExportCaption($this->estado);
 				}
@@ -1186,7 +1017,6 @@ class cpersonas extends cTable {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
-						if ($this->id_tipopersona->Exportable) $Doc->ExportField($this->id_tipopersona);
 						if ($this->tipo_documento->Exportable) $Doc->ExportField($this->tipo_documento);
 						if ($this->no_documento->Exportable) $Doc->ExportField($this->no_documento);
 						if ($this->nombres->Exportable) $Doc->ExportField($this->nombres);
@@ -1194,11 +1024,11 @@ class cpersonas extends cTable {
 						if ($this->materno->Exportable) $Doc->ExportField($this->materno);
 						if ($this->fecha_nacimiento->Exportable) $Doc->ExportField($this->fecha_nacimiento);
 						if ($this->fecha_registro->Exportable) $Doc->ExportField($this->fecha_registro);
+						if ($this->imagen->Exportable) $Doc->ExportField($this->imagen);
 						if ($this->observaciones->Exportable) $Doc->ExportField($this->observaciones);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					} else {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
-						if ($this->id_tipopersona->Exportable) $Doc->ExportField($this->id_tipopersona);
 						if ($this->tipo_documento->Exportable) $Doc->ExportField($this->tipo_documento);
 						if ($this->no_documento->Exportable) $Doc->ExportField($this->no_documento);
 						if ($this->nombres->Exportable) $Doc->ExportField($this->nombres);
@@ -1206,6 +1036,7 @@ class cpersonas extends cTable {
 						if ($this->materno->Exportable) $Doc->ExportField($this->materno);
 						if ($this->fecha_nacimiento->Exportable) $Doc->ExportField($this->fecha_nacimiento);
 						if ($this->fecha_registro->Exportable) $Doc->ExportField($this->fecha_registro);
+						if ($this->imagen->Exportable) $Doc->ExportField($this->imagen);
 						if ($this->observaciones->Exportable) $Doc->ExportField($this->observaciones);
 						if ($this->estado->Exportable) $Doc->ExportField($this->estado);
 					}
