@@ -7,10 +7,7 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "personasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "direccionesgridcls.php" ?>
-<?php include_once "telefonosgridcls.php" ?>
-<?php include_once "emailsgridcls.php" ?>
-<?php include_once "vehiculosgridcls.php" ?>
+<?php include_once "fuentesinfo.php" ?>
 <?php include_once "deuda_personagridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
@@ -319,6 +316,9 @@ class cpersonas_list extends cpersonas {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
+		// Table object (fuentes)
+		if (!isset($GLOBALS['fuentes'])) $GLOBALS['fuentes'] = new cfuentes();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -451,6 +451,9 @@ class cpersonas_list extends cpersonas {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->id_ref->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
@@ -477,38 +480,6 @@ class cpersonas_list extends cpersonas {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'direcciones'
-			if (@$_POST["grid"] == "fdireccionesgrid") {
-				if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
-				$GLOBALS["direcciones_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'telefonos'
-			if (@$_POST["grid"] == "ftelefonosgrid") {
-				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				$GLOBALS["telefonos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'emails'
-			if (@$_POST["grid"] == "femailsgrid") {
-				if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
-				$GLOBALS["emails_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'vehiculos'
-			if (@$_POST["grid"] == "fvehiculosgrid") {
-				if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
-				$GLOBALS["vehiculos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
 			// Process auto fill for detail table 'deuda_persona'
 			if (@$_POST["grid"] == "fdeuda_personagrid") {
 				if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
@@ -530,6 +501,9 @@ class cpersonas_list extends cpersonas {
 
 		// Create Token
 		$this->CreateToken();
+
+		// Set up master detail parameters
+		$this->SetupMasterParms();
 
 		// Setup other options
 		$this->SetupOtherOptions();
@@ -632,10 +606,6 @@ class cpersonas_list extends cpersonas {
 	var $MultiSelectKey;
 	var $Command;
 	var $RestoreSearch = FALSE;
-	var $direcciones_Count;
-	var $telefonos_Count;
-	var $emails_Count;
-	var $vehiculos_Count;
 	var $deuda_persona_Count;
 	var $DetailPages;
 	var $Recordset;
@@ -691,11 +661,7 @@ class cpersonas_list extends cpersonas {
 			}
 
 			// Get default search criteria
-			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
 			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
-
-			// Get basic search values
-			$this->LoadBasicSearchValues();
 
 			// Get and validate search values for advanced search
 			$this->LoadSearchValues(); // Get search values
@@ -715,10 +681,6 @@ class cpersonas_list extends cpersonas {
 			// Set up sorting order
 			$this->SetupSortOrder();
 
-			// Get basic search criteria
-			if ($gsSearchError == "")
-				$sSrchBasic = $this->BasicSearchWhere();
-
 			// Get search criteria for advanced search
 			if ($gsSearchError == "")
 				$sSrchAdvanced = $this->AdvancedSearchWhere();
@@ -737,11 +699,6 @@ class cpersonas_list extends cpersonas {
 
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
-
-			// Load basic search from default
-			$this->BasicSearch->LoadDefault();
-			if ($this->BasicSearch->Keyword != "")
-				$sSrchBasic = $this->BasicSearchWhere();
 
 			// Load advanced search from default
 			if ($this->LoadAdvancedSearchDefault()) {
@@ -769,8 +726,32 @@ class cpersonas_list extends cpersonas {
 		$sFilter = "";
 		if (!$Security->CanList())
 			$sFilter = "(0=1)"; // Filter all records
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+		if ($sFilter == "") {
+			$sFilter = "0=101";
+			$this->SearchWhere = $sFilter;
+		}
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "fuentes") {
+			global $fuentes;
+			$rsmaster = $fuentes->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("fuenteslist.php"); // Return to master page
+			} else {
+				$fuentes->LoadListRowValues($rsmaster);
+				$fuentes->RowType = EW_ROWTYPE_MASTER; // Master row
+				$fuentes->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter
 		if ($this->Command == "json") {
@@ -854,21 +835,19 @@ class cpersonas_list extends cpersonas {
 
 		// Initialize
 		$sFilterList = "";
-		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
+		$sFilterList = ew_Concat($sFilterList, $this->id_fuente->AdvancedSearch->ToJson(), ","); // Field id_fuente
+		$sFilterList = ew_Concat($sFilterList, $this->id_gestion->AdvancedSearch->ToJson(), ","); // Field id_gestion
+		$sFilterList = ew_Concat($sFilterList, $this->id_ref->AdvancedSearch->ToJson(), ","); // Field id_ref
 		$sFilterList = ew_Concat($sFilterList, $this->tipo_documento->AdvancedSearch->ToJson(), ","); // Field tipo_documento
 		$sFilterList = ew_Concat($sFilterList, $this->no_documento->AdvancedSearch->ToJson(), ","); // Field no_documento
 		$sFilterList = ew_Concat($sFilterList, $this->nombres->AdvancedSearch->ToJson(), ","); // Field nombres
 		$sFilterList = ew_Concat($sFilterList, $this->paterno->AdvancedSearch->ToJson(), ","); // Field paterno
 		$sFilterList = ew_Concat($sFilterList, $this->materno->AdvancedSearch->ToJson(), ","); // Field materno
+		$sFilterList = ew_Concat($sFilterList, $this->especial->AdvancedSearch->ToJson(), ","); // Field especial
 		$sFilterList = ew_Concat($sFilterList, $this->fecha_nacimiento->AdvancedSearch->ToJson(), ","); // Field fecha_nacimiento
 		$sFilterList = ew_Concat($sFilterList, $this->fecha_registro->AdvancedSearch->ToJson(), ","); // Field fecha_registro
-		$sFilterList = ew_Concat($sFilterList, $this->imagen->AdvancedSearch->ToJson(), ","); // Field imagen
 		$sFilterList = ew_Concat($sFilterList, $this->observaciones->AdvancedSearch->ToJson(), ","); // Field observaciones
 		$sFilterList = ew_Concat($sFilterList, $this->estado->AdvancedSearch->ToJson(), ","); // Field estado
-		if ($this->BasicSearch->Keyword <> "") {
-			$sWrk = "\"" . EW_TABLE_BASIC_SEARCH . "\":\"" . ew_JsEncode2($this->BasicSearch->Keyword) . "\",\"" . EW_TABLE_BASIC_SEARCH_TYPE . "\":\"" . ew_JsEncode2($this->BasicSearch->Type) . "\"";
-			$sFilterList = ew_Concat($sFilterList, $sWrk, ",");
-		}
 		$sFilterList = preg_replace('/,$/', "", $sFilterList);
 
 		// Return filter list in json
@@ -909,13 +888,29 @@ class cpersonas_list extends cpersonas {
 		$filter = json_decode(@$_POST["filter"], TRUE);
 		$this->Command = "search";
 
-		// Field Id
-		$this->Id->AdvancedSearch->SearchValue = @$filter["x_Id"];
-		$this->Id->AdvancedSearch->SearchOperator = @$filter["z_Id"];
-		$this->Id->AdvancedSearch->SearchCondition = @$filter["v_Id"];
-		$this->Id->AdvancedSearch->SearchValue2 = @$filter["y_Id"];
-		$this->Id->AdvancedSearch->SearchOperator2 = @$filter["w_Id"];
-		$this->Id->AdvancedSearch->Save();
+		// Field id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$filter["x_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$filter["z_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchCondition = @$filter["v_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchValue2 = @$filter["y_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator2 = @$filter["w_id_fuente"];
+		$this->id_fuente->AdvancedSearch->Save();
+
+		// Field id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$filter["x_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$filter["z_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchCondition = @$filter["v_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchValue2 = @$filter["y_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator2 = @$filter["w_id_gestion"];
+		$this->id_gestion->AdvancedSearch->Save();
+
+		// Field id_ref
+		$this->id_ref->AdvancedSearch->SearchValue = @$filter["x_id_ref"];
+		$this->id_ref->AdvancedSearch->SearchOperator = @$filter["z_id_ref"];
+		$this->id_ref->AdvancedSearch->SearchCondition = @$filter["v_id_ref"];
+		$this->id_ref->AdvancedSearch->SearchValue2 = @$filter["y_id_ref"];
+		$this->id_ref->AdvancedSearch->SearchOperator2 = @$filter["w_id_ref"];
+		$this->id_ref->AdvancedSearch->Save();
 
 		// Field tipo_documento
 		$this->tipo_documento->AdvancedSearch->SearchValue = @$filter["x_tipo_documento"];
@@ -957,6 +952,14 @@ class cpersonas_list extends cpersonas {
 		$this->materno->AdvancedSearch->SearchOperator2 = @$filter["w_materno"];
 		$this->materno->AdvancedSearch->Save();
 
+		// Field especial
+		$this->especial->AdvancedSearch->SearchValue = @$filter["x_especial"];
+		$this->especial->AdvancedSearch->SearchOperator = @$filter["z_especial"];
+		$this->especial->AdvancedSearch->SearchCondition = @$filter["v_especial"];
+		$this->especial->AdvancedSearch->SearchValue2 = @$filter["y_especial"];
+		$this->especial->AdvancedSearch->SearchOperator2 = @$filter["w_especial"];
+		$this->especial->AdvancedSearch->Save();
+
 		// Field fecha_nacimiento
 		$this->fecha_nacimiento->AdvancedSearch->SearchValue = @$filter["x_fecha_nacimiento"];
 		$this->fecha_nacimiento->AdvancedSearch->SearchOperator = @$filter["z_fecha_nacimiento"];
@@ -973,14 +976,6 @@ class cpersonas_list extends cpersonas {
 		$this->fecha_registro->AdvancedSearch->SearchOperator2 = @$filter["w_fecha_registro"];
 		$this->fecha_registro->AdvancedSearch->Save();
 
-		// Field imagen
-		$this->imagen->AdvancedSearch->SearchValue = @$filter["x_imagen"];
-		$this->imagen->AdvancedSearch->SearchOperator = @$filter["z_imagen"];
-		$this->imagen->AdvancedSearch->SearchCondition = @$filter["v_imagen"];
-		$this->imagen->AdvancedSearch->SearchValue2 = @$filter["y_imagen"];
-		$this->imagen->AdvancedSearch->SearchOperator2 = @$filter["w_imagen"];
-		$this->imagen->AdvancedSearch->Save();
-
 		// Field observaciones
 		$this->observaciones->AdvancedSearch->SearchValue = @$filter["x_observaciones"];
 		$this->observaciones->AdvancedSearch->SearchOperator = @$filter["z_observaciones"];
@@ -996,8 +991,6 @@ class cpersonas_list extends cpersonas {
 		$this->estado->AdvancedSearch->SearchValue2 = @$filter["y_estado"];
 		$this->estado->AdvancedSearch->SearchOperator2 = @$filter["w_estado"];
 		$this->estado->AdvancedSearch->Save();
-		$this->BasicSearch->setKeyword(@$filter[EW_TABLE_BASIC_SEARCH]);
-		$this->BasicSearch->setType(@$filter[EW_TABLE_BASIC_SEARCH_TYPE]);
 	}
 
 	// Advanced search WHERE clause based on QueryString
@@ -1005,15 +998,17 @@ class cpersonas_list extends cpersonas {
 		global $Security;
 		$sWhere = "";
 		if (!$Security->CanSearch()) return "";
-		$this->BuildSearchSql($sWhere, $this->Id, $Default, FALSE); // Id
+		$this->BuildSearchSql($sWhere, $this->id_fuente, $Default, FALSE); // id_fuente
+		$this->BuildSearchSql($sWhere, $this->id_gestion, $Default, FALSE); // id_gestion
+		$this->BuildSearchSql($sWhere, $this->id_ref, $Default, FALSE); // id_ref
 		$this->BuildSearchSql($sWhere, $this->tipo_documento, $Default, FALSE); // tipo_documento
 		$this->BuildSearchSql($sWhere, $this->no_documento, $Default, FALSE); // no_documento
 		$this->BuildSearchSql($sWhere, $this->nombres, $Default, FALSE); // nombres
 		$this->BuildSearchSql($sWhere, $this->paterno, $Default, FALSE); // paterno
 		$this->BuildSearchSql($sWhere, $this->materno, $Default, FALSE); // materno
+		$this->BuildSearchSql($sWhere, $this->especial, $Default, FALSE); // especial
 		$this->BuildSearchSql($sWhere, $this->fecha_nacimiento, $Default, FALSE); // fecha_nacimiento
 		$this->BuildSearchSql($sWhere, $this->fecha_registro, $Default, FALSE); // fecha_registro
-		$this->BuildSearchSql($sWhere, $this->imagen, $Default, FALSE); // imagen
 		$this->BuildSearchSql($sWhere, $this->observaciones, $Default, FALSE); // observaciones
 		$this->BuildSearchSql($sWhere, $this->estado, $Default, FALSE); // estado
 
@@ -1022,15 +1017,17 @@ class cpersonas_list extends cpersonas {
 			$this->Command = "search";
 		}
 		if (!$Default && $this->Command == "search") {
-			$this->Id->AdvancedSearch->Save(); // Id
+			$this->id_fuente->AdvancedSearch->Save(); // id_fuente
+			$this->id_gestion->AdvancedSearch->Save(); // id_gestion
+			$this->id_ref->AdvancedSearch->Save(); // id_ref
 			$this->tipo_documento->AdvancedSearch->Save(); // tipo_documento
 			$this->no_documento->AdvancedSearch->Save(); // no_documento
 			$this->nombres->AdvancedSearch->Save(); // nombres
 			$this->paterno->AdvancedSearch->Save(); // paterno
 			$this->materno->AdvancedSearch->Save(); // materno
+			$this->especial->AdvancedSearch->Save(); // especial
 			$this->fecha_nacimiento->AdvancedSearch->Save(); // fecha_nacimiento
 			$this->fecha_registro->AdvancedSearch->Save(); // fecha_registro
-			$this->imagen->AdvancedSearch->Save(); // imagen
 			$this->observaciones->AdvancedSearch->Save(); // observaciones
 			$this->estado->AdvancedSearch->Save(); // estado
 		}
@@ -1081,124 +1078,13 @@ class cpersonas_list extends cpersonas {
 		return $Value;
 	}
 
-	// Return basic search SQL
-	function BasicSearchSQL($arKeywords, $type) {
-		$sWhere = "";
-		$this->BuildBasicSearchSQL($sWhere, $this->tipo_documento, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->no_documento, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->nombres, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->paterno, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->materno, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->imagen, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->observaciones, $arKeywords, $type);
-		return $sWhere;
-	}
-
-	// Build basic search SQL
-	function BuildBasicSearchSQL(&$Where, &$Fld, $arKeywords, $type) {
-		global $EW_BASIC_SEARCH_IGNORE_PATTERN;
-		$sDefCond = ($type == "OR") ? "OR" : "AND";
-		$arSQL = array(); // Array for SQL parts
-		$arCond = array(); // Array for search conditions
-		$cnt = count($arKeywords);
-		$j = 0; // Number of SQL parts
-		for ($i = 0; $i < $cnt; $i++) {
-			$Keyword = $arKeywords[$i];
-			$Keyword = trim($Keyword);
-			if ($EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
-				$Keyword = preg_replace($EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
-				$ar = explode("\\", $Keyword);
-			} else {
-				$ar = array($Keyword);
-			}
-			foreach ($ar as $Keyword) {
-				if ($Keyword <> "") {
-					$sWrk = "";
-					if ($Keyword == "OR" && $type == "") {
-						if ($j > 0)
-							$arCond[$j-1] = "OR";
-					} elseif ($Keyword == EW_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NULL";
-					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NOT NULL";
-					} elseif ($Fld->FldIsVirtual) {
-						$sWrk = $Fld->FldVirtualExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
-					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
-						$sWrk = $Fld->FldBasicSearchExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
-					}
-					if ($sWrk <> "") {
-						$arSQL[$j] = $sWrk;
-						$arCond[$j] = $sDefCond;
-						$j += 1;
-					}
-				}
-			}
-		}
-		$cnt = count($arSQL);
-		$bQuoted = FALSE;
-		$sSql = "";
-		if ($cnt > 0) {
-			for ($i = 0; $i < $cnt-1; $i++) {
-				if ($arCond[$i] == "OR") {
-					if (!$bQuoted) $sSql .= "(";
-					$bQuoted = TRUE;
-				}
-				$sSql .= $arSQL[$i];
-				if ($bQuoted && $arCond[$i] <> "OR") {
-					$sSql .= ")";
-					$bQuoted = FALSE;
-				}
-				$sSql .= " " . $arCond[$i] . " ";
-			}
-			$sSql .= $arSQL[$cnt-1];
-			if ($bQuoted)
-				$sSql .= ")";
-		}
-		if ($sSql <> "") {
-			if ($Where <> "") $Where .= " OR ";
-			$Where .= "(" . $sSql . ")";
-		}
-	}
-
-	// Return basic search WHERE clause based on search keyword and type
-	function BasicSearchWhere($Default = FALSE) {
-		global $Security;
-		$sSearchStr = "";
-		if (!$Security->CanSearch()) return "";
-		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
-		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
-
-		// Get search SQL
-		if ($sSearchKeyword <> "") {
-			$ar = $this->BasicSearch->KeywordList($Default);
-
-			// Search keyword in any fields
-			if (($sSearchType == "OR" || $sSearchType == "AND") && $this->BasicSearch->BasicSearchAnyFields) {
-				foreach ($ar as $sKeyword) {
-					if ($sKeyword <> "") {
-						if ($sSearchStr <> "") $sSearchStr .= " " . $sSearchType . " ";
-						$sSearchStr .= "(" . $this->BasicSearchSQL(array($sKeyword), $sSearchType) . ")";
-					}
-				}
-			} else {
-				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
-			}
-			if (!$Default && in_array($this->Command, array("", "reset", "resetall"))) $this->Command = "search";
-		}
-		if (!$Default && $this->Command == "search") {
-			$this->BasicSearch->setKeyword($sSearchKeyword);
-			$this->BasicSearch->setType($sSearchType);
-		}
-		return $sSearchStr;
-	}
-
 	// Check if search parm exists
 	function CheckSearchParms() {
-
-		// Check basic search
-		if ($this->BasicSearch->IssetSession())
+		if ($this->id_fuente->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->Id->AdvancedSearch->IssetSession())
+		if ($this->id_gestion->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->id_ref->AdvancedSearch->IssetSession())
 			return TRUE;
 		if ($this->tipo_documento->AdvancedSearch->IssetSession())
 			return TRUE;
@@ -1210,11 +1096,11 @@ class cpersonas_list extends cpersonas {
 			return TRUE;
 		if ($this->materno->AdvancedSearch->IssetSession())
 			return TRUE;
+		if ($this->especial->AdvancedSearch->IssetSession())
+			return TRUE;
 		if ($this->fecha_nacimiento->AdvancedSearch->IssetSession())
 			return TRUE;
 		if ($this->fecha_registro->AdvancedSearch->IssetSession())
-			return TRUE;
-		if ($this->imagen->AdvancedSearch->IssetSession())
 			return TRUE;
 		if ($this->observaciones->AdvancedSearch->IssetSession())
 			return TRUE;
@@ -1230,9 +1116,6 @@ class cpersonas_list extends cpersonas {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
-		// Clear basic search parameters
-		$this->ResetBasicSearchParms();
-
 		// Clear advanced search parameters
 		$this->ResetAdvancedSearchParms();
 	}
@@ -1242,22 +1125,19 @@ class cpersonas_list extends cpersonas {
 		return FALSE;
 	}
 
-	// Clear all basic search parameters
-	function ResetBasicSearchParms() {
-		$this->BasicSearch->UnsetSession();
-	}
-
 	// Clear all advanced search parameters
 	function ResetAdvancedSearchParms() {
-		$this->Id->AdvancedSearch->UnsetSession();
+		$this->id_fuente->AdvancedSearch->UnsetSession();
+		$this->id_gestion->AdvancedSearch->UnsetSession();
+		$this->id_ref->AdvancedSearch->UnsetSession();
 		$this->tipo_documento->AdvancedSearch->UnsetSession();
 		$this->no_documento->AdvancedSearch->UnsetSession();
 		$this->nombres->AdvancedSearch->UnsetSession();
 		$this->paterno->AdvancedSearch->UnsetSession();
 		$this->materno->AdvancedSearch->UnsetSession();
+		$this->especial->AdvancedSearch->UnsetSession();
 		$this->fecha_nacimiento->AdvancedSearch->UnsetSession();
 		$this->fecha_registro->AdvancedSearch->UnsetSession();
-		$this->imagen->AdvancedSearch->UnsetSession();
 		$this->observaciones->AdvancedSearch->UnsetSession();
 		$this->estado->AdvancedSearch->UnsetSession();
 	}
@@ -1266,19 +1146,18 @@ class cpersonas_list extends cpersonas {
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
-		// Restore basic search values
-		$this->BasicSearch->Load();
-
 		// Restore advanced search values
-		$this->Id->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->id_ref->AdvancedSearch->Load();
 		$this->tipo_documento->AdvancedSearch->Load();
 		$this->no_documento->AdvancedSearch->Load();
 		$this->nombres->AdvancedSearch->Load();
 		$this->paterno->AdvancedSearch->Load();
 		$this->materno->AdvancedSearch->Load();
+		$this->especial->AdvancedSearch->Load();
 		$this->fecha_nacimiento->AdvancedSearch->Load();
 		$this->fecha_registro->AdvancedSearch->Load();
-		$this->imagen->AdvancedSearch->Load();
 		$this->observaciones->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
 	}
@@ -1291,6 +1170,9 @@ class cpersonas_list extends cpersonas {
 			$this->CurrentOrder = @$_GET["order"];
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
+			$this->UpdateSort($this->id_fuente); // id_fuente
+			$this->UpdateSort($this->id_gestion); // id_gestion
+			$this->UpdateSort($this->id_ref); // id_ref
 			$this->UpdateSort($this->tipo_documento); // tipo_documento
 			$this->UpdateSort($this->no_documento); // no_documento
 			$this->UpdateSort($this->nombres); // nombres
@@ -1328,11 +1210,22 @@ class cpersonas_list extends cpersonas {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->id_fuente->setSessionValue("");
+			}
+
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
+				$this->id_fuente->setSort("");
+				$this->id_gestion->setSort("");
+				$this->id_ref->setSort("");
 				$this->tipo_documento->setSort("");
 				$this->no_documento->setSort("");
 				$this->nombres->setSort("");
@@ -1378,38 +1271,6 @@ class cpersonas_list extends cpersonas {
 		$item->Visible = $Security->CanAdd();
 		$item->OnLeft = TRUE;
 
-		// "detail_direcciones"
-		$item = &$this->ListOptions->Add("detail_direcciones");
-		$item->CssClass = "text-nowrap";
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'direcciones') && !$this->ShowMultipleDetails;
-		$item->OnLeft = TRUE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
-
-		// "detail_telefonos"
-		$item = &$this->ListOptions->Add("detail_telefonos");
-		$item->CssClass = "text-nowrap";
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'telefonos') && !$this->ShowMultipleDetails;
-		$item->OnLeft = TRUE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-
-		// "detail_emails"
-		$item = &$this->ListOptions->Add("detail_emails");
-		$item->CssClass = "text-nowrap";
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'emails') && !$this->ShowMultipleDetails;
-		$item->OnLeft = TRUE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
-
-		// "detail_vehiculos"
-		$item = &$this->ListOptions->Add("detail_vehiculos");
-		$item->CssClass = "text-nowrap";
-		$item->Visible = $Security->AllowList(CurrentProjectID() . 'vehiculos') && !$this->ShowMultipleDetails;
-		$item->OnLeft = TRUE;
-		$item->ShowInButtonGroup = FALSE;
-		if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
-
 		// "detail_deuda_persona"
 		$item = &$this->ListOptions->Add("detail_deuda_persona");
 		$item->CssClass = "text-nowrap";
@@ -1429,10 +1290,6 @@ class cpersonas_list extends cpersonas {
 
 		// Set up detail pages
 		$pages = new cSubPages();
-		$pages->Add("direcciones");
-		$pages->Add("telefonos");
-		$pages->Add("emails");
-		$pages->Add("vehiculos");
 		$pages->Add("deuda_persona");
 		$this->DetailPages = $pages;
 
@@ -1545,154 +1402,6 @@ class cpersonas_list extends cpersonas {
 		$DetailCopyTblVar = "";
 		$DetailEditTblVar = "";
 
-		// "detail_direcciones"
-		$oListOpt = &$this->ListOptions->Items["detail_direcciones"];
-		if ($Security->AllowList(CurrentProjectID() . 'direcciones')) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("direcciones", "TblCaption");
-			$body .= "&nbsp;" . str_replace("%c", $this->direcciones_Count, $Language->Phrase("DetailCount"));
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("direccioneslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["direcciones_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'direcciones')) {
-				$caption = $Language->Phrase("MasterDetailViewLink");
-				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=direcciones");
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "direcciones";
-			}
-			if ($GLOBALS["direcciones_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'direcciones')) {
-				$caption = $Language->Phrase("MasterDetailEditLink");
-				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=direcciones");
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "direcciones";
-			}
-			if ($GLOBALS["direcciones_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'direcciones')) {
-				$caption = $Language->Phrase("MasterDetailCopyLink");
-				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=direcciones");
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-				$DetailCopyTblVar .= "direcciones";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-
-		// "detail_telefonos"
-		$oListOpt = &$this->ListOptions->Items["detail_telefonos"];
-		if ($Security->AllowList(CurrentProjectID() . 'telefonos')) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("telefonos", "TblCaption");
-			$body .= "&nbsp;" . str_replace("%c", $this->telefonos_Count, $Language->Phrase("DetailCount"));
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("telefonoslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["telefonos_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'telefonos')) {
-				$caption = $Language->Phrase("MasterDetailViewLink");
-				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=telefonos");
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "telefonos";
-			}
-			if ($GLOBALS["telefonos_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'telefonos')) {
-				$caption = $Language->Phrase("MasterDetailEditLink");
-				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=telefonos");
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "telefonos";
-			}
-			if ($GLOBALS["telefonos_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'telefonos')) {
-				$caption = $Language->Phrase("MasterDetailCopyLink");
-				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=telefonos");
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-				$DetailCopyTblVar .= "telefonos";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-
-		// "detail_emails"
-		$oListOpt = &$this->ListOptions->Items["detail_emails"];
-		if ($Security->AllowList(CurrentProjectID() . 'emails')) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("emails", "TblCaption");
-			$body .= "&nbsp;" . str_replace("%c", $this->emails_Count, $Language->Phrase("DetailCount"));
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("emailslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["emails_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'emails')) {
-				$caption = $Language->Phrase("MasterDetailViewLink");
-				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=emails");
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "emails";
-			}
-			if ($GLOBALS["emails_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'emails')) {
-				$caption = $Language->Phrase("MasterDetailEditLink");
-				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=emails");
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "emails";
-			}
-			if ($GLOBALS["emails_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'emails')) {
-				$caption = $Language->Phrase("MasterDetailCopyLink");
-				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=emails");
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-				$DetailCopyTblVar .= "emails";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-
-		// "detail_vehiculos"
-		$oListOpt = &$this->ListOptions->Items["detail_vehiculos"];
-		if ($Security->AllowList(CurrentProjectID() . 'vehiculos')) {
-			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("vehiculos", "TblCaption");
-			$body .= "&nbsp;" . str_replace("%c", $this->vehiculos_Count, $Language->Phrase("DetailCount"));
-			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("vehiculoslist.php?" . EW_TABLE_SHOW_MASTER . "=personas&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
-			$links = "";
-			if ($GLOBALS["vehiculos_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'vehiculos')) {
-				$caption = $Language->Phrase("MasterDetailViewLink");
-				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos");
-				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
-				$DetailViewTblVar .= "vehiculos";
-			}
-			if ($GLOBALS["vehiculos_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'vehiculos')) {
-				$caption = $Language->Phrase("MasterDetailEditLink");
-				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos");
-				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
-				$DetailEditTblVar .= "vehiculos";
-			}
-			if ($GLOBALS["vehiculos_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'vehiculos')) {
-				$caption = $Language->Phrase("MasterDetailCopyLink");
-				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos");
-				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
-				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
-				$DetailCopyTblVar .= "vehiculos";
-			}
-			if ($links <> "") {
-				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
-				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
-			}
-			$body = "<div class=\"btn-group\">" . $body . "</div>";
-			$oListOpt->Body = $body;
-			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
-		}
-
 		// "detail_deuda_persona"
 		$oListOpt = &$this->ListOptions->Items["detail_deuda_persona"];
 		if ($Security->AllowList(CurrentProjectID() . 'deuda_persona')) {
@@ -1778,42 +1487,6 @@ class cpersonas_list extends cpersonas {
 		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
 		$option = $options["detail"];
 		$DetailTableLink = "";
-		$item = &$option->Add("detailadd_direcciones");
-		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=direcciones");
-		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["direcciones"]->TableCaption();
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
-		$item->Visible = ($GLOBALS["direcciones"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'direcciones') && $Security->CanAdd());
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "direcciones";
-		}
-		$item = &$option->Add("detailadd_telefonos");
-		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=telefonos");
-		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["telefonos"]->TableCaption();
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
-		$item->Visible = ($GLOBALS["telefonos"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'telefonos') && $Security->CanAdd());
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "telefonos";
-		}
-		$item = &$option->Add("detailadd_emails");
-		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=emails");
-		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["emails"]->TableCaption();
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
-		$item->Visible = ($GLOBALS["emails"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'emails') && $Security->CanAdd());
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "emails";
-		}
-		$item = &$option->Add("detailadd_vehiculos");
-		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=vehiculos");
-		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["vehiculos"]->TableCaption();
-		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
-		$item->Visible = ($GLOBALS["vehiculos"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'vehiculos') && $Security->CanAdd());
-		if ($item->Visible) {
-			if ($DetailTableLink <> "") $DetailTableLink .= ",";
-			$DetailTableLink .= "vehiculos";
-		}
 		$item = &$option->Add("detailadd_deuda_persona");
 		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=deuda_persona");
 		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["deuda_persona"]->TableCaption();
@@ -1844,7 +1517,7 @@ class cpersonas_list extends cpersonas {
 
 		// Add multi delete
 		$item = &$option->Add("multidelete");
-		$item->Body = "<a class=\"ewAction ewMultiDelete\" title=\"" . ew_HtmlTitle($Language->Phrase("DeleteSelectedLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("DeleteSelectedLink")) . "\" href=\"\" onclick=\"ew_SubmitAction(event,{f:document.fpersonaslist,url:'" . $this->MultiDeleteUrl . "',msg:ewLanguage.Phrase('DeleteConfirmMsg')});return false;\">" . $Language->Phrase("DeleteSelectedLink") . "</a>";
+		$item->Body = "<a class=\"ewAction ewMultiDelete\" title=\"" . ew_HtmlTitle($Language->Phrase("DeleteSelectedLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("DeleteSelectedLink")) . "\" href=\"\" onclick=\"ew_SubmitAction(event,{f:document.fpersonaslist,url:'" . $this->MultiDeleteUrl . "'});return false;\">" . $Language->Phrase("DeleteSelectedLink") . "</a>";
 		$item->Visible = ($Security->CanDelete());
 
 		// Set up options default
@@ -1999,8 +1672,18 @@ class cpersonas_list extends cpersonas {
 
 		// Show all button
 		$item = &$this->SearchOptions->Add("showall");
-		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
+		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ResetSearch") . "\" data-caption=\"" . $Language->Phrase("ResetSearch") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ResetSearchBtn") . "</a>";
 		$item->Visible = ($this->SearchWhere <> $this->DefaultSearchWhere && $this->SearchWhere <> "0=101");
+
+		// Advanced search button
+		$item = &$this->SearchOptions->Add("advancedsearch");
+		$item->Body = "<a class=\"btn btn-default ewAdvancedSearch\" title=\"" . $Language->Phrase("AdvancedSearch") . "\" data-caption=\"" . $Language->Phrase("AdvancedSearch") . "\" href=\"personassrch.php\">" . $Language->Phrase("AdvancedSearchBtn") . "</a>";
+		$item->Visible = TRUE;
+
+		// Search highlight button
+		$item = &$this->SearchOptions->Add("searchhighlight");
+		$item->Body = "<button type=\"button\" class=\"btn btn-default ewHighlight active\" title=\"" . $Language->Phrase("Highlight") . "\" data-caption=\"" . $Language->Phrase("Highlight") . "\" data-toggle=\"button\" data-form=\"fpersonaslistsrch\" data-name=\"" . $this->HighlightName() . "\">" . $Language->Phrase("HighlightBtn") . "</button>";
+		$item->Visible = ($this->SearchWhere <> "" && $this->TotalRecs > 0);
 
 		// Button group for search
 		$this->SearchOptions->UseDropDownButton = FALSE;
@@ -2067,23 +1750,30 @@ class cpersonas_list extends cpersonas {
 		}
 	}
 
-	// Load basic search values
-	function LoadBasicSearchValues() {
-		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
-		if ($this->BasicSearch->Keyword <> "" && $this->Command == "") $this->Command = "search";
-		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
-	}
-
 	// Load search values for validation
 	function LoadSearchValues() {
 		global $objForm;
 
 		// Load search values
-		// Id
+		// id_fuente
 
-		$this->Id->AdvancedSearch->SearchValue = @$_GET["x_Id"];
-		if ($this->Id->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->Id->AdvancedSearch->SearchOperator = @$_GET["z_Id"];
+		$this->id_fuente->AdvancedSearch->SearchValue = @$_GET["x_id_fuente"];
+		if ($this->id_fuente->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$_GET["z_id_fuente"];
+
+		// id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$_GET["x_id_gestion"];
+		if ($this->id_gestion->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$_GET["z_id_gestion"];
+
+		// id_ref
+		$this->id_ref->AdvancedSearch->SearchValue = @$_GET["x_id_ref"];
+		if ($this->id_ref->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_ref->AdvancedSearch->SearchOperator = @$_GET["z_id_ref"];
+		$this->id_ref->AdvancedSearch->SearchCondition = @$_GET["v_id_ref"];
+		$this->id_ref->AdvancedSearch->SearchValue2 = @$_GET["y_id_ref"];
+		if ($this->id_ref->AdvancedSearch->SearchValue2 <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_ref->AdvancedSearch->SearchOperator2 = @$_GET["w_id_ref"];
 
 		// tipo_documento
 		$this->tipo_documento->AdvancedSearch->SearchValue = @$_GET["x_tipo_documento"];
@@ -2110,10 +1800,19 @@ class cpersonas_list extends cpersonas {
 		if ($this->materno->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
 		$this->materno->AdvancedSearch->SearchOperator = @$_GET["z_materno"];
 
+		// especial
+		$this->especial->AdvancedSearch->SearchValue = @$_GET["x_especial"];
+		if ($this->especial->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->especial->AdvancedSearch->SearchOperator = @$_GET["z_especial"];
+
 		// fecha_nacimiento
 		$this->fecha_nacimiento->AdvancedSearch->SearchValue = @$_GET["x_fecha_nacimiento"];
 		if ($this->fecha_nacimiento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
 		$this->fecha_nacimiento->AdvancedSearch->SearchOperator = @$_GET["z_fecha_nacimiento"];
+		$this->fecha_nacimiento->AdvancedSearch->SearchCondition = @$_GET["v_fecha_nacimiento"];
+		$this->fecha_nacimiento->AdvancedSearch->SearchValue2 = @$_GET["y_fecha_nacimiento"];
+		if ($this->fecha_nacimiento->AdvancedSearch->SearchValue2 <> "" && $this->Command == "") $this->Command = "search";
+		$this->fecha_nacimiento->AdvancedSearch->SearchOperator2 = @$_GET["w_fecha_nacimiento"];
 
 		// fecha_registro
 		$this->fecha_registro->AdvancedSearch->SearchValue = @$_GET["x_fecha_registro"];
@@ -2123,11 +1822,6 @@ class cpersonas_list extends cpersonas {
 		$this->fecha_registro->AdvancedSearch->SearchValue2 = @$_GET["y_fecha_registro"];
 		if ($this->fecha_registro->AdvancedSearch->SearchValue2 <> "" && $this->Command == "") $this->Command = "search";
 		$this->fecha_registro->AdvancedSearch->SearchOperator2 = @$_GET["w_fecha_registro"];
-
-		// imagen
-		$this->imagen->AdvancedSearch->SearchValue = @$_GET["x_imagen"];
-		if ($this->imagen->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->imagen->AdvancedSearch->SearchOperator = @$_GET["z_imagen"];
 
 		// observaciones
 		$this->observaciones->AdvancedSearch->SearchValue = @$_GET["x_observaciones"];
@@ -2200,41 +1894,21 @@ class cpersonas_list extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->id_ref->setDbValue($row['id_ref']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
 		$this->paterno->setDbValue($row['paterno']);
 		$this->materno->setDbValue($row['materno']);
+		$this->especial->setDbValue($row['especial']);
 		$this->fecha_nacimiento->setDbValue($row['fecha_nacimiento']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
 		$this->imagen->Upload->DbValue = $row['imagen'];
 		$this->imagen->CurrentValue = $this->imagen->Upload->DbValue;
 		$this->observaciones->setDbValue($row['observaciones']);
 		$this->estado->setDbValue($row['estado']);
-		if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
-		$sDetailFilter = $GLOBALS["direcciones"]->SqlDetailFilter_personas();
-		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["direcciones"]->setCurrentMasterTable("personas");
-		$sDetailFilter = $GLOBALS["direcciones"]->ApplyUserIDFilters($sDetailFilter);
-		$this->direcciones_Count = $GLOBALS["direcciones"]->LoadRecordCount($sDetailFilter);
-		if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-		$sDetailFilter = $GLOBALS["telefonos"]->SqlDetailFilter_personas();
-		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["telefonos"]->setCurrentMasterTable("personas");
-		$sDetailFilter = $GLOBALS["telefonos"]->ApplyUserIDFilters($sDetailFilter);
-		$this->telefonos_Count = $GLOBALS["telefonos"]->LoadRecordCount($sDetailFilter);
-		if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
-		$sDetailFilter = $GLOBALS["emails"]->SqlDetailFilter_personas();
-		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["emails"]->setCurrentMasterTable("personas");
-		$sDetailFilter = $GLOBALS["emails"]->ApplyUserIDFilters($sDetailFilter);
-		$this->emails_Count = $GLOBALS["emails"]->LoadRecordCount($sDetailFilter);
-		if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
-		$sDetailFilter = $GLOBALS["vehiculos"]->SqlDetailFilter_personas();
-		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
-		$GLOBALS["vehiculos"]->setCurrentMasterTable("personas");
-		$sDetailFilter = $GLOBALS["vehiculos"]->ApplyUserIDFilters($sDetailFilter);
-		$this->vehiculos_Count = $GLOBALS["vehiculos"]->LoadRecordCount($sDetailFilter);
 		if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
 		$sDetailFilter = $GLOBALS["deuda_persona"]->SqlDetailFilter_personas();
 		$sDetailFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
@@ -2247,11 +1921,15 @@ class cpersonas_list extends cpersonas {
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['id_ref'] = NULL;
 		$row['tipo_documento'] = NULL;
 		$row['no_documento'] = NULL;
 		$row['nombres'] = NULL;
 		$row['paterno'] = NULL;
 		$row['materno'] = NULL;
+		$row['especial'] = NULL;
 		$row['fecha_nacimiento'] = NULL;
 		$row['fecha_registro'] = NULL;
 		$row['imagen'] = NULL;
@@ -2266,11 +1944,15 @@ class cpersonas_list extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->id_ref->DbValue = $row['id_ref'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
 		$this->paterno->DbValue = $row['paterno'];
 		$this->materno->DbValue = $row['materno'];
+		$this->especial->DbValue = $row['especial'];
 		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
 		$this->fecha_registro->DbValue = $row['fecha_registro'];
 		$this->imagen->Upload->DbValue = $row['imagen'];
@@ -2317,14 +1999,21 @@ class cpersonas_list extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
+		// id_fuente
+		// id_gestion
+		// id_ref
 		// tipo_documento
 		// no_documento
 		// nombres
 		// paterno
 		// materno
+		// especial
 		// fecha_nacimiento
 		// fecha_registro
 		// imagen
+
+		$this->imagen->CellCssStyle = "white-space: nowrap;";
+
 		// observaciones
 		// estado
 
@@ -2333,6 +2022,60 @@ class cpersonas_list extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// id_ref
+		$this->id_ref->ViewValue = $this->id_ref->CurrentValue;
+		$this->id_ref->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -2358,6 +2101,10 @@ class cpersonas_list extends cpersonas {
 		// materno
 		$this->materno->ViewValue = $this->materno->CurrentValue;
 		$this->materno->ViewCustomAttributes = "";
+
+		// especial
+		$this->especial->ViewValue = $this->especial->CurrentValue;
+		$this->especial->ViewCustomAttributes = "";
 
 		// fecha_nacimiento
 		$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
@@ -2398,6 +2145,23 @@ class cpersonas_list extends cpersonas {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
+			$this->id_ref->TooltipValue = "";
+			if ($this->Export == "")
+				$this->id_ref->ViewValue = $this->HighlightValue($this->id_ref);
+
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -2412,16 +2176,22 @@ class cpersonas_list extends cpersonas {
 			$this->nombres->LinkCustomAttributes = "";
 			$this->nombres->HrefValue = "";
 			$this->nombres->TooltipValue = "";
+			if ($this->Export == "")
+				$this->nombres->ViewValue = $this->HighlightValue($this->nombres);
 
 			// paterno
 			$this->paterno->LinkCustomAttributes = "";
 			$this->paterno->HrefValue = "";
 			$this->paterno->TooltipValue = "";
+			if ($this->Export == "")
+				$this->paterno->ViewValue = $this->HighlightValue($this->paterno);
 
 			// materno
 			$this->materno->LinkCustomAttributes = "";
 			$this->materno->HrefValue = "";
 			$this->materno->TooltipValue = "";
+			if ($this->Export == "")
+				$this->materno->ViewValue = $this->HighlightValue($this->materno);
 
 			// fecha_nacimiento
 			$this->fecha_nacimiento->LinkCustomAttributes = "";
@@ -2464,6 +2234,58 @@ class cpersonas_list extends cpersonas {
 			$this->Id->EditValue = ew_HtmlEncode($this->Id->AdvancedSearch->SearchValue);
 			$this->Id->PlaceHolder = ew_RemoveHtml($this->Id->FldCaption());
 
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if (trim(strval($this->id_fuente->AdvancedSearch->SearchValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_fuente->EditValue = $arwrk;
+
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->AdvancedSearch->SearchValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
+
+			// id_ref
+			$this->id_ref->EditAttrs["class"] = "form-control";
+			$this->id_ref->EditCustomAttributes = "";
+			$this->id_ref->EditValue = ew_HtmlEncode($this->id_ref->AdvancedSearch->SearchValue);
+			$this->id_ref->PlaceHolder = ew_RemoveHtml($this->id_ref->FldCaption());
+			$this->id_ref->EditAttrs["class"] = "form-control";
+			$this->id_ref->EditCustomAttributes = "";
+			$this->id_ref->EditValue2 = ew_HtmlEncode($this->id_ref->AdvancedSearch->SearchValue2);
+			$this->id_ref->PlaceHolder = ew_RemoveHtml($this->id_ref->FldCaption());
+
 			// tipo_documento
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
 			$this->tipo_documento->EditCustomAttributes = "";
@@ -2497,6 +2319,10 @@ class cpersonas_list extends cpersonas {
 			$this->fecha_nacimiento->EditAttrs["class"] = "form-control";
 			$this->fecha_nacimiento->EditCustomAttributes = "";
 			$this->fecha_nacimiento->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha_nacimiento->AdvancedSearch->SearchValue, 7), 7));
+			$this->fecha_nacimiento->PlaceHolder = ew_RemoveHtml($this->fecha_nacimiento->FldCaption());
+			$this->fecha_nacimiento->EditAttrs["class"] = "form-control";
+			$this->fecha_nacimiento->EditCustomAttributes = "";
+			$this->fecha_nacimiento->EditValue2 = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->fecha_nacimiento->AdvancedSearch->SearchValue2, 7), 7));
 			$this->fecha_nacimiento->PlaceHolder = ew_RemoveHtml($this->fecha_nacimiento->FldCaption());
 
 			// fecha_registro
@@ -2540,11 +2366,8 @@ class cpersonas_list extends cpersonas {
 		if (!ew_CheckEuroDate($this->fecha_nacimiento->AdvancedSearch->SearchValue)) {
 			ew_AddMessage($gsSearchError, $this->fecha_nacimiento->FldErrMsg());
 		}
-		if (!ew_CheckEuroDate($this->fecha_registro->AdvancedSearch->SearchValue)) {
-			ew_AddMessage($gsSearchError, $this->fecha_registro->FldErrMsg());
-		}
-		if (!ew_CheckEuroDate($this->fecha_registro->AdvancedSearch->SearchValue2)) {
-			ew_AddMessage($gsSearchError, $this->fecha_registro->FldErrMsg());
+		if (!ew_CheckEuroDate($this->fecha_nacimiento->AdvancedSearch->SearchValue2)) {
+			ew_AddMessage($gsSearchError, $this->fecha_nacimiento->FldErrMsg());
 		}
 
 		// Return validate result
@@ -2561,15 +2384,17 @@ class cpersonas_list extends cpersonas {
 
 	// Load advanced search
 	function LoadAdvancedSearch() {
-		$this->Id->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->id_ref->AdvancedSearch->Load();
 		$this->tipo_documento->AdvancedSearch->Load();
 		$this->no_documento->AdvancedSearch->Load();
 		$this->nombres->AdvancedSearch->Load();
 		$this->paterno->AdvancedSearch->Load();
 		$this->materno->AdvancedSearch->Load();
+		$this->especial->AdvancedSearch->Load();
 		$this->fecha_nacimiento->AdvancedSearch->Load();
 		$this->fecha_registro->AdvancedSearch->Load();
-		$this->imagen->AdvancedSearch->Load();
 		$this->observaciones->AdvancedSearch->Load();
 		$this->estado->AdvancedSearch->Load();
 	}
@@ -2688,6 +2513,25 @@ class cpersonas_list extends cpersonas {
 		// Call Page Exporting server event
 		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
 		$ParentTable = "";
+
+		// Export master record
+		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "fuentes") {
+			global $fuentes;
+			if (!isset($fuentes)) $fuentes = new cfuentes;
+			$rsmaster = $fuentes->LoadRs($this->DbMasterFilter); // Load master record
+			if ($rsmaster && !$rsmaster->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("v"); // Change to vertical
+				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
+					$Doc->Table = &$fuentes;
+					$fuentes->ExportDocument($Doc, $rsmaster, 1, 1);
+					$Doc->ExportEmptyRow();
+					$Doc->Table = &$this;
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsmaster->Close();
+			}
+		}
 		$sHeader = $this->PageHeader;
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
@@ -2814,15 +2658,15 @@ class cpersonas_list extends cpersonas {
 		$sQry = "export=html";
 
 		// Build QueryString for search
-		if ($this->BasicSearch->getKeyword() <> "") {
-			$sQry .= "&" . EW_TABLE_BASIC_SEARCH . "=" . urlencode($this->BasicSearch->getKeyword()) . "&" . EW_TABLE_BASIC_SEARCH_TYPE . "=" . urlencode($this->BasicSearch->getType());
-		}
-		$this->AddSearchQueryString($sQry, $this->Id); // Id
+		$this->AddSearchQueryString($sQry, $this->id_fuente); // id_fuente
+		$this->AddSearchQueryString($sQry, $this->id_gestion); // id_gestion
+		$this->AddSearchQueryString($sQry, $this->id_ref); // id_ref
 		$this->AddSearchQueryString($sQry, $this->tipo_documento); // tipo_documento
 		$this->AddSearchQueryString($sQry, $this->no_documento); // no_documento
 		$this->AddSearchQueryString($sQry, $this->nombres); // nombres
 		$this->AddSearchQueryString($sQry, $this->paterno); // paterno
 		$this->AddSearchQueryString($sQry, $this->materno); // materno
+		$this->AddSearchQueryString($sQry, $this->especial); // especial
 		$this->AddSearchQueryString($sQry, $this->fecha_nacimiento); // fecha_nacimiento
 		$this->AddSearchQueryString($sQry, $this->fecha_registro); // fecha_registro
 		$this->AddSearchQueryString($sQry, $this->observaciones); // observaciones
@@ -2849,6 +2693,72 @@ class cpersonas_list extends cpersonas {
 		}
 	}
 
+	// Set up master/detail based on QueryString
+	function SetupMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fuentes") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_Id"] <> "") {
+					$GLOBALS["fuentes"]->Id->setQueryStringValue($_GET["fk_Id"]);
+					$this->id_fuente->setQueryStringValue($GLOBALS["fuentes"]->Id->QueryStringValue);
+					$this->id_fuente->setSessionValue($this->id_fuente->QueryStringValue);
+					if (!is_numeric($GLOBALS["fuentes"]->Id->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fuentes") {
+				$bValidMaster = TRUE;
+				if (@$_POST["fk_Id"] <> "") {
+					$GLOBALS["fuentes"]->Id->setFormValue($_POST["fk_Id"]);
+					$this->id_fuente->setFormValue($GLOBALS["fuentes"]->Id->FormValue);
+					$this->id_fuente->setSessionValue($this->id_fuente->FormValue);
+					if (!is_numeric($GLOBALS["fuentes"]->Id->FormValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Update URL
+			$this->AddUrl = $this->AddMasterUrl($this->AddUrl);
+			$this->InlineAddUrl = $this->AddMasterUrl($this->InlineAddUrl);
+			$this->GridAddUrl = $this->AddMasterUrl($this->GridAddUrl);
+			$this->GridEditUrl = $this->AddMasterUrl($this->GridEditUrl);
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "fuentes") {
+				if ($this->id_fuente->CurrentValue == "") $this->id_fuente->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -2867,6 +2777,34 @@ class cpersonas_list extends cpersonas {
 			}
 		} elseif ($pageId == "extbs") {
 			switch ($fld->FldVar) {
+		case "x_id_fuente":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
 			}
 		}
 	}
@@ -2888,6 +2826,8 @@ class cpersonas_list extends cpersonas {
 	function Page_Load() {
 
 		//echo "Page Load";
+	if (!isset($_GET["cmd"]) && !isset($_GET["export"]))
+						$this->ResetSearchParms();
 	}
 
 	// Page Unload event
@@ -3052,6 +2992,10 @@ fpersonaslist.Form_CustomValidate =
 fpersonaslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
+fpersonaslist.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fpersonaslist.Lists["x_id_fuente"].Data = "<?php echo $personas_list->id_fuente->LookupFilterQuery(FALSE, "list") ?>";
+fpersonaslist.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fpersonaslist.Lists["x_id_gestion"].Data = "<?php echo $personas_list->id_gestion->LookupFilterQuery(FALSE, "list") ?>";
 fpersonaslist.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonaslist.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_list->tipo_documento->Options()) ?>;
 fpersonaslist.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -3069,9 +3013,6 @@ fpersonaslistsrch.Validate = function(fobj) {
 	elm = this.GetElements("x" + infix + "_fecha_nacimiento");
 	if (elm && !ew_CheckEuroDate(elm.value))
 		return this.OnError(elm, "<?php echo ew_JsEncode2($personas->fecha_nacimiento->FldErrMsg()) ?>");
-	elm = this.GetElements("x" + infix + "_fecha_registro");
-	if (elm && !ew_CheckEuroDate(elm.value))
-		return this.OnError(elm, "<?php echo ew_JsEncode2($personas->fecha_registro->FldErrMsg()) ?>");
 
 	// Fire Form_CustomValidate event
 	if (!this.Form_CustomValidate(fobj))
@@ -3091,13 +3032,14 @@ fpersonaslistsrch.Form_CustomValidate =
 fpersonaslistsrch.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
+fpersonaslistsrch.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fpersonaslistsrch.Lists["x_id_fuente"].Data = "<?php echo $personas_list->id_fuente->LookupFilterQuery(FALSE, "extbs") ?>";
+fpersonaslistsrch.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fpersonaslistsrch.Lists["x_id_gestion"].Data = "<?php echo $personas_list->id_gestion->LookupFilterQuery(FALSE, "extbs") ?>";
 fpersonaslistsrch.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonaslistsrch.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_list->tipo_documento->Options()) ?>;
 fpersonaslistsrch.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonaslistsrch.Lists["x_estado"].Options = <?php echo json_encode($personas_list->estado->Options()) ?>;
-
-// Init search panel as collapsed
-if (fpersonaslistsrch) fpersonaslistsrch.InitSearchPanel = true;
 </script>
 <script type="text/javascript">
 
@@ -3117,6 +3059,17 @@ if (fpersonaslistsrch) fpersonaslistsrch.InitSearchPanel = true;
 <?php } ?>
 <div class="clearfix"></div>
 </div>
+<?php } ?>
+<?php if (($personas->Export == "") || (EW_EXPORT_MASTER_RECORD && $personas->Export == "print")) { ?>
+<?php
+if ($personas_list->DbMasterFilter <> "" && $personas->getCurrentMasterTable() == "fuentes") {
+	if ($personas_list->MasterRecordExists) {
+?>
+<?php include_once "fuentesmaster.php" ?>
+<?php
+	}
+}
+?>
 <?php } ?>
 <?php
 	$bSelectLimit = $personas_list->UseSelectLimit;
@@ -3166,6 +3119,30 @@ $personas->ResetAttrs();
 $personas_list->RenderRow();
 ?>
 <div id="xsr_1" class="ewRow">
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+	<div id="xsc_id_fuente" class="ewCell form-group">
+		<label for="x_id_fuente" class="ewSearchCaption ewLabel"><?php echo $personas->id_fuente->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_fuente" id="z_id_fuente" value="="></span>
+		<span class="ewSearchField">
+<select data-table="personas" data-field="x_id_fuente" data-value-separator="<?php echo $personas->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x_id_fuente" name="x_id_fuente"<?php echo $personas->id_fuente->EditAttributes() ?>>
+<?php echo $personas->id_fuente->SelectOptionListHtml("x_id_fuente") ?>
+</select>
+</span>
+	</div>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+	<div id="xsc_id_gestion" class="ewCell form-group">
+		<label for="x_id_gestion" class="ewSearchCaption ewLabel"><?php echo $personas->id_gestion->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_gestion" id="z_id_gestion" value="="></span>
+		<span class="ewSearchField">
+<select data-table="personas" data-field="x_id_gestion" data-value-separator="<?php echo $personas->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x_id_gestion" name="x_id_gestion"<?php echo $personas->id_gestion->EditAttributes() ?>>
+<?php echo $personas->id_gestion->SelectOptionListHtml("x_id_gestion") ?>
+</select>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_2" class="ewRow">
 <?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
 	<div id="xsc_tipo_documento" class="ewCell form-group">
 		<label for="x_tipo_documento" class="ewSearchCaption ewLabel"><?php echo $personas->tipo_documento->FldCaption() ?></label>
@@ -3187,7 +3164,7 @@ $personas_list->RenderRow();
 	</div>
 <?php } ?>
 </div>
-<div id="xsr_2" class="ewRow">
+<div id="xsr_3" class="ewRow">
 <?php if ($personas->nombres->Visible) { // nombres ?>
 	<div id="xsc_nombres" class="ewCell form-group">
 		<label for="x_nombres" class="ewSearchCaption ewLabel"><?php echo $personas->nombres->FldCaption() ?></label>
@@ -3207,7 +3184,7 @@ $personas_list->RenderRow();
 	</div>
 <?php } ?>
 </div>
-<div id="xsr_3" class="ewRow">
+<div id="xsr_4" class="ewRow">
 <?php if ($personas->materno->Visible) { // materno ?>
 	<div id="xsc_materno" class="ewCell form-group">
 		<label for="x_materno" class="ewSearchCaption ewLabel"><?php echo $personas->materno->FldCaption() ?></label>
@@ -3220,7 +3197,7 @@ $personas_list->RenderRow();
 <?php if ($personas->fecha_nacimiento->Visible) { // fecha_nacimiento ?>
 	<div id="xsc_fecha_nacimiento" class="ewCell form-group">
 		<label for="x_fecha_nacimiento" class="ewSearchCaption ewLabel"><?php echo $personas->fecha_nacimiento->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_fecha_nacimiento" id="z_fecha_nacimiento" value="="></span>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("BETWEEN") ?><input type="hidden" name="z_fecha_nacimiento" id="z_fecha_nacimiento" value="BETWEEN"></span>
 		<span class="ewSearchField">
 <input type="text" data-table="personas" data-field="x_fecha_nacimiento" data-format="7" name="x_fecha_nacimiento" id="x_fecha_nacimiento" size="20" placeholder="<?php echo ew_HtmlEncode($personas->fecha_nacimiento->getPlaceHolder()) ?>" value="<?php echo $personas->fecha_nacimiento->EditValue ?>"<?php echo $personas->fecha_nacimiento->EditAttributes() ?>>
 <?php if (!$personas->fecha_nacimiento->ReadOnly && !$personas->fecha_nacimiento->Disabled && !isset($personas->fecha_nacimiento->EditAttrs["readonly"]) && !isset($personas->fecha_nacimiento->EditAttrs["disabled"])) { ?>
@@ -3229,33 +3206,19 @@ ew_CreateDateTimePicker("fpersonaslistsrch", "x_fecha_nacimiento", {"ignoreReado
 </script>
 <?php } ?>
 </span>
+		<span class="ewSearchCond btw1_fecha_nacimiento">&nbsp;<?php echo $Language->Phrase("AND") ?>&nbsp;</span>
+		<span class="ewSearchField btw1_fecha_nacimiento">
+<input type="text" data-table="personas" data-field="x_fecha_nacimiento" data-format="7" name="y_fecha_nacimiento" id="y_fecha_nacimiento" size="20" placeholder="<?php echo ew_HtmlEncode($personas->fecha_nacimiento->getPlaceHolder()) ?>" value="<?php echo $personas->fecha_nacimiento->EditValue2 ?>"<?php echo $personas->fecha_nacimiento->EditAttributes() ?>>
+<?php if (!$personas->fecha_nacimiento->ReadOnly && !$personas->fecha_nacimiento->Disabled && !isset($personas->fecha_nacimiento->EditAttrs["readonly"]) && !isset($personas->fecha_nacimiento->EditAttrs["disabled"])) { ?>
+<script type="text/javascript">
+ew_CreateDateTimePicker("fpersonaslistsrch", "y_fecha_nacimiento", {"ignoreReadonly":true,"useCurrent":false,"format":7});
+</script>
+<?php } ?>
+</span>
 	</div>
 <?php } ?>
 </div>
-<div id="xsr_4" class="ewRow">
-<?php if ($personas->fecha_registro->Visible) { // fecha_registro ?>
-	<div id="xsc_fecha_registro" class="ewCell form-group">
-		<label for="x_fecha_registro" class="ewSearchCaption ewLabel"><?php echo $personas->fecha_registro->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("BETWEEN") ?><input type="hidden" name="z_fecha_registro" id="z_fecha_registro" value="BETWEEN"></span>
-		<span class="ewSearchField">
-<input type="text" data-table="personas" data-field="x_fecha_registro" data-format="11" name="x_fecha_registro" id="x_fecha_registro" size="20" placeholder="<?php echo ew_HtmlEncode($personas->fecha_registro->getPlaceHolder()) ?>" value="<?php echo $personas->fecha_registro->EditValue ?>"<?php echo $personas->fecha_registro->EditAttributes() ?>>
-<?php if (!$personas->fecha_registro->ReadOnly && !$personas->fecha_registro->Disabled && !isset($personas->fecha_registro->EditAttrs["readonly"]) && !isset($personas->fecha_registro->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("fpersonaslistsrch", "x_fecha_registro", {"ignoreReadonly":true,"useCurrent":false,"format":11});
-</script>
-<?php } ?>
-</span>
-		<span class="ewSearchCond btw1_fecha_registro">&nbsp;<?php echo $Language->Phrase("AND") ?>&nbsp;</span>
-		<span class="ewSearchField btw1_fecha_registro">
-<input type="text" data-table="personas" data-field="x_fecha_registro" data-format="11" name="y_fecha_registro" id="y_fecha_registro" size="20" placeholder="<?php echo ew_HtmlEncode($personas->fecha_registro->getPlaceHolder()) ?>" value="<?php echo $personas->fecha_registro->EditValue2 ?>"<?php echo $personas->fecha_registro->EditAttributes() ?>>
-<?php if (!$personas->fecha_registro->ReadOnly && !$personas->fecha_registro->Disabled && !isset($personas->fecha_registro->EditAttrs["readonly"]) && !isset($personas->fecha_registro->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("fpersonaslistsrch", "y_fecha_registro", {"ignoreReadonly":true,"useCurrent":false,"format":11});
-</script>
-<?php } ?>
-</span>
-	</div>
-<?php } ?>
+<div id="xsr_5" class="ewRow">
 <?php if ($personas->estado->Visible) { // estado ?>
 	<div id="xsc_estado" class="ewCell form-group">
 		<label class="ewSearchCaption ewLabel"><?php echo $personas->estado->FldCaption() ?></label>
@@ -3269,21 +3232,8 @@ ew_CreateDateTimePicker("fpersonaslistsrch", "y_fecha_registro", {"ignoreReadonl
 	</div>
 <?php } ?>
 </div>
-<div id="xsr_5" class="ewRow">
-	<div class="ewQuickSearch input-group">
-	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($personas_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
-	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($personas_list->BasicSearch->getType()) ?>">
-	<div class="input-group-btn">
-		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $personas_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
-		<ul class="dropdown-menu pull-right" role="menu">
-			<li<?php if ($personas_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
-			<li<?php if ($personas_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
-			<li<?php if ($personas_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
-			<li<?php if ($personas_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
-		</ul>
+<div id="xsr_6" class="ewRow">
 	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("SearchBtn") ?></button>
-	</div>
-	</div>
 </div>
 	</div>
 </div>
@@ -3359,6 +3309,10 @@ $personas_list->ShowMessage();
 <input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $personas_list->Token ?>">
 <?php } ?>
 <input type="hidden" name="t" value="personas">
+<?php if ($personas->getCurrentMasterTable() == "fuentes" && $personas->CurrentAction <> "") { ?>
+<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="fuentes">
+<input type="hidden" name="fk_Id" value="<?php echo $personas->id_fuente->getSessionValue() ?>">
+<?php } ?>
 <div id="gmp_personas" class="<?php if (ew_IsResponsiveLayout()) { ?>table-responsive <?php } ?>ewGridMiddlePanel">
 <?php if ($personas_list->TotalRecs > 0 || $personas->CurrentAction == "gridedit") { ?>
 <table id="tbl_personaslist" class="table ewTable">
@@ -3384,6 +3338,33 @@ $personas_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($personas->SortUrl($personas->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $personas->id_fuente->HeaderCellClass() ?>"><div id="elh_personas_id_fuente" class="personas_id_fuente"><div class="ewTableHeaderCaption"><?php echo $personas->id_fuente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_fuente" class="<?php echo $personas->id_fuente->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->id_fuente) ?>',1);"><div id="elh_personas_id_fuente" class="personas_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($personas->SortUrl($personas->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $personas->id_gestion->HeaderCellClass() ?>"><div id="elh_personas_id_gestion" class="personas_id_gestion"><div class="ewTableHeaderCaption"><?php echo $personas->id_gestion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_gestion" class="<?php echo $personas->id_gestion->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->id_gestion) ?>',1);"><div id="elh_personas_id_gestion" class="personas_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($personas->id_ref->Visible) { // id_ref ?>
+	<?php if ($personas->SortUrl($personas->id_ref) == "") { ?>
+		<th data-name="id_ref" class="<?php echo $personas->id_ref->HeaderCellClass() ?>"><div id="elh_personas_id_ref" class="personas_id_ref"><div class="ewTableHeaderCaption"><?php echo $personas->id_ref->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_ref" class="<?php echo $personas->id_ref->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->id_ref) ?>',1);"><div id="elh_personas_id_ref" class="personas_id_ref">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_ref->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_ref->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_ref->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
 <?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
 	<?php if ($personas->SortUrl($personas->tipo_documento) == "") { ?>
 		<th data-name="tipo_documento" class="<?php echo $personas->tipo_documento->HeaderCellClass() ?>"><div id="elh_personas_tipo_documento" class="personas_tipo_documento"><div class="ewTableHeaderCaption"><?php echo $personas->tipo_documento->FldCaption() ?></div></div></th>
@@ -3398,7 +3379,7 @@ $personas_list->ListOptions->Render("header", "left");
 		<th data-name="no_documento" class="<?php echo $personas->no_documento->HeaderCellClass() ?>"><div id="elh_personas_no_documento" class="personas_no_documento"><div class="ewTableHeaderCaption"><?php echo $personas->no_documento->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="no_documento" class="<?php echo $personas->no_documento->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->no_documento) ?>',1);"><div id="elh_personas_no_documento" class="personas_no_documento">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->no_documento->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($personas->no_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->no_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->no_documento->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->no_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->no_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -3407,7 +3388,7 @@ $personas_list->ListOptions->Render("header", "left");
 		<th data-name="nombres" class="<?php echo $personas->nombres->HeaderCellClass() ?>"><div id="elh_personas_nombres" class="personas_nombres"><div class="ewTableHeaderCaption"><?php echo $personas->nombres->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="nombres" class="<?php echo $personas->nombres->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->nombres) ?>',1);"><div id="elh_personas_nombres" class="personas_nombres">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->nombres->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($personas->nombres->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->nombres->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->nombres->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->nombres->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->nombres->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -3416,7 +3397,7 @@ $personas_list->ListOptions->Render("header", "left");
 		<th data-name="paterno" class="<?php echo $personas->paterno->HeaderCellClass() ?>"><div id="elh_personas_paterno" class="personas_paterno"><div class="ewTableHeaderCaption"><?php echo $personas->paterno->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="paterno" class="<?php echo $personas->paterno->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->paterno) ?>',1);"><div id="elh_personas_paterno" class="personas_paterno">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->paterno->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($personas->paterno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->paterno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->paterno->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->paterno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->paterno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -3425,7 +3406,7 @@ $personas_list->ListOptions->Render("header", "left");
 		<th data-name="materno" class="<?php echo $personas->materno->HeaderCellClass() ?>"><div id="elh_personas_materno" class="personas_materno"><div class="ewTableHeaderCaption"><?php echo $personas->materno->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="materno" class="<?php echo $personas->materno->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->materno) ?>',1);"><div id="elh_personas_materno" class="personas_materno">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->materno->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($personas->materno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->materno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->materno->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->materno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->materno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -3449,10 +3430,10 @@ $personas_list->ListOptions->Render("header", "left");
 <?php } ?>
 <?php if ($personas->imagen->Visible) { // imagen ?>
 	<?php if ($personas->SortUrl($personas->imagen) == "") { ?>
-		<th data-name="imagen" class="<?php echo $personas->imagen->HeaderCellClass() ?>"><div id="elh_personas_imagen" class="personas_imagen"><div class="ewTableHeaderCaption"><?php echo $personas->imagen->FldCaption() ?></div></div></th>
+		<th data-name="imagen" class="<?php echo $personas->imagen->HeaderCellClass() ?>"><div id="elh_personas_imagen" class="personas_imagen"><div class="ewTableHeaderCaption" style="white-space: nowrap;"><?php echo $personas->imagen->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="imagen" class="<?php echo $personas->imagen->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $personas->SortUrl($personas->imagen) ?>',1);"><div id="elh_personas_imagen" class="personas_imagen">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->imagen->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($personas->imagen->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->imagen->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn" style="white-space: nowrap;"><span class="ewTableHeaderCaption"><?php echo $personas->imagen->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->imagen->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->imagen->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -3535,6 +3516,30 @@ $personas_list->ListOptions->Render("body", "left", $personas_list->RowCnt);
 <span id="el<?php echo $personas_list->RowCnt ?>_personas_Id" class="personas_Id">
 <span<?php echo $personas->Id->ViewAttributes() ?>>
 <?php echo $personas->Id->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $personas->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $personas_list->RowCnt ?>_personas_id_fuente" class="personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<?php echo $personas->id_fuente->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $personas->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $personas_list->RowCnt ?>_personas_id_gestion" class="personas_id_gestion">
+<span<?php echo $personas->id_gestion->ViewAttributes() ?>>
+<?php echo $personas->id_gestion->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($personas->id_ref->Visible) { // id_ref ?>
+		<td data-name="id_ref"<?php echo $personas->id_ref->CellAttributes() ?>>
+<span id="el<?php echo $personas_list->RowCnt ?>_personas_id_ref" class="personas_id_ref">
+<span<?php echo $personas->id_ref->ViewAttributes() ?>>
+<?php echo $personas->id_ref->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

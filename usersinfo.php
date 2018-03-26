@@ -96,8 +96,11 @@ class cusers extends cTable {
 		$this->fields['No_documento'] = &$this->No_documento;
 
 		// Tipo_documento
-		$this->Tipo_documento = new cField('users', 'users', 'x_Tipo_documento', 'Tipo_documento', '`Tipo_documento`', '`Tipo_documento`', 200, -1, FALSE, '`Tipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->Tipo_documento = new cField('users', 'users', 'x_Tipo_documento', 'Tipo_documento', '`Tipo_documento`', '`Tipo_documento`', 200, -1, FALSE, '`Tipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
 		$this->Tipo_documento->Sortable = TRUE; // Allow sort
+		$this->Tipo_documento->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->Tipo_documento->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->Tipo_documento->OptionCount = 3;
 		$this->fields['Tipo_documento'] = &$this->Tipo_documento;
 
 		// First_Name
@@ -169,9 +172,9 @@ class cusers extends cTable {
 		$this->fields['observaciones'] = &$this->observaciones;
 
 		// fecha_ingreso
-		$this->fecha_ingreso = new cField('users', 'users', 'x_fecha_ingreso', 'fecha_ingreso', '`fecha_ingreso`', ew_CastDateFieldForLike('`fecha_ingreso`', 0, "DB"), 135, 0, FALSE, '`fecha_ingreso`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->fecha_ingreso = new cField('users', 'users', 'x_fecha_ingreso', 'fecha_ingreso', '`fecha_ingreso`', ew_CastDateFieldForLike('`fecha_ingreso`', 11, "DB"), 135, 11, FALSE, '`fecha_ingreso`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
 		$this->fecha_ingreso->Sortable = FALSE; // Allow sort
-		$this->fecha_ingreso->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_FORMAT"], $Language->Phrase("IncorrectDate"));
+		$this->fecha_ingreso->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_SEPARATOR"], $Language->Phrase("IncorrectDateDMY"));
 		$this->fields['fecha_ingreso'] = &$this->fecha_ingreso;
 
 		// Profile
@@ -215,6 +218,30 @@ class cusers extends cTable {
 		} else {
 			$ofld->setSort("");
 		}
+	}
+
+	// Current detail table name
+	function getCurrentDetailTable() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE];
+	}
+
+	function setCurrentDetailTable($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_DETAIL_TABLE] = $v;
+	}
+
+	// Get detail url
+	function GetDetailUrl() {
+
+		// Detail url
+		$sDetailUrl = "";
+		if ($this->getCurrentDetailTable() == "deudas") {
+			$sDetailUrl = $GLOBALS["deudas"]->GetListUrl() . "?" . EW_TABLE_SHOW_MASTER . "=" . $this->TableVar;
+			$sDetailUrl .= "&fk_id_user=" . urlencode($this->id_user->CurrentValue);
+		}
+		if ($sDetailUrl == "") {
+			$sDetailUrl = "userslist.php";
+		}
+		return $sDetailUrl;
 	}
 
 	// Table level SQL
@@ -586,7 +613,10 @@ class cusers extends cTable {
 
 	// Edit URL
 	function GetEditUrl($parm = "") {
-		$url = $this->KeyUrl("usersedit.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			$url = $this->KeyUrl("usersedit.php", $this->UrlParm($parm));
+		else
+			$url = $this->KeyUrl("usersedit.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 		return $this->AddMasterUrl($url);
 	}
 
@@ -598,7 +628,10 @@ class cusers extends cTable {
 
 	// Copy URL
 	function GetCopyUrl($parm = "") {
-		$url = $this->KeyUrl("usersadd.php", $this->UrlParm($parm));
+		if ($parm <> "")
+			$url = $this->KeyUrl("usersadd.php", $this->UrlParm($parm));
+		else
+			$url = $this->KeyUrl("usersadd.php", $this->UrlParm(EW_TABLE_SHOW_DETAIL . "="));
 		return $this->AddMasterUrl($url);
 	}
 
@@ -814,7 +847,11 @@ class cusers extends cTable {
 		$this->No_documento->ViewCustomAttributes = "";
 
 		// Tipo_documento
-		$this->Tipo_documento->ViewValue = $this->Tipo_documento->CurrentValue;
+		if (strval($this->Tipo_documento->CurrentValue) <> "") {
+			$this->Tipo_documento->ViewValue = $this->Tipo_documento->OptionCaption($this->Tipo_documento->CurrentValue);
+		} else {
+			$this->Tipo_documento->ViewValue = NULL;
+		}
 		$this->Tipo_documento->ViewCustomAttributes = "";
 
 		// First_Name
@@ -882,7 +919,7 @@ class cusers extends cTable {
 
 		// fecha_ingreso
 		$this->fecha_ingreso->ViewValue = $this->fecha_ingreso->CurrentValue;
-		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 0);
+		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 11);
 		$this->fecha_ingreso->ViewCustomAttributes = "";
 
 		// Profile
@@ -1055,8 +1092,7 @@ class cusers extends cTable {
 		// Tipo_documento
 		$this->Tipo_documento->EditAttrs["class"] = "form-control";
 		$this->Tipo_documento->EditCustomAttributes = "";
-		$this->Tipo_documento->EditValue = $this->Tipo_documento->CurrentValue;
-		$this->Tipo_documento->PlaceHolder = ew_RemoveHtml($this->Tipo_documento->FldCaption());
+		$this->Tipo_documento->EditValue = $this->Tipo_documento->Options(TRUE);
 
 		// First_Name
 		$this->First_Name->EditAttrs["class"] = "form-control";
@@ -1127,7 +1163,7 @@ class cusers extends cTable {
 		// fecha_ingreso
 		$this->fecha_ingreso->EditAttrs["class"] = "form-control";
 		$this->fecha_ingreso->EditCustomAttributes = "";
-		$this->fecha_ingreso->EditValue = ew_FormatDateTime($this->fecha_ingreso->CurrentValue, 8);
+		$this->fecha_ingreso->EditValue = ew_FormatDateTime($this->fecha_ingreso->CurrentValue, 11);
 		$this->fecha_ingreso->PlaceHolder = ew_RemoveHtml($this->fecha_ingreso->FldCaption());
 
 		// Profile

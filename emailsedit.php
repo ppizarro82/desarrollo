@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "emailsinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -260,9 +259,6 @@ class cemails_edit extends cemails {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'edit', TRUE);
@@ -326,8 +322,20 @@ class cemails_edit extends cemails {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_persona->SetVisibility();
-		$this->_email->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->email1->SetVisibility();
+		$this->email2->SetVisibility();
+		$this->email3->SetVisibility();
+		$this->email4->SetVisibility();
+
+		// Set up multi page object
+		$this->SetupMultiPages();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -423,6 +431,7 @@ class cemails_edit extends cemails {
 	var $IsMobileOrModal = FALSE;
 	var $DbMasterFilter;
 	var $DbDetailFilter;
+	var $MultiPages; // Multi pages object
 
 	//
 	// Page main
@@ -461,9 +470,6 @@ class cemails_edit extends cemails {
 				$this->Id->CurrentValue = NULL;
 			}
 		}
-
-		// Set up master detail parameters
-		$this->SetupMasterParms();
 
 		// Load current record
 		$loaded = $this->LoadRow();
@@ -567,11 +573,38 @@ class cemails_edit extends cemails {
 		global $objForm;
 		if (!$this->Id->FldIsDetailKey)
 			$this->Id->setFormValue($objForm->GetValue("x_Id"));
-		if (!$this->id_persona->FldIsDetailKey) {
-			$this->id_persona->setFormValue($objForm->GetValue("x_id_persona"));
+		if (!$this->id_fuente->FldIsDetailKey) {
+			$this->id_fuente->setFormValue($objForm->GetValue("x_id_fuente"));
 		}
-		if (!$this->_email->FldIsDetailKey) {
-			$this->_email->setFormValue($objForm->GetValue("x__email"));
+		if (!$this->id_gestion->FldIsDetailKey) {
+			$this->id_gestion->setFormValue($objForm->GetValue("x_id_gestion"));
+		}
+		if (!$this->tipo_documento->FldIsDetailKey) {
+			$this->tipo_documento->setFormValue($objForm->GetValue("x_tipo_documento"));
+		}
+		if (!$this->no_documento->FldIsDetailKey) {
+			$this->no_documento->setFormValue($objForm->GetValue("x_no_documento"));
+		}
+		if (!$this->nombres->FldIsDetailKey) {
+			$this->nombres->setFormValue($objForm->GetValue("x_nombres"));
+		}
+		if (!$this->paterno->FldIsDetailKey) {
+			$this->paterno->setFormValue($objForm->GetValue("x_paterno"));
+		}
+		if (!$this->materno->FldIsDetailKey) {
+			$this->materno->setFormValue($objForm->GetValue("x_materno"));
+		}
+		if (!$this->email1->FldIsDetailKey) {
+			$this->email1->setFormValue($objForm->GetValue("x_email1"));
+		}
+		if (!$this->email2->FldIsDetailKey) {
+			$this->email2->setFormValue($objForm->GetValue("x_email2"));
+		}
+		if (!$this->email3->FldIsDetailKey) {
+			$this->email3->setFormValue($objForm->GetValue("x_email3"));
+		}
+		if (!$this->email4->FldIsDetailKey) {
+			$this->email4->setFormValue($objForm->GetValue("x_email4"));
 		}
 	}
 
@@ -579,8 +612,17 @@ class cemails_edit extends cemails {
 	function RestoreFormValues() {
 		global $objForm;
 		$this->Id->CurrentValue = $this->Id->FormValue;
-		$this->id_persona->CurrentValue = $this->id_persona->FormValue;
-		$this->_email->CurrentValue = $this->_email->FormValue;
+		$this->id_fuente->CurrentValue = $this->id_fuente->FormValue;
+		$this->id_gestion->CurrentValue = $this->id_gestion->FormValue;
+		$this->tipo_documento->CurrentValue = $this->tipo_documento->FormValue;
+		$this->no_documento->CurrentValue = $this->no_documento->FormValue;
+		$this->nombres->CurrentValue = $this->nombres->FormValue;
+		$this->paterno->CurrentValue = $this->paterno->FormValue;
+		$this->materno->CurrentValue = $this->materno->FormValue;
+		$this->email1->CurrentValue = $this->email1->FormValue;
+		$this->email2->CurrentValue = $this->email2->FormValue;
+		$this->email3->CurrentValue = $this->email3->FormValue;
+		$this->email4->CurrentValue = $this->email4->FormValue;
 	}
 
 	// Load row based on key values
@@ -617,16 +659,34 @@ class cemails_edit extends cemails {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->_email->setDbValue($row['email']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->email1->setDbValue($row['email1']);
+		$this->email2->setDbValue($row['email2']);
+		$this->email3->setDbValue($row['email3']);
+		$this->email4->setDbValue($row['email4']);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_persona'] = NULL;
-		$row['email'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['tipo_documento'] = NULL;
+		$row['no_documento'] = NULL;
+		$row['nombres'] = NULL;
+		$row['paterno'] = NULL;
+		$row['materno'] = NULL;
+		$row['email1'] = NULL;
+		$row['email2'] = NULL;
+		$row['email3'] = NULL;
+		$row['email4'] = NULL;
 		return $row;
 	}
 
@@ -636,8 +696,17 @@ class cemails_edit extends cemails {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->_email->DbValue = $row['email'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->email1->DbValue = $row['email1'];
+		$this->email2->DbValue = $row['email2'];
+		$this->email3->DbValue = $row['email3'];
+		$this->email4->DbValue = $row['email4'];
 	}
 
 	// Load old record
@@ -673,8 +742,17 @@ class cemails_edit extends cemails {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// email
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// email1
+		// email2
+		// email3
+		// email4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -682,57 +760,151 @@ class cemails_edit extends cemails {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// email
-		$this->_email->ViewValue = $this->_email->CurrentValue;
-		$this->_email->ViewCustomAttributes = "";
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
+
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// email1
+		$this->email1->ViewValue = $this->email1->CurrentValue;
+		$this->email1->ViewCustomAttributes = "";
+
+		// email2
+		$this->email2->ViewValue = $this->email2->CurrentValue;
+		$this->email2->ViewCustomAttributes = "";
+
+		// email3
+		$this->email3->ViewValue = $this->email3->CurrentValue;
+		$this->email3->ViewCustomAttributes = "";
+
+		// email4
+		$this->email4->ViewValue = $this->email4->CurrentValue;
+		$this->email4->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
-			$this->id_persona->TooltipValue = "";
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
 
-			// email
-			$this->_email->LinkCustomAttributes = "";
-			$this->_email->HrefValue = "";
-			$this->_email->TooltipValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
+
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// email1
+			$this->email1->LinkCustomAttributes = "";
+			$this->email1->HrefValue = "";
+			$this->email1->TooltipValue = "";
+
+			// email2
+			$this->email2->LinkCustomAttributes = "";
+			$this->email2->HrefValue = "";
+			$this->email2->TooltipValue = "";
+
+			// email3
+			$this->email3->LinkCustomAttributes = "";
+			$this->email3->HrefValue = "";
+			$this->email3->TooltipValue = "";
+
+			// email4
+			$this->email4->LinkCustomAttributes = "";
+			$this->email4->HrefValue = "";
+			$this->email4->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_EDIT) { // Edit row
 
 			// Id
@@ -741,61 +913,101 @@ class cemails_edit extends cemails {
 			$this->Id->EditValue = $this->Id->CurrentValue;
 			$this->Id->ViewCustomAttributes = "";
 
-			// id_persona
-			$this->id_persona->EditAttrs["class"] = "form-control";
-			$this->id_persona->EditCustomAttributes = "";
-			if ($this->id_persona->getSessionValue() <> "") {
-				$this->id_persona->CurrentValue = $this->id_persona->getSessionValue();
-			if (strval($this->id_persona->CurrentValue) <> "") {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
-			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = Conn()->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$arwrk = array();
-					$arwrk[1] = $rswrk->fields('DispFld');
-					$arwrk[2] = $rswrk->fields('Disp2Fld');
-					$arwrk[3] = $rswrk->fields('Disp3Fld');
-					$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
-					$rswrk->Close();
-				} else {
-					$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
-				}
-			} else {
-				$this->id_persona->ViewValue = NULL;
-			}
-			$this->id_persona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->id_persona->CurrentValue)) == "") {
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if (trim(strval($this->id_fuente->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
 			}
-			$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `personas`";
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
-			$this->id_persona->EditValue = $arwrk;
-			}
+			$this->id_fuente->EditValue = $arwrk;
 
-			// email
-			$this->_email->EditAttrs["class"] = "form-control";
-			$this->_email->EditCustomAttributes = "";
-			$this->_email->EditValue = ew_HtmlEncode($this->_email->CurrentValue);
-			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
+
+			// tipo_documento
+			$this->tipo_documento->EditAttrs["class"] = "form-control";
+			$this->tipo_documento->EditCustomAttributes = "";
+			$this->tipo_documento->EditValue = ew_HtmlEncode($this->tipo_documento->CurrentValue);
+			$this->tipo_documento->PlaceHolder = ew_RemoveHtml($this->tipo_documento->FldCaption());
+
+			// no_documento
+			$this->no_documento->EditAttrs["class"] = "form-control";
+			$this->no_documento->EditCustomAttributes = "";
+			$this->no_documento->EditValue = ew_HtmlEncode($this->no_documento->CurrentValue);
+			$this->no_documento->PlaceHolder = ew_RemoveHtml($this->no_documento->FldCaption());
+
+			// nombres
+			$this->nombres->EditAttrs["class"] = "form-control";
+			$this->nombres->EditCustomAttributes = "";
+			$this->nombres->EditValue = ew_HtmlEncode($this->nombres->CurrentValue);
+			$this->nombres->PlaceHolder = ew_RemoveHtml($this->nombres->FldCaption());
+
+			// paterno
+			$this->paterno->EditAttrs["class"] = "form-control";
+			$this->paterno->EditCustomAttributes = "";
+			$this->paterno->EditValue = ew_HtmlEncode($this->paterno->CurrentValue);
+			$this->paterno->PlaceHolder = ew_RemoveHtml($this->paterno->FldCaption());
+
+			// materno
+			$this->materno->EditAttrs["class"] = "form-control";
+			$this->materno->EditCustomAttributes = "";
+			$this->materno->EditValue = ew_HtmlEncode($this->materno->CurrentValue);
+			$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+			// email1
+			$this->email1->EditAttrs["class"] = "form-control";
+			$this->email1->EditCustomAttributes = "";
+			$this->email1->EditValue = ew_HtmlEncode($this->email1->CurrentValue);
+			$this->email1->PlaceHolder = ew_RemoveHtml($this->email1->FldCaption());
+
+			// email2
+			$this->email2->EditAttrs["class"] = "form-control";
+			$this->email2->EditCustomAttributes = "";
+			$this->email2->EditValue = ew_HtmlEncode($this->email2->CurrentValue);
+			$this->email2->PlaceHolder = ew_RemoveHtml($this->email2->FldCaption());
+
+			// email3
+			$this->email3->EditAttrs["class"] = "form-control";
+			$this->email3->EditCustomAttributes = "";
+			$this->email3->EditValue = ew_HtmlEncode($this->email3->CurrentValue);
+			$this->email3->PlaceHolder = ew_RemoveHtml($this->email3->FldCaption());
+
+			// email4
+			$this->email4->EditAttrs["class"] = "form-control";
+			$this->email4->EditCustomAttributes = "";
+			$this->email4->EditValue = ew_HtmlEncode($this->email4->CurrentValue);
+			$this->email4->PlaceHolder = ew_RemoveHtml($this->email4->FldCaption());
 
 			// Edit refer script
 			// Id
@@ -803,19 +1015,49 @@ class cemails_edit extends cemails {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
 
-			// email
-			$this->_email->LinkCustomAttributes = "";
-			$this->_email->HrefValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+
+			// email1
+			$this->email1->LinkCustomAttributes = "";
+			$this->email1->HrefValue = "";
+
+			// email2
+			$this->email2->LinkCustomAttributes = "";
+			$this->email2->HrefValue = "";
+
+			// email3
+			$this->email3->LinkCustomAttributes = "";
+			$this->email3->HrefValue = "";
+
+			// email4
+			$this->email4->LinkCustomAttributes = "";
+			$this->email4->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->SetupFieldTitles();
@@ -835,14 +1077,11 @@ class cemails_edit extends cemails {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->id_persona->FldIsDetailKey && !is_null($this->id_persona->FormValue) && $this->id_persona->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->id_persona->FldCaption(), $this->id_persona->ReqErrMsg));
+		if (!$this->email1->FldIsDetailKey && !is_null($this->email1->FormValue) && $this->email1->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->email1->FldCaption(), $this->email1->ReqErrMsg));
 		}
-		if (!$this->_email->FldIsDetailKey && !is_null($this->_email->FormValue) && $this->_email->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->_email->FldCaption(), $this->_email->ReqErrMsg));
-		}
-		if (!ew_CheckEmail($this->_email->FormValue)) {
-			ew_AddMessage($gsFormError, $this->_email->FldErrMsg());
+		if (!ew_CheckEmail($this->email1->FormValue)) {
+			ew_AddMessage($gsFormError, $this->email1->FldErrMsg());
 		}
 
 		// Return validate result
@@ -880,33 +1119,38 @@ class cemails_edit extends cemails {
 			$this->LoadDbValues($rsold);
 			$rsnew = array();
 
-			// id_persona
-			$this->id_persona->SetDbValueDef($rsnew, $this->id_persona->CurrentValue, 0, $this->id_persona->ReadOnly);
+			// id_fuente
+			$this->id_fuente->SetDbValueDef($rsnew, $this->id_fuente->CurrentValue, 0, $this->id_fuente->ReadOnly);
 
-			// email
-			$this->_email->SetDbValueDef($rsnew, $this->_email->CurrentValue, "", $this->_email->ReadOnly);
+			// id_gestion
+			$this->id_gestion->SetDbValueDef($rsnew, $this->id_gestion->CurrentValue, 0, $this->id_gestion->ReadOnly);
 
-			// Check referential integrity for master table 'personas'
-			$bValidMasterRecord = TRUE;
-			$sMasterFilter = $this->SqlMasterFilter_personas();
-			$KeyValue = isset($rsnew['id_persona']) ? $rsnew['id_persona'] : $rsold['id_persona'];
-			if (strval($KeyValue) <> "") {
-				$sMasterFilter = str_replace("@Id@", ew_AdjustSql($KeyValue), $sMasterFilter);
-			} else {
-				$bValidMasterRecord = FALSE;
-			}
-			if ($bValidMasterRecord) {
-				if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
-				$rsmaster = $GLOBALS["personas"]->LoadRs($sMasterFilter);
-				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-				$rsmaster->Close();
-			}
-			if (!$bValidMasterRecord) {
-				$sRelatedRecordMsg = str_replace("%t", "personas", $Language->Phrase("RelatedRecordRequired"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				$rs->Close();
-				return FALSE;
-			}
+			// tipo_documento
+			$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, $this->tipo_documento->ReadOnly);
+
+			// no_documento
+			$this->no_documento->SetDbValueDef($rsnew, $this->no_documento->CurrentValue, NULL, $this->no_documento->ReadOnly);
+
+			// nombres
+			$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, NULL, $this->nombres->ReadOnly);
+
+			// paterno
+			$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, NULL, $this->paterno->ReadOnly);
+
+			// materno
+			$this->materno->SetDbValueDef($rsnew, $this->materno->CurrentValue, NULL, $this->materno->ReadOnly);
+
+			// email1
+			$this->email1->SetDbValueDef($rsnew, $this->email1->CurrentValue, NULL, $this->email1->ReadOnly);
+
+			// email2
+			$this->email2->SetDbValueDef($rsnew, $this->email2->CurrentValue, NULL, $this->email2->ReadOnly);
+
+			// email3
+			$this->email3->SetDbValueDef($rsnew, $this->email3->CurrentValue, NULL, $this->email3->ReadOnly);
+
+			// email4
+			$this->email4->SetDbValueDef($rsnew, $this->email4->CurrentValue, NULL, $this->email4->ReadOnly);
 
 			// Call Row Updating event
 			$bUpdateRow = $this->Row_Updating($rsold, $rsnew);
@@ -940,67 +1184,6 @@ class cemails_edit extends cemails {
 		return $EditRow;
 	}
 
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-			$this->setSessionWhere($this->GetDetailFilter());
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -1011,22 +1194,47 @@ class cemails_edit extends cemails {
 		$Breadcrumb->Add("edit", $PageId, $url);
 	}
 
+	// Set up multi pages
+	function SetupMultiPages() {
+		$pages = new cSubPages();
+		$pages->Style = "tabs";
+		$pages->Add(0);
+		$pages->Add(1);
+		$pages->Add(2);
+		$pages->Add(3);
+		$this->MultiPages = $pages;
+	}
+
 	// Setup lookup filters of a field
 	function SetupLookupFilters($fld, $pageId = null) {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
 		switch ($fld->FldVar) {
-		case "x_id_persona":
+		case "x_id_fuente":
 			$sSqlWrk = "";
-			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
 			$sSqlWrk = "";
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			if ($sSqlWrk <> "")
 				$fld->LookupFilters["s"] .= $sSqlWrk;
 			break;
@@ -1149,15 +1357,12 @@ femailsedit.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_id_persona");
+			elm = this.GetElements("x" + infix + "_email1");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $emails->id_persona->FldCaption(), $emails->id_persona->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "__email");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $emails->_email->FldCaption(), $emails->_email->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "__email");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $emails->email1->FldCaption(), $emails->email1->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_email1");
 			if (elm && !ew_CheckEmail(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($emails->_email->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2($emails->email1->FldErrMsg()) ?>");
 
 			// Fire Form_CustomValidate event
 			if (!this.Form_CustomValidate(fobj))
@@ -1186,9 +1391,14 @@ femailsedit.Form_CustomValidate =
 // Use JavaScript validation or not
 femailsedit.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
+// Multi-Page
+femailsedit.MultiPage = new ew_MultiPage("femailsedit");
+
 // Dynamic selection lists
-femailsedit.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-femailsedit.Lists["x_id_persona"].Data = "<?php echo $emails_edit->id_persona->LookupFilterQuery(FALSE, "edit") ?>";
+femailsedit.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+femailsedit.Lists["x_id_fuente"].Data = "<?php echo $emails_edit->id_fuente->LookupFilterQuery(FALSE, "edit") ?>";
+femailsedit.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+femailsedit.Lists["x_id_gestion"].Data = "<?php echo $emails_edit->id_gestion->LookupFilterQuery(FALSE, "edit") ?>";
 
 // Form object for search
 </script>
@@ -1207,10 +1417,15 @@ $emails_edit->ShowMessage();
 <input type="hidden" name="t" value="emails">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <input type="hidden" name="modal" value="<?php echo intval($emails_edit->IsModal) ?>">
-<?php if ($emails->getCurrentMasterTable() == "personas") { ?>
-<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="personas">
-<input type="hidden" name="fk_Id" value="<?php echo $emails->id_persona->getSessionValue() ?>">
-<?php } ?>
+<div class="ewMultiPage"><!-- multi-page -->
+<div class="nav-tabs-custom" id="emails_edit"><!-- multi-page .nav-tabs-custom -->
+	<ul class="nav<?php echo $emails_edit->MultiPages->NavStyle() ?>">
+		<li<?php echo $emails_edit->MultiPages->TabStyle("1") ?>><a href="#tab_emails1" data-toggle="tab"><?php echo $emails->PageCaption(1) ?></a></li>
+		<li<?php echo $emails_edit->MultiPages->TabStyle("2") ?>><a href="#tab_emails2" data-toggle="tab"><?php echo $emails->PageCaption(2) ?></a></li>
+		<li<?php echo $emails_edit->MultiPages->TabStyle("3") ?>><a href="#tab_emails3" data-toggle="tab"><?php echo $emails->PageCaption(3) ?></a></li>
+	</ul>
+	<div class="tab-content"><!-- multi-page .nav-tabs-custom .tab-content -->
+		<div class="tab-pane<?php echo $emails_edit->MultiPages->PageStyle("1") ?>" id="tab_emails1"><!-- multi-page .tab-pane -->
 <div class="ewEditDiv"><!-- page* -->
 <?php if ($emails->Id->Visible) { // Id ?>
 	<div id="r_Id" class="form-group">
@@ -1220,46 +1435,140 @@ $emails_edit->ShowMessage();
 <span<?php echo $emails->Id->ViewAttributes() ?>>
 <p class="form-control-static"><?php echo $emails->Id->EditValue ?></p></span>
 </span>
-<input type="hidden" data-table="emails" data-field="x_Id" name="x_Id" id="x_Id" value="<?php echo ew_HtmlEncode($emails->Id->CurrentValue) ?>">
+<input type="hidden" data-table="emails" data-field="x_Id" data-page="1" name="x_Id" id="x_Id" value="<?php echo ew_HtmlEncode($emails->Id->CurrentValue) ?>">
 <?php echo $emails->Id->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($emails->id_persona->Visible) { // id_persona ?>
-	<div id="r_id_persona" class="form-group">
-		<label id="elh_emails_id_persona" for="x_id_persona" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->id_persona->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->id_persona->CellAttributes() ?>>
-<?php if ($emails->id_persona->getSessionValue() <> "") { ?>
-<span id="el_emails_id_persona">
-<span<?php echo $emails->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($emails->id_persona->ViewValue)) && $emails->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $emails->id_persona->LinkAttributes() ?>><p class="form-control-static"><?php echo $emails->id_persona->ViewValue ?></p></a>
-<?php } else { ?>
-<p class="form-control-static"><?php echo $emails->id_persona->ViewValue ?></p>
-<?php } ?>
-</span>
-</span>
-<input type="hidden" id="x_id_persona" name="x_id_persona" value="<?php echo ew_HtmlEncode($emails->id_persona->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el_emails_id_persona">
-<select data-table="emails" data-field="x_id_persona" data-value-separator="<?php echo $emails->id_persona->DisplayValueSeparatorAttribute() ?>" id="x_id_persona" name="x_id_persona"<?php echo $emails->id_persona->EditAttributes() ?>>
-<?php echo $emails->id_persona->SelectOptionListHtml("x_id_persona") ?>
+<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+	<div id="r_id_fuente" class="form-group">
+		<label id="elh_emails_id_fuente" for="x_id_fuente" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->id_fuente->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->id_fuente->CellAttributes() ?>>
+<span id="el_emails_id_fuente">
+<select data-table="emails" data-field="x_id_fuente" data-page="1" data-value-separator="<?php echo $emails->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x_id_fuente" name="x_id_fuente"<?php echo $emails->id_fuente->EditAttributes() ?>>
+<?php echo $emails->id_fuente->SelectOptionListHtml("x_id_fuente") ?>
 </select>
 </span>
-<?php } ?>
-<?php echo $emails->id_persona->CustomMsg ?></div></div>
+<?php echo $emails->id_fuente->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($emails->_email->Visible) { // email ?>
-	<div id="r__email" class="form-group">
-		<label id="elh_emails__email" for="x__email" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->_email->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->_email->CellAttributes() ?>>
-<span id="el_emails__email">
-<input type="text" data-table="emails" data-field="x__email" name="x__email" id="x__email" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->_email->getPlaceHolder()) ?>" value="<?php echo $emails->_email->EditValue ?>"<?php echo $emails->_email->EditAttributes() ?>>
+<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+	<div id="r_id_gestion" class="form-group">
+		<label id="elh_emails_id_gestion" for="x_id_gestion" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->id_gestion->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->id_gestion->CellAttributes() ?>>
+<span id="el_emails_id_gestion">
+<select data-table="emails" data-field="x_id_gestion" data-page="1" data-value-separator="<?php echo $emails->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x_id_gestion" name="x_id_gestion"<?php echo $emails->id_gestion->EditAttributes() ?>>
+<?php echo $emails->id_gestion->SelectOptionListHtml("x_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$emails->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $emails->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $emails->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
-<?php echo $emails->_email->CustomMsg ?></div></div>
+<?php echo $emails->id_gestion->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+		<div class="tab-pane<?php echo $emails_edit->MultiPages->PageStyle("2") ?>" id="tab_emails2"><!-- multi-page .tab-pane -->
+<div class="ewEditDiv"><!-- page* -->
+<?php if ($emails->tipo_documento->Visible) { // tipo_documento ?>
+	<div id="r_tipo_documento" class="form-group">
+		<label id="elh_emails_tipo_documento" for="x_tipo_documento" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->tipo_documento->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->tipo_documento->CellAttributes() ?>>
+<span id="el_emails_tipo_documento">
+<input type="text" data-table="emails" data-field="x_tipo_documento" data-page="2" name="x_tipo_documento" id="x_tipo_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($emails->tipo_documento->getPlaceHolder()) ?>" value="<?php echo $emails->tipo_documento->EditValue ?>"<?php echo $emails->tipo_documento->EditAttributes() ?>>
+</span>
+<?php echo $emails->tipo_documento->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->no_documento->Visible) { // no_documento ?>
+	<div id="r_no_documento" class="form-group">
+		<label id="elh_emails_no_documento" for="x_no_documento" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->no_documento->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->no_documento->CellAttributes() ?>>
+<span id="el_emails_no_documento">
+<input type="text" data-table="emails" data-field="x_no_documento" data-page="2" name="x_no_documento" id="x_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($emails->no_documento->getPlaceHolder()) ?>" value="<?php echo $emails->no_documento->EditValue ?>"<?php echo $emails->no_documento->EditAttributes() ?>>
+</span>
+<?php echo $emails->no_documento->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->nombres->Visible) { // nombres ?>
+	<div id="r_nombres" class="form-group">
+		<label id="elh_emails_nombres" for="x_nombres" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->nombres->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->nombres->CellAttributes() ?>>
+<span id="el_emails_nombres">
+<input type="text" data-table="emails" data-field="x_nombres" data-page="2" name="x_nombres" id="x_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->nombres->getPlaceHolder()) ?>" value="<?php echo $emails->nombres->EditValue ?>"<?php echo $emails->nombres->EditAttributes() ?>>
+</span>
+<?php echo $emails->nombres->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->paterno->Visible) { // paterno ?>
+	<div id="r_paterno" class="form-group">
+		<label id="elh_emails_paterno" for="x_paterno" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->paterno->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->paterno->CellAttributes() ?>>
+<span id="el_emails_paterno">
+<input type="text" data-table="emails" data-field="x_paterno" data-page="2" name="x_paterno" id="x_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->paterno->getPlaceHolder()) ?>" value="<?php echo $emails->paterno->EditValue ?>"<?php echo $emails->paterno->EditAttributes() ?>>
+</span>
+<?php echo $emails->paterno->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->materno->Visible) { // materno ?>
+	<div id="r_materno" class="form-group">
+		<label id="elh_emails_materno" for="x_materno" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->materno->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->materno->CellAttributes() ?>>
+<span id="el_emails_materno">
+<input type="text" data-table="emails" data-field="x_materno" data-page="2" name="x_materno" id="x_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->materno->getPlaceHolder()) ?>" value="<?php echo $emails->materno->EditValue ?>"<?php echo $emails->materno->EditAttributes() ?>>
+</span>
+<?php echo $emails->materno->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+</div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+		<div class="tab-pane<?php echo $emails_edit->MultiPages->PageStyle("3") ?>" id="tab_emails3"><!-- multi-page .tab-pane -->
+<div class="ewEditDiv"><!-- page* -->
+<?php if ($emails->email1->Visible) { // email1 ?>
+	<div id="r_email1" class="form-group">
+		<label id="elh_emails_email1" for="x_email1" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->email1->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->email1->CellAttributes() ?>>
+<span id="el_emails_email1">
+<input type="text" data-table="emails" data-field="x_email1" data-page="3" name="x_email1" id="x_email1" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email1->getPlaceHolder()) ?>" value="<?php echo $emails->email1->EditValue ?>"<?php echo $emails->email1->EditAttributes() ?>>
+</span>
+<?php echo $emails->email1->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->email2->Visible) { // email2 ?>
+	<div id="r_email2" class="form-group">
+		<label id="elh_emails_email2" for="x_email2" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->email2->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->email2->CellAttributes() ?>>
+<span id="el_emails_email2">
+<input type="text" data-table="emails" data-field="x_email2" data-page="3" name="x_email2" id="x_email2" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email2->getPlaceHolder()) ?>" value="<?php echo $emails->email2->EditValue ?>"<?php echo $emails->email2->EditAttributes() ?>>
+</span>
+<?php echo $emails->email2->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->email3->Visible) { // email3 ?>
+	<div id="r_email3" class="form-group">
+		<label id="elh_emails_email3" for="x_email3" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->email3->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->email3->CellAttributes() ?>>
+<span id="el_emails_email3">
+<input type="text" data-table="emails" data-field="x_email3" data-page="3" name="x_email3" id="x_email3" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email3->getPlaceHolder()) ?>" value="<?php echo $emails->email3->EditValue ?>"<?php echo $emails->email3->EditAttributes() ?>>
+</span>
+<?php echo $emails->email3->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($emails->email4->Visible) { // email4 ?>
+	<div id="r_email4" class="form-group">
+		<label id="elh_emails_email4" for="x_email4" class="<?php echo $emails_edit->LeftColumnClass ?>"><?php echo $emails->email4->FldCaption() ?></label>
+		<div class="<?php echo $emails_edit->RightColumnClass ?>"><div<?php echo $emails->email4->CellAttributes() ?>>
+<span id="el_emails_email4">
+<input type="text" data-table="emails" data-field="x_email4" data-page="3" name="x_email4" id="x_email4" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email4->getPlaceHolder()) ?>" value="<?php echo $emails->email4->EditValue ?>"<?php echo $emails->email4->EditAttributes() ?>>
+</span>
+<?php echo $emails->email4->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+</div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+	</div><!-- /multi-page .nav-tabs-custom .tab-content -->
+</div><!-- /multi-page .nav-tabs-custom -->
+</div><!-- /multi-page -->
 <?php if (!$emails_edit->IsModal) { ?>
 <div class="form-group"><!-- buttons .form-group -->
 	<div class="<?php echo $emails_edit->OffsetColumnClass ?>"><!-- buttons offset -->

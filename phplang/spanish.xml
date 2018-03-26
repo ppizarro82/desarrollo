@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<ew-language date="2018/2/16" version="14.0.0" id="en" name="Español" desc="Español" author="e.World Technology Ltd.">
+<ew-language date="2018/3/26" version="14.0.0" id="en" name="Español" desc="Español" author="e.World Technology Ltd.">
   <!-- 
 	*** Important Notes:
 	1. Language ID should follow: https://developers.google.com/recaptcha/docs/language,
@@ -616,52 +616,74 @@
   <project>
     <phrase id="bodytitle" value="Sistema de Gestión de Cobranzas - BMG" />
     <phrase id="footertext" value="&amp;copy;2017 e.World Technology Ltd. All rights reserved." />
-    <menu id="35" />
-    <menu id="36" />
     <menu id="31">
       <phrase id="menutext" value="Carpeta de Cobro" />
+    </menu>
+    <menu id="38">
+      <phrase id="menutext" value="(1) Deudas" />
+    </menu>
+    <menu id="77">
+      <phrase id="menutext" value="(2) Base de Datos" />
     </menu>
     <menu id="18">
       <phrase id="menutext" value="Personas" />
     </menu>
-    <menu id="38">
-      <phrase id="menutext" value="Deudas" />
-    </menu>
-    <menu id="37">
-      <phrase id="menutext" value="Datos Deudas" />
+    <menu id="32">
+      <phrase id="menutext" value="Direcciones" />
     </menu>
     <menu id="19">
       <phrase id="menutext" value="Teléfonos" />
     </menu>
-    <menu id="32">
-      <phrase id="menutext" value="Direcciones" />
+    <menu id="34">
+      <phrase id="menutext" value="Bienes" />
     </menu>
     <menu id="33">
-      <phrase id="menutext" value="Correos" />
+      <phrase id="menutext" value="Correos / Web" />
     </menu>
-    <menu id="34">
-      <phrase id="menutext" value="Vehículos" />
+    <menu id="37">
+      <phrase id="menutext" value="Datos Deudas" />
     </menu>
-    <menu id="16">
-      <phrase id="menutext" value="Cuentas" />
+    <menu id="78">
+      <phrase id="menutext" value="Análisis de Datos" />
+    </menu>
+    <menu id="56">
+      <phrase id="menutext" value="Seguimientos" />
     </menu>
     <menu id="14">
       <phrase id="menutext" value="Parámetros" />
     </menu>
+    <menu id="16">
+      <phrase id="menutext" value="Cuentas" />
+    </menu>
+    <menu id="59">
+      <phrase id="menutext" value="Paises" />
+    </menu>
     <menu id="17">
-      <phrase id="menutext" value="Ciudades" />
+      <phrase id="menutext" value="Departamentos" />
+    </menu>
+    <menu id="61">
+      <phrase id="menutext" value="Provincias" />
     </menu>
     <menu id="15">
       <phrase id="menutext" value="Estados de Deuda" />
     </menu>
+    <menu id="57">
+      <phrase id="menutext" value="Fuente de Datos" />
+    </menu>
+    <menu id="58">
+      <phrase id="menutext" value="Gestiones" />
+    </menu>
+    <menu id="62">
+      <phrase id="menutext" value="Tipo de Bien" />
+    </menu>
+    <menu id="63">
+      <phrase id="menutext" value="Tipo de Dirección" />
+    </menu>
     <menu id="9">
-      <phrase id="menutext" value="Tipo de gestión" />
+      <phrase id="menutext" value="Tipo de Seguimiento" />
     </menu>
     <menu id="10">
-      <phrase id="menutext" value="Tipo de persona" />
-    </menu>
-    <menu id="4">
-      <phrase id="menutext" value="Auditoría" />
+      <phrase id="menutext" value="Tipo de Persona" />
     </menu>
     <menu id="8">
       <phrase id="menutext" value="Seguridad" />
@@ -675,6 +697,16 @@
     <menu id="1">
       <phrase id="menutext" value="Permisos" />
     </menu>
+    <menu id="4">
+      <phrase id="menutext" value="Auditoría" />
+    </menu>
+    <menu id="82" />
+    <menu id="81" />
+    <menu id="79" />
+    <menu id="80" />
+    <menu id="36" />
+    <menu id="60" />
+    <menu id="35" />
     <table id="userlevelpermissions">
       <phrase id="tblcaption" value="Permisos" />
       <field id="userlevelid">
@@ -718,6 +750,12 @@
       </field>
       <field id="tipo_documento">
         <phrase id="fldcaption" value="Tipo documento" />
+        <phrase id="fldtagvalue1" value="CI" />
+        <phrase id="fldtagcaption1" value="CI" />
+        <phrase id="fldtagvalue2" value="Pasaporte" />
+        <phrase id="fldtagcaption2" value="Pasaporte" />
+        <phrase id="fldtagvalue3" value="Libreta Servicio M." />
+        <phrase id="fldtagcaption3" value="Libreta Servicio M." />
       </field>
       <field id="first_name">
         <phrase id="fldcaption" value="Nombres" />
@@ -814,7 +852,7 @@
       </field>
     </table>
     <table id="tipo_gestion">
-      <phrase id="tblcaption" value="Tipo de gestión" />
+      <phrase id="tblcaption" value="Tipo de Seguimiento" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
@@ -830,7 +868,7 @@
       </field>
     </table>
     <table id="tipo_persona">
-      <phrase id="tblcaption" value="Tipo de persona" />
+      <phrase id="tblcaption" value="Tipo de Persona" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
@@ -890,12 +928,24 @@
       </field>
     </table>
     <table id="ciudades">
-      <phrase id="tblcaption" value="Ciudades" />
+      <phrase id="tblcaption" value="Departamento" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
+      <field id="id_pais">
+        <phrase id="fldcaption" value="País" />
+      </field>
+      <field id="nombre_pais">
+        <phrase id="fldcaption" value="Nombre País" />
+      </field>
       <field id="nombre">
         <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="latitud">
+        <phrase id="fldcaption" value="Latitud" />
+      </field>
+      <field id="longitud">
+        <phrase id="fldcaption" value="Longitud" />
       </field>
       <field id="estado">
         <phrase id="fldcaption" value="Activo" />
@@ -907,17 +957,35 @@
     </table>
     <table id="personas">
       <phrase id="tblcaption" value="Personas" />
+      <phrase id="tblpagecaption1" value="General" />
+      <phrase id="tblpagecaption2" value="Datos Personales" />
+      <phrase id="tblpagecaption3" value="Adicionales" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
+      <field id="id_fuente">
+        <phrase id="fldcaption" value="Fuente" />
+      </field>
+      <field id="id_gestion">
+        <phrase id="fldcaption" value="Gestión" />
+      </field>
+      <field id="id_ref">
+        <phrase id="fldcaption" value="Cod.Ref." />
+      </field>
       <field id="tipo_documento">
         <phrase id="fldcaption" value="Tipo Doc." />
-        <phrase id="fldtagvalue1" value="CI" />
-        <phrase id="fldtagcaption1" value="CI" />
-        <phrase id="fldtagvalue2" value="Libreta Militar" />
-        <phrase id="fldtagcaption2" value="Libreta Militar" />
-        <phrase id="fldtagvalue3" value="Pasaporte" />
-        <phrase id="fldtagcaption3" value="Pasaporte" />
+        <phrase id="fldtagvalue1" value="C.I." />
+        <phrase id="fldtagcaption1" value="C.I." />
+        <phrase id="fldtagvalue2" value="N.I.T." />
+        <phrase id="fldtagcaption2" value="N.I.T" />
+        <phrase id="fldtagvalue3" value="Libreta Militar" />
+        <phrase id="fldtagcaption3" value="Libreta Militar" />
+        <phrase id="fldtagvalue4" value="Pasaporte" />
+        <phrase id="fldtagcaption4" value="Pasaporte" />
+        <phrase id="fldtagvalue5" value="R.U.N." />
+        <phrase id="fldtagcaption5" value="R.U.N." />
+        <phrase id="fldtagvalue6" value="Documento Extranjero" />
+        <phrase id="fldtagcaption6" value="Documento Extranjero" />
       </field>
       <field id="no_documento">
         <phrase id="fldcaption" value="No. Doc." />
@@ -931,11 +999,14 @@
       <field id="materno">
         <phrase id="fldcaption" value="Ap. Materno" />
       </field>
+      <field id="especial">
+        <phrase id="fldcaption" value="Especial" />
+      </field>
       <field id="fecha_nacimiento">
-        <phrase id="fldcaption" value="Fecha de nacimiento" />
+        <phrase id="fldcaption" value="F. Nacimiento" />
       </field>
       <field id="fecha_registro">
-        <phrase id="fldcaption" value="Fecha de registro" />
+        <phrase id="fldcaption" value="F. Registro" />
       </field>
       <field id="imagen">
         <phrase id="fldcaption" value="Foto" />
@@ -953,40 +1024,62 @@
     </table>
     <table id="telefonos">
       <phrase id="tblcaption" value="Teléfonos" />
+      <phrase id="tblpagecaption1" value="Generales" />
+      <phrase id="tblpagecaption2" value="Persona" />
+      <phrase id="tblpagecaption3" value="Teléfonos" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
-      <field id="id_persona">
-        <phrase id="fldcaption" value="Persona" />
+      <field id="id_fuente">
+        <phrase id="fldcaption" value="Fuente" />
       </field>
-      <field id="tipo">
-        <phrase id="fldcaption" value="Tipo" />
-        <phrase id="fldtagvalue1" value="Celular" />
-        <phrase id="fldtagcaption1" value="Celular" />
-        <phrase id="fldtagvalue2" value="Fijo" />
-        <phrase id="fldtagcaption2" value="Fijo" />
+      <field id="id_gestion">
+        <phrase id="fldcaption" value="Gestión" />
       </field>
-      <field id="numero">
-        <phrase id="fldcaption" value="Número" />
+      <field id="tipo_documento">
+        <phrase id="fldcaption" value="Tipo de documento" />
       </field>
-      <field id="ult_fecha_activo">
-        <phrase id="fldcaption" value="Ult. Fecha Activo" />
+      <field id="no_documento">
+        <phrase id="fldcaption" value="No. de documento" />
+      </field>
+      <field id="nombres">
+        <phrase id="fldcaption" value="Nombres" />
+      </field>
+      <field id="paterno">
+        <phrase id="fldcaption" value="Paterno" />
+      </field>
+      <field id="materno">
+        <phrase id="fldcaption" value="Materno" />
+      </field>
+      <field id="telefono1">
+        <phrase id="fldcaption" value="Teléfono 1" />
+      </field>
+      <field id="telefono2">
+        <phrase id="fldcaption" value="Telefono 2" />
+      </field>
+      <field id="telefono3">
+        <phrase id="fldcaption" value="Telefono 3" />
+      </field>
+      <field id="telefono4">
+        <phrase id="fldcaption" value="Telefono 4" />
       </field>
     </table>
     <table id="direcciones">
       <phrase id="tblcaption" value="Direcciones" />
       <phrase id="tblpagecaption1" value="Generales" />
-      <phrase id="tblpagecaption2" value="Dirección" />
+      <phrase id="tblpagecaption2" value="Persona" />
+      <phrase id="tblpagecaption3" value="Direcciones" />
+      <phrase id="tblpagecaption4" value="Ubicación" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
-      <field id="id_persona">
-        <phrase id="fldcaption" value="Persona" />
+      <field id="id_fuente">
+        <phrase id="fldcaption" value="Fuente" />
       </field>
-      <field id="id_ciudad">
-        <phrase id="fldcaption" value="Ciudad" />
+      <field id="id_gestion">
+        <phrase id="fldcaption" value="Gestión" />
       </field>
-      <field id="tipo_direccion">
+      <field id="id_tipodireccion">
         <phrase id="fldcaption" value="Tipo" />
         <phrase id="fldtagvalue1" value="Domicilio" />
         <phrase id="fldtagcaption1" value="Domicilio" />
@@ -999,11 +1092,53 @@
         <phrase id="fldtagvalue5" value="Correspondencia" />
         <phrase id="fldtagcaption5" value="Correspondencia" />
       </field>
-      <field id="direccion">
-        <phrase id="fldcaption" value="Dirección" />
+      <field id="tipo_documento">
+        <phrase id="fldcaption" value="Tipo de documento" />
       </field>
-      <field id="ult_fecha_activo">
-        <phrase id="fldcaption" value="Ult. Fecha Activo" />
+      <field id="no_documento">
+        <phrase id="fldcaption" value="No. de documento" />
+      </field>
+      <field id="nombres">
+        <phrase id="fldcaption" value="Nombres" />
+      </field>
+      <field id="paterno">
+        <phrase id="fldcaption" value="Paterno" />
+      </field>
+      <field id="materno">
+        <phrase id="fldcaption" value="Materno" />
+      </field>
+      <field id="pais">
+        <phrase id="fldcaption" value="País" />
+      </field>
+      <field id="departamento">
+        <phrase id="fldcaption" value="Departamento" />
+      </field>
+      <field id="provincia">
+        <phrase id="fldcaption" value="Provincia" />
+      </field>
+      <field id="municipio">
+        <phrase id="fldcaption" value="Municipio" />
+      </field>
+      <field id="localidad">
+        <phrase id="fldcaption" value="Localidad" />
+      </field>
+      <field id="distrito">
+        <phrase id="fldcaption" value="Distrito" />
+      </field>
+      <field id="zona">
+        <phrase id="fldcaption" value="Zona" />
+      </field>
+      <field id="direccion1">
+        <phrase id="fldcaption" value="Dirección 1" />
+      </field>
+      <field id="direccion2">
+        <phrase id="fldcaption" value="Dirección 2" />
+      </field>
+      <field id="direccion3">
+        <phrase id="fldcaption" value="Dirección 3" />
+      </field>
+      <field id="direccion4">
+        <phrase id="fldcaption" value="Dirección 4" />
       </field>
       <field id="mapa">
         <phrase id="fldcaption" value="Mapa" />
@@ -1016,24 +1151,79 @@
       </field>
     </table>
     <table id="emails">
-      <phrase id="tblcaption" value="Correos" />
+      <phrase id="tblcaption" value="Correos / Web" />
+      <phrase id="tblpagecaption1" value="Generales" />
+      <phrase id="tblpagecaption2" value="Persona" />
+      <phrase id="tblpagecaption3" value="Correos / Web" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
-      <field id="id_persona">
-        <phrase id="fldcaption" value="Persona" />
+      <field id="id_fuente">
+        <phrase id="fldcaption" value="Fuente" />
       </field>
-      <field id="_email">
-        <phrase id="fldcaption" value="Email" />
+      <field id="id_gestion">
+        <phrase id="fldcaption" value="Gestión" />
+      </field>
+      <field id="tipo_documento">
+        <phrase id="fldcaption" value="Tipo de documento" />
+      </field>
+      <field id="no_documento">
+        <phrase id="fldcaption" value="No. de documento" />
+      </field>
+      <field id="nombres">
+        <phrase id="fldcaption" value="Nombres" />
+      </field>
+      <field id="paterno">
+        <phrase id="fldcaption" value="Paterno" />
+      </field>
+      <field id="materno">
+        <phrase id="fldcaption" value="Materno" />
+      </field>
+      <field id="email1">
+        <phrase id="fldcaption" value="Email 1" />
+      </field>
+      <field id="email2">
+        <phrase id="fldcaption" value="Email 2" />
+      </field>
+      <field id="email3">
+        <phrase id="fldcaption" value="Web 1" />
+      </field>
+      <field id="email4">
+        <phrase id="fldcaption" value="Web 2" />
       </field>
     </table>
-    <table id="vehiculos">
-      <phrase id="tblcaption" value="Vehículos" />
+    <table id="bienes">
+      <phrase id="tblcaption" value="Bienes" />
+      <phrase id="tblpagecaption1" value="Generales" />
+      <phrase id="tblpagecaption2" value="Persona" />
+      <phrase id="tblpagecaption3" value="Datos Bien" />
+      <phrase id="tblpagecaption4" value="Adicionales" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
-      <field id="id_persona">
-        <phrase id="fldcaption" value="Persona" />
+      <field id="id_fuente">
+        <phrase id="fldcaption" value="Fuente" />
+      </field>
+      <field id="id_gestion">
+        <phrase id="fldcaption" value="Gestión" />
+      </field>
+      <field id="id_tipobien">
+        <phrase id="fldcaption" value="Tipo de bien" />
+      </field>
+      <field id="tipo_documento">
+        <phrase id="fldcaption" value="Tipo de documento" />
+      </field>
+      <field id="no_documento">
+        <phrase id="fldcaption" value="No. de documento" />
+      </field>
+      <field id="nombres">
+        <phrase id="fldcaption" value="Nombres" />
+      </field>
+      <field id="paterno">
+        <phrase id="fldcaption" value="Paterno" />
+      </field>
+      <field id="materno">
+        <phrase id="fldcaption" value="Materno" />
       </field>
       <field id="marca">
         <phrase id="fldcaption" value="Marca" />
@@ -1041,11 +1231,23 @@
       <field id="modelo">
         <phrase id="fldcaption" value="Modelo" />
       </field>
-      <field id="placa">
+      <field id="codigo_placa">
         <phrase id="fldcaption" value="Placa" />
       </field>
       <field id="anio">
         <phrase id="fldcaption" value="Año" />
+      </field>
+      <field id="adicional1">
+        <phrase id="fldcaption" value="Adicional 1" />
+      </field>
+      <field id="adicional2">
+        <phrase id="fldcaption" value="Adicional 2" />
+      </field>
+      <field id="adicional3">
+        <phrase id="fldcaption" value="Adicional 3" />
+      </field>
+      <field id="adicional4">
+        <phrase id="fldcaption" value="Adicional 4" />
       </field>
     </table>
     <table id="direccionesadd_php" />
@@ -1061,9 +1263,16 @@
       <field id="id_tipopersona">
         <phrase id="fldcaption" value="Relación" />
       </field>
+      <field id="mig_codigo_cliente">
+        <phrase id="fldcaption" value="Código Cliente" />
+      </field>
     </table>
     <table id="deudas">
       <phrase id="tblcaption" value="Deudas" />
+      <phrase id="tblpagecaption1" value="Generales" />
+      <phrase id="tblpagecaption2" value="Operación" />
+      <phrase id="tblpagecaption3" value="Legal" />
+      <phrase id="tblpagecaption4" value="Financiera" />
       <field id="id">
         <phrase id="fldcaption" value="ID" />
       </field>
@@ -1073,9 +1282,178 @@
       <field id="id_cliente">
         <phrase id="fldcaption" value="Cuenta" />
       </field>
-      <field id="codigo">
+      <field id="id_ciudad">
+        <phrase id="fldcaption" value="Ciudad" />
+      </field>
+      <field id="id_agente">
+        <phrase id="fldcaption" value="Agente" />
+      </field>
+      <field id="id_estadodeuda">
+        <phrase id="fldcaption" value="Estado" />
+      </field>
+      <field id="mig_codigo_deuda">
         <phrase id="fldcaption" value="Código" />
       </field>
+      <field id="mig_tipo_operacion">
+        <phrase id="fldcaption" value="Tipo operación" />
+      </field>
+      <field id="mig_fecha_desembolso">
+        <phrase id="fldcaption" value="Fecha Desembolso" />
+      </field>
+      <field id="mig_fecha_estado">
+        <phrase id="fldcaption" value="Fecha Estado" />
+      </field>
+      <field id="mig_anios_castigo">
+        <phrase id="fldcaption" value="Años Castigo" />
+      </field>
+      <field id="mig_tipo_garantia">
+        <phrase id="fldcaption" value="Tipo Garantía" />
+      </field>
+      <field id="mig_real">
+        <phrase id="fldcaption" value="Garantía Real" />
+      </field>
+      <field id="mig_actividad_economica">
+        <phrase id="fldcaption" value="Actividad Económica" />
+      </field>
+      <field id="mig_agencia">
+        <phrase id="fldcaption" value="Agencia" />
+      </field>
+      <field id="mig_no_juicio">
+        <phrase id="fldcaption" value="No. Juicio" />
+      </field>
+      <field id="mig_nombre_abogado">
+        <phrase id="fldcaption" value="Nombre Abogado" />
+      </field>
+      <field id="mig_fase_procesal">
+        <phrase id="fldcaption" value="Fase Procesal" />
+      </field>
+      <field id="mig_moneda">
+        <phrase id="fldcaption" value="Moneda" />
+        <phrase id="fldtagvalue1" value="$us." />
+        <phrase id="fldtagcaption1" value="$us." />
+        <phrase id="fldtagvalue2" value="Bs." />
+        <phrase id="fldtagcaption2" value="Bs" />
+      </field>
+      <field id="mig_tasa">
+        <phrase id="fldcaption" value="Tasa" />
+      </field>
+      <field id="mig_plazo">
+        <phrase id="fldcaption" value="Plazo" />
+      </field>
+      <field id="mig_dias_mora">
+        <phrase id="fldcaption" value="Días Mora" />
+      </field>
+      <field id="mig_monto_desembolso">
+        <phrase id="fldcaption" value="Monto Desembolsado" />
+      </field>
+      <field id="mig_total_cartera">
+        <phrase id="fldcaption" value="Total Cartera" />
+      </field>
+      <field id="mig_capital">
+        <phrase id="fldcaption" value="Capital" />
+      </field>
+      <field id="mig_intereses">
+        <phrase id="fldcaption" value="Intereses" />
+      </field>
+      <field id="mig_cargos_gastos">
+        <phrase id="fldcaption" value="Cargos/Gastos" />
+      </field>
+      <field id="mig_total_deuda">
+        <phrase id="fldcaption" value="Total Deuda" />
+      </field>
     </table>
+    <table id="fuentes">
+      <phrase id="tblcaption" value="Fuente de Datos" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Estado" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="gestiones">
+      <phrase id="tblcaption" value="Gestiones" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Gestión" />
+      </field>
+    </table>
+    <table id="paises">
+      <phrase id="tblcaption" value="Paises" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+    </table>
+    <table id="coordenadas_ciudad_php" />
+    <table id="provincias">
+      <phrase id="tblcaption" value="Provincias" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="id_departamento">
+        <phrase id="fldcaption" value="Depto" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="tipo_bien">
+      <phrase id="tblcaption" value="Tipo de Bien" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Activo" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="tipo_direccion">
+      <phrase id="tblcaption" value="Tipo de Dirección" />
+      <field id="id">
+        <phrase id="fldcaption" value="ID" />
+      </field>
+      <field id="nombre">
+        <phrase id="fldcaption" value="Nombre" />
+      </field>
+      <field id="estado">
+        <phrase id="fldcaption" value="Web 2" />
+        <phrase id="fldtagvalue1" value="1" />
+        <phrase id="fldtagcaption1" value="Si" />
+        <phrase id="fldtagvalue2" value="0" />
+        <phrase id="fldtagcaption2" value="No" />
+      </field>
+    </table>
+    <table id="analisis_php">
+      <phrase id="tblcaption" value="Análisis de Datos" />
+    </table>
+    <table id="analisis_direccioneslist_php" />
+    <table id="analisis_telefonoslist_php" />
+    <table id="analisis_emailslist_php" />
+    <table id="analisis_bieneslist_php" />
   </project>
 </ew-language>

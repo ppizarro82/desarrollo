@@ -696,7 +696,7 @@ class cusers_delete extends cusers {
 
 		// fecha_ingreso
 		$this->fecha_ingreso->ViewValue = $this->fecha_ingreso->CurrentValue;
-		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 0);
+		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 11);
 		$this->fecha_ingreso->ViewCustomAttributes = "";
 
 			// id_user
@@ -794,6 +794,17 @@ class cusers_delete extends cusers {
 			return FALSE;
 		}
 		$rows = ($rs) ? $rs->GetRows() : array();
+
+		// Check if records exist for detail table 'deudas'
+		if (!isset($GLOBALS["deudas"])) $GLOBALS["deudas"] = new cdeudas();
+		foreach ($rows as $row) {
+			$rsdetail = $GLOBALS["deudas"]->LoadRs("`id_agente` = " . ew_QuotedValue($row['id_user'], EW_DATATYPE_NUMBER, 'DB'));
+			if ($rsdetail && !$rsdetail->EOF) {
+				$sRelatedRecordMsg = str_replace("%t", "deudas", $Language->Phrase("RelatedRecordExists"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				return FALSE;
+			}
+		}
 		$conn->BeginTrans();
 
 		// Clone old rows

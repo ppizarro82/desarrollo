@@ -1,6 +1,9 @@
 <?php
 
 // Id
+// id_fuente
+// id_gestion
+// id_ref
 // tipo_documento
 // no_documento
 // nombres
@@ -23,6 +26,39 @@
 <span id="el_personas_Id">
 <span<?php echo $personas->Id->ViewAttributes() ?>>
 <?php echo $personas->Id->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+		<tr id="r_id_fuente">
+			<td class="col-sm-2"><?php echo $personas->id_fuente->FldCaption() ?></td>
+			<td<?php echo $personas->id_fuente->CellAttributes() ?>>
+<span id="el_personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<?php echo $personas->id_fuente->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+		<tr id="r_id_gestion">
+			<td class="col-sm-2"><?php echo $personas->id_gestion->FldCaption() ?></td>
+			<td<?php echo $personas->id_gestion->CellAttributes() ?>>
+<span id="el_personas_id_gestion">
+<span<?php echo $personas->id_gestion->ViewAttributes() ?>>
+<?php echo $personas->id_gestion->ListViewValue() ?></span>
+</span>
+</td>
+		</tr>
+<?php } ?>
+<?php if ($personas->id_ref->Visible) { // id_ref ?>
+		<tr id="r_id_ref">
+			<td class="col-sm-2"><?php echo $personas->id_ref->FldCaption() ?></td>
+			<td<?php echo $personas->id_ref->CellAttributes() ?>>
+<span id="el_personas_id_ref">
+<span<?php echo $personas->id_ref->ViewAttributes() ?>>
+<?php echo $personas->id_ref->ListViewValue() ?></span>
 </span>
 </td>
 		</tr>

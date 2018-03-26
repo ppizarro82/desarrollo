@@ -321,24 +321,36 @@ class cdefault {
 			$this->Page_Terminate("estado_deudalist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'cuentas'))
 			$this->Page_Terminate("cuentaslist.php");
-		if ($Security->AllowList(CurrentProjectID() . 'ciudades'))
-			$this->Page_Terminate("ciudadeslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'telefonos'))
 			$this->Page_Terminate("telefonoslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'direcciones'))
 			$this->Page_Terminate("direccioneslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'emails'))
 			$this->Page_Terminate("emailslist.php");
-		if ($Security->AllowList(CurrentProjectID() . 'vehiculos'))
-			$this->Page_Terminate("vehiculoslist.php");
-		if ($Security->AllowList(CurrentProjectID() . 'direccionesadd.php'))
-			$this->Page_Terminate("direccionesadd.php");
-		if ($Security->AllowList(CurrentProjectID() . 'direccionesedit.php'))
-			$this->Page_Terminate("direccionesedit.php");
+		if ($Security->AllowList(CurrentProjectID() . 'bienes'))
+			$this->Page_Terminate("bieneslist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'deuda_persona'))
 			$this->Page_Terminate("deuda_personalist.php");
 		if ($Security->AllowList(CurrentProjectID() . 'deudas'))
 			$this->Page_Terminate("deudaslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'fuentes'))
+			$this->Page_Terminate("fuenteslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'gestiones'))
+			$this->Page_Terminate("gestioneslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_bien'))
+			$this->Page_Terminate("tipo_bienlist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'tipo_direccion'))
+			$this->Page_Terminate("tipo_direccionlist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'analisis.php'))
+			$this->Page_Terminate("analisis.php");
+		if ($Security->AllowList(CurrentProjectID() . 'analisis_direccioneslist.php'))
+			$this->Page_Terminate("analisis_direccioneslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'analisis_telefonoslist.php'))
+			$this->Page_Terminate("analisis_telefonoslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'analisis_emailslist.php'))
+			$this->Page_Terminate("analisis_emailslist.php");
+		if ($Security->AllowList(CurrentProjectID() . 'analisis_bieneslist.php'))
+			$this->Page_Terminate("analisis_bieneslist.php");
 		if ($Security->IsLoggedIn()) {
 			$this->setFailureMessage(ew_DeniedMsg() . "<br><br><a href=\"logout.php\">" . $Language->Phrase("BackToLogin") . "</a>");
 		} else {

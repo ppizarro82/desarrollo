@@ -45,21 +45,12 @@ fdireccionesgrid.Validate = function() {
 			elm = this.GetElements("x" + infix + "_id_persona");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->id_persona->FldCaption(), $direcciones->id_persona->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_id_ciudad");
+			elm = this.GetElements("x" + infix + "_nombres");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->id_ciudad->FldCaption(), $direcciones->id_ciudad->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_tipo_direccion");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->nombres->FldCaption(), $direcciones->nombres->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_direccion1");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->tipo_direccion->FldCaption(), $direcciones->tipo_direccion->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_direccion");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->direccion->FldCaption(), $direcciones->direccion->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_ult_fecha_activo");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->ult_fecha_activo->FldCaption(), $direcciones->ult_fecha_activo->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_ult_fecha_activo");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($direcciones->ult_fecha_activo->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $direcciones->direccion1->FldCaption(), $direcciones->direccion1->ReqErrMsg)) ?>");
 
 			// Fire Form_CustomValidate event
 			if (!this.Form_CustomValidate(fobj))
@@ -73,10 +64,25 @@ fdireccionesgrid.Validate = function() {
 fdireccionesgrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
 	if (ew_ValueChanged(fobj, infix, "id_persona", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "id_ciudad", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "tipo_direccion", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "direccion", false)) return false;
-	if (ew_ValueChanged(fobj, infix, "ult_fecha_activo", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_fuente", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_gestion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_tipodireccion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "tipo_documento", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "no_documento", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "nombres", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "paterno", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "materno", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "pais", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "departamento", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "provincia", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "municipio", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "localidad", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "distrito", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "zona", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "direccion1", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "direccion2", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "direccion3", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "direccion4", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "mapa", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "longitud", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "latitud", false)) return false;
@@ -95,12 +101,14 @@ fdireccionesgrid.Form_CustomValidate =
 fdireccionesgrid.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fdireccionesgrid.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
+fdireccionesgrid.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_paterno","x_materno","x_nombres",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
 fdireccionesgrid.Lists["x_id_persona"].Data = "<?php echo $direcciones_grid->id_persona->LookupFilterQuery(FALSE, "grid") ?>";
-fdireccionesgrid.Lists["x_id_ciudad"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"ciudades"};
-fdireccionesgrid.Lists["x_id_ciudad"].Data = "<?php echo $direcciones_grid->id_ciudad->LookupFilterQuery(FALSE, "grid") ?>";
-fdireccionesgrid.Lists["x_tipo_direccion"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
-fdireccionesgrid.Lists["x_tipo_direccion"].Options = <?php echo json_encode($direcciones_grid->tipo_direccion->Options()) ?>;
+fdireccionesgrid.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fdireccionesgrid.Lists["x_id_fuente"].Data = "<?php echo $direcciones_grid->id_fuente->LookupFilterQuery(FALSE, "grid") ?>";
+fdireccionesgrid.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fdireccionesgrid.Lists["x_id_gestion"].Data = "<?php echo $direcciones_grid->id_gestion->LookupFilterQuery(FALSE, "grid") ?>";
+fdireccionesgrid.Lists["x_id_tipodireccion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"tipo_direccion"};
+fdireccionesgrid.Lists["x_id_tipodireccion"].Data = "<?php echo $direcciones_grid->id_tipodireccion->LookupFilterQuery(FALSE, "grid") ?>";
 
 // Form object for search
 </script>
@@ -200,39 +208,174 @@ $direcciones_grid->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
-	<?php if ($direcciones->SortUrl($direcciones->id_ciudad) == "") { ?>
-		<th data-name="id_ciudad" class="<?php echo $direcciones->id_ciudad->HeaderCellClass() ?>"><div id="elh_direcciones_id_ciudad" class="direcciones_id_ciudad"><div class="ewTableHeaderCaption"><?php echo $direcciones->id_ciudad->FldCaption() ?></div></div></th>
+<?php if ($direcciones->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($direcciones->SortUrl($direcciones->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $direcciones->id_fuente->HeaderCellClass() ?>"><div id="elh_direcciones_id_fuente" class="direcciones_id_fuente"><div class="ewTableHeaderCaption"><?php echo $direcciones->id_fuente->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="id_ciudad" class="<?php echo $direcciones->id_ciudad->HeaderCellClass() ?>"><div><div id="elh_direcciones_id_ciudad" class="direcciones_id_ciudad">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->id_ciudad->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->id_ciudad->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->id_ciudad->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_fuente" class="<?php echo $direcciones->id_fuente->HeaderCellClass() ?>"><div><div id="elh_direcciones_id_fuente" class="direcciones_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
-	<?php if ($direcciones->SortUrl($direcciones->tipo_direccion) == "") { ?>
-		<th data-name="tipo_direccion" class="<?php echo $direcciones->tipo_direccion->HeaderCellClass() ?>"><div id="elh_direcciones_tipo_direccion" class="direcciones_tipo_direccion"><div class="ewTableHeaderCaption"><?php echo $direcciones->tipo_direccion->FldCaption() ?></div></div></th>
+<?php if ($direcciones->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($direcciones->SortUrl($direcciones->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $direcciones->id_gestion->HeaderCellClass() ?>"><div id="elh_direcciones_id_gestion" class="direcciones_id_gestion"><div class="ewTableHeaderCaption"><?php echo $direcciones->id_gestion->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="tipo_direccion" class="<?php echo $direcciones->tipo_direccion->HeaderCellClass() ?>"><div><div id="elh_direcciones_tipo_direccion" class="direcciones_tipo_direccion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->tipo_direccion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->tipo_direccion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->tipo_direccion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_gestion" class="<?php echo $direcciones->id_gestion->HeaderCellClass() ?>"><div><div id="elh_direcciones_id_gestion" class="direcciones_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($direcciones->direccion->Visible) { // direccion ?>
-	<?php if ($direcciones->SortUrl($direcciones->direccion) == "") { ?>
-		<th data-name="direccion" class="<?php echo $direcciones->direccion->HeaderCellClass() ?>"><div id="elh_direcciones_direccion" class="direcciones_direccion"><div class="ewTableHeaderCaption"><?php echo $direcciones->direccion->FldCaption() ?></div></div></th>
+<?php if ($direcciones->id_tipodireccion->Visible) { // id_tipodireccion ?>
+	<?php if ($direcciones->SortUrl($direcciones->id_tipodireccion) == "") { ?>
+		<th data-name="id_tipodireccion" class="<?php echo $direcciones->id_tipodireccion->HeaderCellClass() ?>"><div id="elh_direcciones_id_tipodireccion" class="direcciones_id_tipodireccion"><div class="ewTableHeaderCaption"><?php echo $direcciones->id_tipodireccion->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="direccion" class="<?php echo $direcciones->direccion->HeaderCellClass() ?>"><div><div id="elh_direcciones_direccion" class="direcciones_direccion">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->direccion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->direccion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->direccion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_tipodireccion" class="<?php echo $direcciones->id_tipodireccion->HeaderCellClass() ?>"><div><div id="elh_direcciones_id_tipodireccion" class="direcciones_id_tipodireccion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->id_tipodireccion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->id_tipodireccion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->id_tipodireccion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($direcciones->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-	<?php if ($direcciones->SortUrl($direcciones->ult_fecha_activo) == "") { ?>
-		<th data-name="ult_fecha_activo" class="<?php echo $direcciones->ult_fecha_activo->HeaderCellClass() ?>"><div id="elh_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo"><div class="ewTableHeaderCaption"><?php echo $direcciones->ult_fecha_activo->FldCaption() ?></div></div></th>
+<?php if ($direcciones->tipo_documento->Visible) { // tipo_documento ?>
+	<?php if ($direcciones->SortUrl($direcciones->tipo_documento) == "") { ?>
+		<th data-name="tipo_documento" class="<?php echo $direcciones->tipo_documento->HeaderCellClass() ?>"><div id="elh_direcciones_tipo_documento" class="direcciones_tipo_documento"><div class="ewTableHeaderCaption"><?php echo $direcciones->tipo_documento->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="ult_fecha_activo" class="<?php echo $direcciones->ult_fecha_activo->HeaderCellClass() ?>"><div><div id="elh_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->ult_fecha_activo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->ult_fecha_activo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->ult_fecha_activo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="tipo_documento" class="<?php echo $direcciones->tipo_documento->HeaderCellClass() ?>"><div><div id="elh_direcciones_tipo_documento" class="direcciones_tipo_documento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->tipo_documento->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->tipo_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->tipo_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->no_documento->Visible) { // no_documento ?>
+	<?php if ($direcciones->SortUrl($direcciones->no_documento) == "") { ?>
+		<th data-name="no_documento" class="<?php echo $direcciones->no_documento->HeaderCellClass() ?>"><div id="elh_direcciones_no_documento" class="direcciones_no_documento"><div class="ewTableHeaderCaption"><?php echo $direcciones->no_documento->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="no_documento" class="<?php echo $direcciones->no_documento->HeaderCellClass() ?>"><div><div id="elh_direcciones_no_documento" class="direcciones_no_documento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->no_documento->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->no_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->no_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->nombres->Visible) { // nombres ?>
+	<?php if ($direcciones->SortUrl($direcciones->nombres) == "") { ?>
+		<th data-name="nombres" class="<?php echo $direcciones->nombres->HeaderCellClass() ?>"><div id="elh_direcciones_nombres" class="direcciones_nombres"><div class="ewTableHeaderCaption"><?php echo $direcciones->nombres->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="nombres" class="<?php echo $direcciones->nombres->HeaderCellClass() ?>"><div><div id="elh_direcciones_nombres" class="direcciones_nombres">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->nombres->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->nombres->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->nombres->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->paterno->Visible) { // paterno ?>
+	<?php if ($direcciones->SortUrl($direcciones->paterno) == "") { ?>
+		<th data-name="paterno" class="<?php echo $direcciones->paterno->HeaderCellClass() ?>"><div id="elh_direcciones_paterno" class="direcciones_paterno"><div class="ewTableHeaderCaption"><?php echo $direcciones->paterno->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="paterno" class="<?php echo $direcciones->paterno->HeaderCellClass() ?>"><div><div id="elh_direcciones_paterno" class="direcciones_paterno">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->paterno->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->paterno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->paterno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->materno->Visible) { // materno ?>
+	<?php if ($direcciones->SortUrl($direcciones->materno) == "") { ?>
+		<th data-name="materno" class="<?php echo $direcciones->materno->HeaderCellClass() ?>"><div id="elh_direcciones_materno" class="direcciones_materno"><div class="ewTableHeaderCaption"><?php echo $direcciones->materno->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="materno" class="<?php echo $direcciones->materno->HeaderCellClass() ?>"><div><div id="elh_direcciones_materno" class="direcciones_materno">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->materno->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->materno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->materno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->pais->Visible) { // pais ?>
+	<?php if ($direcciones->SortUrl($direcciones->pais) == "") { ?>
+		<th data-name="pais" class="<?php echo $direcciones->pais->HeaderCellClass() ?>"><div id="elh_direcciones_pais" class="direcciones_pais"><div class="ewTableHeaderCaption"><?php echo $direcciones->pais->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="pais" class="<?php echo $direcciones->pais->HeaderCellClass() ?>"><div><div id="elh_direcciones_pais" class="direcciones_pais">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->pais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->pais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->pais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->departamento->Visible) { // departamento ?>
+	<?php if ($direcciones->SortUrl($direcciones->departamento) == "") { ?>
+		<th data-name="departamento" class="<?php echo $direcciones->departamento->HeaderCellClass() ?>"><div id="elh_direcciones_departamento" class="direcciones_departamento"><div class="ewTableHeaderCaption"><?php echo $direcciones->departamento->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="departamento" class="<?php echo $direcciones->departamento->HeaderCellClass() ?>"><div><div id="elh_direcciones_departamento" class="direcciones_departamento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->departamento->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->departamento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->departamento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->provincia->Visible) { // provincia ?>
+	<?php if ($direcciones->SortUrl($direcciones->provincia) == "") { ?>
+		<th data-name="provincia" class="<?php echo $direcciones->provincia->HeaderCellClass() ?>"><div id="elh_direcciones_provincia" class="direcciones_provincia"><div class="ewTableHeaderCaption"><?php echo $direcciones->provincia->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="provincia" class="<?php echo $direcciones->provincia->HeaderCellClass() ?>"><div><div id="elh_direcciones_provincia" class="direcciones_provincia">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->provincia->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->provincia->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->provincia->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->municipio->Visible) { // municipio ?>
+	<?php if ($direcciones->SortUrl($direcciones->municipio) == "") { ?>
+		<th data-name="municipio" class="<?php echo $direcciones->municipio->HeaderCellClass() ?>"><div id="elh_direcciones_municipio" class="direcciones_municipio"><div class="ewTableHeaderCaption"><?php echo $direcciones->municipio->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="municipio" class="<?php echo $direcciones->municipio->HeaderCellClass() ?>"><div><div id="elh_direcciones_municipio" class="direcciones_municipio">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->municipio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->municipio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->municipio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->localidad->Visible) { // localidad ?>
+	<?php if ($direcciones->SortUrl($direcciones->localidad) == "") { ?>
+		<th data-name="localidad" class="<?php echo $direcciones->localidad->HeaderCellClass() ?>"><div id="elh_direcciones_localidad" class="direcciones_localidad"><div class="ewTableHeaderCaption"><?php echo $direcciones->localidad->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="localidad" class="<?php echo $direcciones->localidad->HeaderCellClass() ?>"><div><div id="elh_direcciones_localidad" class="direcciones_localidad">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->localidad->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->localidad->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->localidad->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->distrito->Visible) { // distrito ?>
+	<?php if ($direcciones->SortUrl($direcciones->distrito) == "") { ?>
+		<th data-name="distrito" class="<?php echo $direcciones->distrito->HeaderCellClass() ?>"><div id="elh_direcciones_distrito" class="direcciones_distrito"><div class="ewTableHeaderCaption"><?php echo $direcciones->distrito->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="distrito" class="<?php echo $direcciones->distrito->HeaderCellClass() ?>"><div><div id="elh_direcciones_distrito" class="direcciones_distrito">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->distrito->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->distrito->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->distrito->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->zona->Visible) { // zona ?>
+	<?php if ($direcciones->SortUrl($direcciones->zona) == "") { ?>
+		<th data-name="zona" class="<?php echo $direcciones->zona->HeaderCellClass() ?>"><div id="elh_direcciones_zona" class="direcciones_zona"><div class="ewTableHeaderCaption"><?php echo $direcciones->zona->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="zona" class="<?php echo $direcciones->zona->HeaderCellClass() ?>"><div><div id="elh_direcciones_zona" class="direcciones_zona">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->zona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->zona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->zona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->direccion1->Visible) { // direccion1 ?>
+	<?php if ($direcciones->SortUrl($direcciones->direccion1) == "") { ?>
+		<th data-name="direccion1" class="<?php echo $direcciones->direccion1->HeaderCellClass() ?>"><div id="elh_direcciones_direccion1" class="direcciones_direccion1"><div class="ewTableHeaderCaption"><?php echo $direcciones->direccion1->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="direccion1" class="<?php echo $direcciones->direccion1->HeaderCellClass() ?>"><div><div id="elh_direcciones_direccion1" class="direcciones_direccion1">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->direccion1->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->direccion1->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->direccion1->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->direccion2->Visible) { // direccion2 ?>
+	<?php if ($direcciones->SortUrl($direcciones->direccion2) == "") { ?>
+		<th data-name="direccion2" class="<?php echo $direcciones->direccion2->HeaderCellClass() ?>"><div id="elh_direcciones_direccion2" class="direcciones_direccion2"><div class="ewTableHeaderCaption"><?php echo $direcciones->direccion2->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="direccion2" class="<?php echo $direcciones->direccion2->HeaderCellClass() ?>"><div><div id="elh_direcciones_direccion2" class="direcciones_direccion2">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->direccion2->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->direccion2->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->direccion2->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->direccion3->Visible) { // direccion3 ?>
+	<?php if ($direcciones->SortUrl($direcciones->direccion3) == "") { ?>
+		<th data-name="direccion3" class="<?php echo $direcciones->direccion3->HeaderCellClass() ?>"><div id="elh_direcciones_direccion3" class="direcciones_direccion3"><div class="ewTableHeaderCaption"><?php echo $direcciones->direccion3->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="direccion3" class="<?php echo $direcciones->direccion3->HeaderCellClass() ?>"><div><div id="elh_direcciones_direccion3" class="direcciones_direccion3">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->direccion3->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->direccion3->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->direccion3->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($direcciones->direccion4->Visible) { // direccion4 ?>
+	<?php if ($direcciones->SortUrl($direcciones->direccion4) == "") { ?>
+		<th data-name="direccion4" class="<?php echo $direcciones->direccion4->HeaderCellClass() ?>"><div id="elh_direcciones_direccion4" class="direcciones_direccion4"><div class="ewTableHeaderCaption"><?php echo $direcciones->direccion4->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="direccion4" class="<?php echo $direcciones->direccion4->HeaderCellClass() ?>"><div><div id="elh_direcciones_direccion4" class="direcciones_direccion4">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $direcciones->direccion4->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($direcciones->direccion4->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($direcciones->direccion4->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -415,9 +558,11 @@ $direcciones_grid->ListOptions->Render("body", "left", $direcciones_grid->RowCnt
 <input type="hidden" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($direcciones->id_persona->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_persona" class="form-group direcciones_id_persona">
-<select data-table="direcciones" data-field="x_id_persona" data-value-separator="<?php echo $direcciones->id_persona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona"<?php echo $direcciones->id_persona->EditAttributes() ?>>
-<?php echo $direcciones->id_persona->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_persona") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $direcciones_grid->RowIndex ?>_id_persona"><?php echo (strval($direcciones->id_persona->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $direcciones->id_persona->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($direcciones->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="direcciones" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $direcciones->id_persona->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo $direcciones->id_persona->CurrentValue ?>"<?php echo $direcciones->id_persona->EditAttributes() ?>>
 </span>
 <?php } ?>
 <input type="hidden" data-table="direcciones" data-field="x_id_persona" name="o<?php echo $direcciones_grid->RowIndex ?>_id_persona" id="o<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($direcciones->id_persona->OldValue) ?>">
@@ -436,9 +581,11 @@ $direcciones_grid->ListOptions->Render("body", "left", $direcciones_grid->RowCnt
 <input type="hidden" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($direcciones->id_persona->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_persona" class="form-group direcciones_id_persona">
-<select data-table="direcciones" data-field="x_id_persona" data-value-separator="<?php echo $direcciones->id_persona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona"<?php echo $direcciones->id_persona->EditAttributes() ?>>
-<?php echo $direcciones->id_persona->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_persona") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $direcciones_grid->RowIndex ?>_id_persona"><?php echo (strval($direcciones->id_persona->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $direcciones->id_persona->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($direcciones->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="direcciones" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $direcciones->id_persona->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo $direcciones->id_persona->CurrentValue ?>"<?php echo $direcciones->id_persona->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php } ?>
@@ -462,132 +609,558 @@ $direcciones_grid->ListOptions->Render("body", "left", $direcciones_grid->RowCnt
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
-		<td data-name="id_ciudad"<?php echo $direcciones->id_ciudad->CellAttributes() ?>>
+	<?php if ($direcciones->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $direcciones->id_fuente->CellAttributes() ?>>
 <?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_ciudad" class="form-group direcciones_id_ciudad">
-<select data-table="direcciones" data-field="x_id_ciudad" data-value-separator="<?php echo $direcciones->id_ciudad->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" name="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad"<?php echo $direcciones->id_ciudad->EditAttributes() ?>>
-<?php echo $direcciones->id_ciudad->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad") ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_fuente" class="form-group direcciones_id_fuente">
+<select data-table="direcciones" data-field="x_id_fuente" data-value-separator="<?php echo $direcciones->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" name="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente"<?php echo $direcciones->id_fuente->EditAttributes() ?>>
+<?php echo $direcciones->id_fuente->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_fuente") ?>
 </select>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->OldValue) ?>">
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_ciudad" class="form-group direcciones_id_ciudad">
-<select data-table="direcciones" data-field="x_id_ciudad" data-value-separator="<?php echo $direcciones->id_ciudad->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" name="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad"<?php echo $direcciones->id_ciudad->EditAttributes() ?>>
-<?php echo $direcciones->id_ciudad->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad") ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_fuente" class="form-group direcciones_id_fuente">
+<select data-table="direcciones" data-field="x_id_fuente" data-value-separator="<?php echo $direcciones->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" name="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente"<?php echo $direcciones->id_fuente->EditAttributes() ?>>
+<?php echo $direcciones->id_fuente->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_fuente") ?>
 </select>
 </span>
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_ciudad" class="direcciones_id_ciudad">
-<span<?php echo $direcciones->id_ciudad->ViewAttributes() ?>>
-<?php echo $direcciones->id_ciudad->ListViewValue() ?></span>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_fuente" class="direcciones_id_fuente">
+<span<?php echo $direcciones->id_fuente->ViewAttributes() ?>>
+<?php echo $direcciones->id_fuente->ListViewValue() ?></span>
 </span>
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->OldValue) ?>">
 <?php } else { ?>
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
-		<td data-name="tipo_direccion"<?php echo $direcciones->tipo_direccion->CellAttributes() ?>>
+	<?php if ($direcciones->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $direcciones->id_gestion->CellAttributes() ?>>
 <?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_tipo_direccion" class="form-group direcciones_tipo_direccion">
-<select data-table="direcciones" data-field="x_tipo_direccion" data-value-separator="<?php echo $direcciones->tipo_direccion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion"<?php echo $direcciones->tipo_direccion->EditAttributes() ?>>
-<?php echo $direcciones->tipo_direccion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion") ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_gestion" class="form-group direcciones_id_gestion">
+<select data-table="direcciones" data-field="x_id_gestion" data-value-separator="<?php echo $direcciones->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion"<?php echo $direcciones->id_gestion->EditAttributes() ?>>
+<?php echo $direcciones->id_gestion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_gestion") ?>
 </select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$direcciones->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $direcciones->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $direcciones_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $direcciones->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->OldValue) ?>">
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_tipo_direccion" class="form-group direcciones_tipo_direccion">
-<select data-table="direcciones" data-field="x_tipo_direccion" data-value-separator="<?php echo $direcciones->tipo_direccion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion"<?php echo $direcciones->tipo_direccion->EditAttributes() ?>>
-<?php echo $direcciones->tipo_direccion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion") ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_gestion" class="form-group direcciones_id_gestion">
+<select data-table="direcciones" data-field="x_id_gestion" data-value-separator="<?php echo $direcciones->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion"<?php echo $direcciones->id_gestion->EditAttributes() ?>>
+<?php echo $direcciones->id_gestion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_gestion") ?>
 </select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$direcciones->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $direcciones->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $direcciones_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $direcciones->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_tipo_direccion" class="direcciones_tipo_direccion">
-<span<?php echo $direcciones->tipo_direccion->ViewAttributes() ?>>
-<?php echo $direcciones->tipo_direccion->ListViewValue() ?></span>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_gestion" class="direcciones_id_gestion">
+<span<?php echo $direcciones->id_gestion->ViewAttributes() ?>>
+<?php echo $direcciones->id_gestion->ListViewValue() ?></span>
 </span>
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->OldValue) ?>">
 <?php } else { ?>
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($direcciones->direccion->Visible) { // direccion ?>
-		<td data-name="direccion"<?php echo $direcciones->direccion->CellAttributes() ?>>
+	<?php if ($direcciones->id_tipodireccion->Visible) { // id_tipodireccion ?>
+		<td data-name="id_tipodireccion"<?php echo $direcciones->id_tipodireccion->CellAttributes() ?>>
 <?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion" class="form-group direcciones_direccion">
-<input type="text" data-table="direcciones" data-field="x_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion" size="60" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion->EditValue ?>"<?php echo $direcciones->direccion->EditAttributes() ?>>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_tipodireccion" class="form-group direcciones_id_tipodireccion">
+<select data-table="direcciones" data-field="x_id_tipodireccion" data-value-separator="<?php echo $direcciones->id_tipodireccion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion"<?php echo $direcciones->id_tipodireccion->EditAttributes() ?>>
+<?php echo $direcciones->id_tipodireccion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "tipo_direccion") && !$direcciones->id_tipodireccion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $direcciones->id_tipodireccion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion',url:'tipo_direccionaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $direcciones->id_tipodireccion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->OldValue) ?>">
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion" class="form-group direcciones_direccion">
-<input type="text" data-table="direcciones" data-field="x_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion" size="60" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion->EditValue ?>"<?php echo $direcciones->direccion->EditAttributes() ?>>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_tipodireccion" class="form-group direcciones_id_tipodireccion">
+<select data-table="direcciones" data-field="x_id_tipodireccion" data-value-separator="<?php echo $direcciones->id_tipodireccion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion"<?php echo $direcciones->id_tipodireccion->EditAttributes() ?>>
+<?php echo $direcciones->id_tipodireccion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "tipo_direccion") && !$direcciones->id_tipodireccion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $direcciones->id_tipodireccion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion',url:'tipo_direccionaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $direcciones->id_tipodireccion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion" class="direcciones_direccion">
-<span<?php echo $direcciones->direccion->ViewAttributes() ?>>
-<?php echo $direcciones->direccion->ListViewValue() ?></span>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_id_tipodireccion" class="direcciones_id_tipodireccion">
+<span<?php echo $direcciones->id_tipodireccion->ViewAttributes() ?>>
+<?php echo $direcciones->id_tipodireccion->ListViewValue() ?></span>
 </span>
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->OldValue) ?>">
 <?php } else { ?>
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
 	<?php } ?>
-	<?php if ($direcciones->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-		<td data-name="ult_fecha_activo"<?php echo $direcciones->ult_fecha_activo->CellAttributes() ?>>
+	<?php if ($direcciones->tipo_documento->Visible) { // tipo_documento ?>
+		<td data-name="tipo_documento"<?php echo $direcciones->tipo_documento->CellAttributes() ?>>
 <?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_ult_fecha_activo" class="form-group direcciones_ult_fecha_activo">
-<input type="text" data-table="direcciones" data-field="x_ult_fecha_activo" data-format="7" name="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" size="20" placeholder="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->getPlaceHolder()) ?>" value="<?php echo $direcciones->ult_fecha_activo->EditValue ?>"<?php echo $direcciones->ult_fecha_activo->EditAttributes() ?>>
-<?php if (!$direcciones->ult_fecha_activo->ReadOnly && !$direcciones->ult_fecha_activo->Disabled && !isset($direcciones->ult_fecha_activo->EditAttrs["readonly"]) && !isset($direcciones->ult_fecha_activo->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("fdireccionesgrid", "x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo", {"ignoreReadonly":true,"useCurrent":false,"format":7});
-</script>
-<?php } ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_tipo_documento" class="form-group direcciones_tipo_documento">
+<input type="text" data-table="direcciones" data-field="x_tipo_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($direcciones->tipo_documento->getPlaceHolder()) ?>" value="<?php echo $direcciones->tipo_documento->EditValue ?>"<?php echo $direcciones->tipo_documento->EditAttributes() ?>>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->OldValue) ?>">
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_ult_fecha_activo" class="form-group direcciones_ult_fecha_activo">
-<input type="text" data-table="direcciones" data-field="x_ult_fecha_activo" data-format="7" name="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" size="20" placeholder="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->getPlaceHolder()) ?>" value="<?php echo $direcciones->ult_fecha_activo->EditValue ?>"<?php echo $direcciones->ult_fecha_activo->EditAttributes() ?>>
-<?php if (!$direcciones->ult_fecha_activo->ReadOnly && !$direcciones->ult_fecha_activo->Disabled && !isset($direcciones->ult_fecha_activo->EditAttrs["readonly"]) && !isset($direcciones->ult_fecha_activo->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("fdireccionesgrid", "x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo", {"ignoreReadonly":true,"useCurrent":false,"format":7});
-</script>
-<?php } ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_tipo_documento" class="form-group direcciones_tipo_documento">
+<input type="text" data-table="direcciones" data-field="x_tipo_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($direcciones->tipo_documento->getPlaceHolder()) ?>" value="<?php echo $direcciones->tipo_documento->EditValue ?>"<?php echo $direcciones->tipo_documento->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
-<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_ult_fecha_activo" class="direcciones_ult_fecha_activo">
-<span<?php echo $direcciones->ult_fecha_activo->ViewAttributes() ?>>
-<?php echo $direcciones->ult_fecha_activo->ListViewValue() ?></span>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_tipo_documento" class="direcciones_tipo_documento">
+<span<?php echo $direcciones->tipo_documento->ViewAttributes() ?>>
+<?php echo $direcciones->tipo_documento->ListViewValue() ?></span>
 </span>
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->OldValue) ?>">
 <?php } else { ?>
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->FormValue) ?>">
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->no_documento->Visible) { // no_documento ?>
+		<td data-name="no_documento"<?php echo $direcciones->no_documento->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_no_documento" class="form-group direcciones_no_documento">
+<input type="text" data-table="direcciones" data-field="x_no_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->no_documento->getPlaceHolder()) ?>" value="<?php echo $direcciones->no_documento->EditValue ?>"<?php echo $direcciones->no_documento->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="o<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="o<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_no_documento" class="form-group direcciones_no_documento">
+<input type="text" data-table="direcciones" data-field="x_no_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->no_documento->getPlaceHolder()) ?>" value="<?php echo $direcciones->no_documento->EditValue ?>"<?php echo $direcciones->no_documento->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_no_documento" class="direcciones_no_documento">
+<span<?php echo $direcciones->no_documento->ViewAttributes() ?>>
+<?php echo $direcciones->no_documento->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="o<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="o<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->nombres->Visible) { // nombres ?>
+		<td data-name="nombres"<?php echo $direcciones->nombres->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_nombres" class="form-group direcciones_nombres">
+<input type="text" data-table="direcciones" data-field="x_nombres" name="x<?php echo $direcciones_grid->RowIndex ?>_nombres" id="x<?php echo $direcciones_grid->RowIndex ?>_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->nombres->getPlaceHolder()) ?>" value="<?php echo $direcciones->nombres->EditValue ?>"<?php echo $direcciones->nombres->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="o<?php echo $direcciones_grid->RowIndex ?>_nombres" id="o<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_nombres" class="form-group direcciones_nombres">
+<input type="text" data-table="direcciones" data-field="x_nombres" name="x<?php echo $direcciones_grid->RowIndex ?>_nombres" id="x<?php echo $direcciones_grid->RowIndex ?>_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->nombres->getPlaceHolder()) ?>" value="<?php echo $direcciones->nombres->EditValue ?>"<?php echo $direcciones->nombres->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_nombres" class="direcciones_nombres">
+<span<?php echo $direcciones->nombres->ViewAttributes() ?>>
+<?php echo $direcciones->nombres->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="x<?php echo $direcciones_grid->RowIndex ?>_nombres" id="x<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="o<?php echo $direcciones_grid->RowIndex ?>_nombres" id="o<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_nombres" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_nombres" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->paterno->Visible) { // paterno ?>
+		<td data-name="paterno"<?php echo $direcciones->paterno->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_paterno" class="form-group direcciones_paterno">
+<input type="text" data-table="direcciones" data-field="x_paterno" name="x<?php echo $direcciones_grid->RowIndex ?>_paterno" id="x<?php echo $direcciones_grid->RowIndex ?>_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->paterno->getPlaceHolder()) ?>" value="<?php echo $direcciones->paterno->EditValue ?>"<?php echo $direcciones->paterno->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="o<?php echo $direcciones_grid->RowIndex ?>_paterno" id="o<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_paterno" class="form-group direcciones_paterno">
+<input type="text" data-table="direcciones" data-field="x_paterno" name="x<?php echo $direcciones_grid->RowIndex ?>_paterno" id="x<?php echo $direcciones_grid->RowIndex ?>_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->paterno->getPlaceHolder()) ?>" value="<?php echo $direcciones->paterno->EditValue ?>"<?php echo $direcciones->paterno->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_paterno" class="direcciones_paterno">
+<span<?php echo $direcciones->paterno->ViewAttributes() ?>>
+<?php echo $direcciones->paterno->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="x<?php echo $direcciones_grid->RowIndex ?>_paterno" id="x<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="o<?php echo $direcciones_grid->RowIndex ?>_paterno" id="o<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_paterno" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_paterno" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->materno->Visible) { // materno ?>
+		<td data-name="materno"<?php echo $direcciones->materno->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_materno" class="form-group direcciones_materno">
+<input type="text" data-table="direcciones" data-field="x_materno" name="x<?php echo $direcciones_grid->RowIndex ?>_materno" id="x<?php echo $direcciones_grid->RowIndex ?>_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->materno->getPlaceHolder()) ?>" value="<?php echo $direcciones->materno->EditValue ?>"<?php echo $direcciones->materno->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="o<?php echo $direcciones_grid->RowIndex ?>_materno" id="o<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_materno" class="form-group direcciones_materno">
+<input type="text" data-table="direcciones" data-field="x_materno" name="x<?php echo $direcciones_grid->RowIndex ?>_materno" id="x<?php echo $direcciones_grid->RowIndex ?>_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->materno->getPlaceHolder()) ?>" value="<?php echo $direcciones->materno->EditValue ?>"<?php echo $direcciones->materno->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_materno" class="direcciones_materno">
+<span<?php echo $direcciones->materno->ViewAttributes() ?>>
+<?php echo $direcciones->materno->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="x<?php echo $direcciones_grid->RowIndex ?>_materno" id="x<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="o<?php echo $direcciones_grid->RowIndex ?>_materno" id="o<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_materno" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_materno" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->pais->Visible) { // pais ?>
+		<td data-name="pais"<?php echo $direcciones->pais->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_pais" class="form-group direcciones_pais">
+<input type="text" data-table="direcciones" data-field="x_pais" name="x<?php echo $direcciones_grid->RowIndex ?>_pais" id="x<?php echo $direcciones_grid->RowIndex ?>_pais" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->pais->getPlaceHolder()) ?>" value="<?php echo $direcciones->pais->EditValue ?>"<?php echo $direcciones->pais->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="o<?php echo $direcciones_grid->RowIndex ?>_pais" id="o<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_pais" class="form-group direcciones_pais">
+<input type="text" data-table="direcciones" data-field="x_pais" name="x<?php echo $direcciones_grid->RowIndex ?>_pais" id="x<?php echo $direcciones_grid->RowIndex ?>_pais" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->pais->getPlaceHolder()) ?>" value="<?php echo $direcciones->pais->EditValue ?>"<?php echo $direcciones->pais->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_pais" class="direcciones_pais">
+<span<?php echo $direcciones->pais->ViewAttributes() ?>>
+<?php echo $direcciones->pais->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="x<?php echo $direcciones_grid->RowIndex ?>_pais" id="x<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="o<?php echo $direcciones_grid->RowIndex ?>_pais" id="o<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_pais" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_pais" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->departamento->Visible) { // departamento ?>
+		<td data-name="departamento"<?php echo $direcciones->departamento->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_departamento" class="form-group direcciones_departamento">
+<input type="text" data-table="direcciones" data-field="x_departamento" name="x<?php echo $direcciones_grid->RowIndex ?>_departamento" id="x<?php echo $direcciones_grid->RowIndex ?>_departamento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->departamento->getPlaceHolder()) ?>" value="<?php echo $direcciones->departamento->EditValue ?>"<?php echo $direcciones->departamento->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="o<?php echo $direcciones_grid->RowIndex ?>_departamento" id="o<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_departamento" class="form-group direcciones_departamento">
+<input type="text" data-table="direcciones" data-field="x_departamento" name="x<?php echo $direcciones_grid->RowIndex ?>_departamento" id="x<?php echo $direcciones_grid->RowIndex ?>_departamento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->departamento->getPlaceHolder()) ?>" value="<?php echo $direcciones->departamento->EditValue ?>"<?php echo $direcciones->departamento->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_departamento" class="direcciones_departamento">
+<span<?php echo $direcciones->departamento->ViewAttributes() ?>>
+<?php echo $direcciones->departamento->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="x<?php echo $direcciones_grid->RowIndex ?>_departamento" id="x<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="o<?php echo $direcciones_grid->RowIndex ?>_departamento" id="o<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_departamento" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_departamento" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->provincia->Visible) { // provincia ?>
+		<td data-name="provincia"<?php echo $direcciones->provincia->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_provincia" class="form-group direcciones_provincia">
+<input type="text" data-table="direcciones" data-field="x_provincia" name="x<?php echo $direcciones_grid->RowIndex ?>_provincia" id="x<?php echo $direcciones_grid->RowIndex ?>_provincia" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->provincia->getPlaceHolder()) ?>" value="<?php echo $direcciones->provincia->EditValue ?>"<?php echo $direcciones->provincia->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="o<?php echo $direcciones_grid->RowIndex ?>_provincia" id="o<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_provincia" class="form-group direcciones_provincia">
+<input type="text" data-table="direcciones" data-field="x_provincia" name="x<?php echo $direcciones_grid->RowIndex ?>_provincia" id="x<?php echo $direcciones_grid->RowIndex ?>_provincia" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->provincia->getPlaceHolder()) ?>" value="<?php echo $direcciones->provincia->EditValue ?>"<?php echo $direcciones->provincia->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_provincia" class="direcciones_provincia">
+<span<?php echo $direcciones->provincia->ViewAttributes() ?>>
+<?php echo $direcciones->provincia->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="x<?php echo $direcciones_grid->RowIndex ?>_provincia" id="x<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="o<?php echo $direcciones_grid->RowIndex ?>_provincia" id="o<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_provincia" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_provincia" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->municipio->Visible) { // municipio ?>
+		<td data-name="municipio"<?php echo $direcciones->municipio->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_municipio" class="form-group direcciones_municipio">
+<input type="text" data-table="direcciones" data-field="x_municipio" name="x<?php echo $direcciones_grid->RowIndex ?>_municipio" id="x<?php echo $direcciones_grid->RowIndex ?>_municipio" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->municipio->getPlaceHolder()) ?>" value="<?php echo $direcciones->municipio->EditValue ?>"<?php echo $direcciones->municipio->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="o<?php echo $direcciones_grid->RowIndex ?>_municipio" id="o<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_municipio" class="form-group direcciones_municipio">
+<input type="text" data-table="direcciones" data-field="x_municipio" name="x<?php echo $direcciones_grid->RowIndex ?>_municipio" id="x<?php echo $direcciones_grid->RowIndex ?>_municipio" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->municipio->getPlaceHolder()) ?>" value="<?php echo $direcciones->municipio->EditValue ?>"<?php echo $direcciones->municipio->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_municipio" class="direcciones_municipio">
+<span<?php echo $direcciones->municipio->ViewAttributes() ?>>
+<?php echo $direcciones->municipio->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="x<?php echo $direcciones_grid->RowIndex ?>_municipio" id="x<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="o<?php echo $direcciones_grid->RowIndex ?>_municipio" id="o<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_municipio" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_municipio" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->localidad->Visible) { // localidad ?>
+		<td data-name="localidad"<?php echo $direcciones->localidad->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_localidad" class="form-group direcciones_localidad">
+<input type="text" data-table="direcciones" data-field="x_localidad" name="x<?php echo $direcciones_grid->RowIndex ?>_localidad" id="x<?php echo $direcciones_grid->RowIndex ?>_localidad" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->localidad->getPlaceHolder()) ?>" value="<?php echo $direcciones->localidad->EditValue ?>"<?php echo $direcciones->localidad->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="o<?php echo $direcciones_grid->RowIndex ?>_localidad" id="o<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_localidad" class="form-group direcciones_localidad">
+<input type="text" data-table="direcciones" data-field="x_localidad" name="x<?php echo $direcciones_grid->RowIndex ?>_localidad" id="x<?php echo $direcciones_grid->RowIndex ?>_localidad" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->localidad->getPlaceHolder()) ?>" value="<?php echo $direcciones->localidad->EditValue ?>"<?php echo $direcciones->localidad->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_localidad" class="direcciones_localidad">
+<span<?php echo $direcciones->localidad->ViewAttributes() ?>>
+<?php echo $direcciones->localidad->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="x<?php echo $direcciones_grid->RowIndex ?>_localidad" id="x<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="o<?php echo $direcciones_grid->RowIndex ?>_localidad" id="o<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_localidad" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_localidad" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->distrito->Visible) { // distrito ?>
+		<td data-name="distrito"<?php echo $direcciones->distrito->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_distrito" class="form-group direcciones_distrito">
+<input type="text" data-table="direcciones" data-field="x_distrito" name="x<?php echo $direcciones_grid->RowIndex ?>_distrito" id="x<?php echo $direcciones_grid->RowIndex ?>_distrito" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->distrito->getPlaceHolder()) ?>" value="<?php echo $direcciones->distrito->EditValue ?>"<?php echo $direcciones->distrito->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="o<?php echo $direcciones_grid->RowIndex ?>_distrito" id="o<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_distrito" class="form-group direcciones_distrito">
+<input type="text" data-table="direcciones" data-field="x_distrito" name="x<?php echo $direcciones_grid->RowIndex ?>_distrito" id="x<?php echo $direcciones_grid->RowIndex ?>_distrito" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->distrito->getPlaceHolder()) ?>" value="<?php echo $direcciones->distrito->EditValue ?>"<?php echo $direcciones->distrito->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_distrito" class="direcciones_distrito">
+<span<?php echo $direcciones->distrito->ViewAttributes() ?>>
+<?php echo $direcciones->distrito->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="x<?php echo $direcciones_grid->RowIndex ?>_distrito" id="x<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="o<?php echo $direcciones_grid->RowIndex ?>_distrito" id="o<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_distrito" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_distrito" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->zona->Visible) { // zona ?>
+		<td data-name="zona"<?php echo $direcciones->zona->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_zona" class="form-group direcciones_zona">
+<input type="text" data-table="direcciones" data-field="x_zona" name="x<?php echo $direcciones_grid->RowIndex ?>_zona" id="x<?php echo $direcciones_grid->RowIndex ?>_zona" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->zona->getPlaceHolder()) ?>" value="<?php echo $direcciones->zona->EditValue ?>"<?php echo $direcciones->zona->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="o<?php echo $direcciones_grid->RowIndex ?>_zona" id="o<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_zona" class="form-group direcciones_zona">
+<input type="text" data-table="direcciones" data-field="x_zona" name="x<?php echo $direcciones_grid->RowIndex ?>_zona" id="x<?php echo $direcciones_grid->RowIndex ?>_zona" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->zona->getPlaceHolder()) ?>" value="<?php echo $direcciones->zona->EditValue ?>"<?php echo $direcciones->zona->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_zona" class="direcciones_zona">
+<span<?php echo $direcciones->zona->ViewAttributes() ?>>
+<?php echo $direcciones->zona->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="x<?php echo $direcciones_grid->RowIndex ?>_zona" id="x<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="o<?php echo $direcciones_grid->RowIndex ?>_zona" id="o<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_zona" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_zona" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion1->Visible) { // direccion1 ?>
+		<td data-name="direccion1"<?php echo $direcciones->direccion1->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion1" class="form-group direcciones_direccion1">
+<input type="text" data-table="direcciones" data-field="x_direccion1" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" size="60" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion1->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion1->EditValue ?>"<?php echo $direcciones->direccion1->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion1" class="form-group direcciones_direccion1">
+<input type="text" data-table="direcciones" data-field="x_direccion1" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" size="60" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion1->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion1->EditValue ?>"<?php echo $direcciones->direccion1->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion1" class="direcciones_direccion1">
+<span<?php echo $direcciones->direccion1->ViewAttributes() ?>>
+<?php echo $direcciones->direccion1->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion2->Visible) { // direccion2 ?>
+		<td data-name="direccion2"<?php echo $direcciones->direccion2->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion2" class="form-group direcciones_direccion2">
+<input type="text" data-table="direcciones" data-field="x_direccion2" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion2->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion2->EditValue ?>"<?php echo $direcciones->direccion2->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion2" class="form-group direcciones_direccion2">
+<input type="text" data-table="direcciones" data-field="x_direccion2" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion2->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion2->EditValue ?>"<?php echo $direcciones->direccion2->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion2" class="direcciones_direccion2">
+<span<?php echo $direcciones->direccion2->ViewAttributes() ?>>
+<?php echo $direcciones->direccion2->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion3->Visible) { // direccion3 ?>
+		<td data-name="direccion3"<?php echo $direcciones->direccion3->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion3" class="form-group direcciones_direccion3">
+<input type="text" data-table="direcciones" data-field="x_direccion3" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion3->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion3->EditValue ?>"<?php echo $direcciones->direccion3->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion3" class="form-group direcciones_direccion3">
+<input type="text" data-table="direcciones" data-field="x_direccion3" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion3->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion3->EditValue ?>"<?php echo $direcciones->direccion3->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion3" class="direcciones_direccion3">
+<span<?php echo $direcciones->direccion3->ViewAttributes() ?>>
+<?php echo $direcciones->direccion3->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion4->Visible) { // direccion4 ?>
+		<td data-name="direccion4"<?php echo $direcciones->direccion4->CellAttributes() ?>>
+<?php if ($direcciones->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion4" class="form-group direcciones_direccion4">
+<input type="text" data-table="direcciones" data-field="x_direccion4" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion4->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion4->EditValue ?>"<?php echo $direcciones->direccion4->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->OldValue) ?>">
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion4" class="form-group direcciones_direccion4">
+<input type="text" data-table="direcciones" data-field="x_direccion4" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion4->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion4->EditValue ?>"<?php echo $direcciones->direccion4->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($direcciones->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $direcciones_grid->RowCnt ?>_direcciones_direccion4" class="direcciones_direccion4">
+<span<?php echo $direcciones->direccion4->ViewAttributes() ?>>
+<?php echo $direcciones->direccion4->ListViewValue() ?></span>
+</span>
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="fdireccionesgrid$x<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="fdireccionesgrid$o<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
@@ -613,8 +1186,7 @@ ew_CreateDateTimePicker("fdireccionesgrid", "x<?php echo $direcciones_grid->RowI
 <span<?php echo $direcciones->mapa->ViewAttributes() ?>><script type="text/javascript">
 ewGoogleMaps[ewGoogleMaps.length] = jQuery.extend({"id":"gm_direcciones_x_mapa","name":"Google Maps","apikey":"AIzaSyDFibhqbazLZqySy6EuVE_BHRUvkhyIVLg","width":400,"width_field":null,"height":400,"height_field":null,"latitude":null,"latitude_field":"latitud","longitude":null,"longitude_field":"longitud","address":null,"address_field":null,"type":"HYBRID","type_field":null,"zoom":18,"zoom_field":null,"title":null,"title_field":"direccion","icon":null,"icon_field":null,"description":null,"description_field":null,"use_single_map":true,"single_map_width":400,"single_map_height":400,"show_map_on_top":true,"show_all_markers":true,"geocoding_delay":250,"use_marker_clusterer":false,"cluster_max_zoom":-1,"cluster_grid_size":-1,"cluster_styles":-1,"template_id":"orig<?php echo $direcciones_grid->RowCnt ?>_direcciones_mapa"}, {
 	latitude: <?php echo ew_VarToJson($direcciones->latitud->CurrentValue, "undefined") ?>,
-	longitude: <?php echo ew_VarToJson($direcciones->longitud->CurrentValue, "undefined") ?>,
-	title: <?php echo ew_VarToJson($direcciones->direccion->CurrentValue, "string") ?>
+	longitude: <?php echo ew_VarToJson($direcciones->longitud->CurrentValue, "undefined") ?>
 });
 </script>
 </span>
@@ -756,9 +1328,11 @@ $direcciones_grid->ListOptions->Render("body", "left", $direcciones_grid->RowInd
 <input type="hidden" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($direcciones->id_persona->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el$rowindex$_direcciones_id_persona" class="form-group direcciones_id_persona">
-<select data-table="direcciones" data-field="x_id_persona" data-value-separator="<?php echo $direcciones->id_persona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona"<?php echo $direcciones->id_persona->EditAttributes() ?>>
-<?php echo $direcciones->id_persona->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_persona") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $direcciones_grid->RowIndex ?>_id_persona"><?php echo (strval($direcciones->id_persona->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $direcciones->id_persona->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($direcciones->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="direcciones" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $direcciones->id_persona->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" id="x<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo $direcciones->id_persona->CurrentValue ?>"<?php echo $direcciones->id_persona->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php } else { ?>
@@ -776,77 +1350,320 @@ $direcciones_grid->ListOptions->Render("body", "left", $direcciones_grid->RowInd
 <input type="hidden" data-table="direcciones" data-field="x_id_persona" name="o<?php echo $direcciones_grid->RowIndex ?>_id_persona" id="o<?php echo $direcciones_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($direcciones->id_persona->OldValue) ?>">
 </td>
 	<?php } ?>
-	<?php if ($direcciones->id_ciudad->Visible) { // id_ciudad ?>
-		<td data-name="id_ciudad">
+	<?php if ($direcciones->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente">
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_direcciones_id_ciudad" class="form-group direcciones_id_ciudad">
-<select data-table="direcciones" data-field="x_id_ciudad" data-value-separator="<?php echo $direcciones->id_ciudad->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" name="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad"<?php echo $direcciones->id_ciudad->EditAttributes() ?>>
-<?php echo $direcciones->id_ciudad->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad") ?>
+<span id="el$rowindex$_direcciones_id_fuente" class="form-group direcciones_id_fuente">
+<select data-table="direcciones" data-field="x_id_fuente" data-value-separator="<?php echo $direcciones->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" name="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente"<?php echo $direcciones->id_fuente->EditAttributes() ?>>
+<?php echo $direcciones->id_fuente->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_fuente") ?>
 </select>
 </span>
 <?php } else { ?>
-<span id="el$rowindex$_direcciones_id_ciudad" class="form-group direcciones_id_ciudad">
-<span<?php echo $direcciones->id_ciudad->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $direcciones->id_ciudad->ViewValue ?></p></span>
+<span id="el$rowindex$_direcciones_id_fuente" class="form-group direcciones_id_fuente">
+<span<?php echo $direcciones->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->id_fuente->ViewValue ?></p></span>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="x<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="x<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->FormValue) ?>">
 <?php } ?>
-<input type="hidden" data-table="direcciones" data-field="x_id_ciudad" name="o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" id="o<?php echo $direcciones_grid->RowIndex ?>_id_ciudad" value="<?php echo ew_HtmlEncode($direcciones->id_ciudad->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_fuente" name="o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" id="o<?php echo $direcciones_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($direcciones->id_fuente->OldValue) ?>">
 </td>
 	<?php } ?>
-	<?php if ($direcciones->tipo_direccion->Visible) { // tipo_direccion ?>
-		<td data-name="tipo_direccion">
+	<?php if ($direcciones->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion">
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_direcciones_tipo_direccion" class="form-group direcciones_tipo_direccion">
-<select data-table="direcciones" data-field="x_tipo_direccion" data-value-separator="<?php echo $direcciones->tipo_direccion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion"<?php echo $direcciones->tipo_direccion->EditAttributes() ?>>
-<?php echo $direcciones->tipo_direccion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion") ?>
+<span id="el$rowindex$_direcciones_id_gestion" class="form-group direcciones_id_gestion">
+<select data-table="direcciones" data-field="x_id_gestion" data-value-separator="<?php echo $direcciones->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion"<?php echo $direcciones->id_gestion->EditAttributes() ?>>
+<?php echo $direcciones->id_gestion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_gestion") ?>
 </select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$direcciones->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $direcciones->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $direcciones_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $direcciones->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
 <?php } else { ?>
-<span id="el$rowindex$_direcciones_tipo_direccion" class="form-group direcciones_tipo_direccion">
-<span<?php echo $direcciones->tipo_direccion->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $direcciones->tipo_direccion->ViewValue ?></p></span>
+<span id="el$rowindex$_direcciones_id_gestion" class="form-group direcciones_id_gestion">
+<span<?php echo $direcciones->id_gestion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->id_gestion->ViewValue ?></p></span>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="x<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->FormValue) ?>">
 <?php } ?>
-<input type="hidden" data-table="direcciones" data-field="x_tipo_direccion" name="o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" id="o<?php echo $direcciones_grid->RowIndex ?>_tipo_direccion" value="<?php echo ew_HtmlEncode($direcciones->tipo_direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_gestion" name="o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" id="o<?php echo $direcciones_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($direcciones->id_gestion->OldValue) ?>">
 </td>
 	<?php } ?>
-	<?php if ($direcciones->direccion->Visible) { // direccion ?>
-		<td data-name="direccion">
+	<?php if ($direcciones->id_tipodireccion->Visible) { // id_tipodireccion ?>
+		<td data-name="id_tipodireccion">
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_direcciones_direccion" class="form-group direcciones_direccion">
-<input type="text" data-table="direcciones" data-field="x_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion" size="60" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion->EditValue ?>"<?php echo $direcciones->direccion->EditAttributes() ?>>
+<span id="el$rowindex$_direcciones_id_tipodireccion" class="form-group direcciones_id_tipodireccion">
+<select data-table="direcciones" data-field="x_id_tipodireccion" data-value-separator="<?php echo $direcciones->id_tipodireccion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion"<?php echo $direcciones->id_tipodireccion->EditAttributes() ?>>
+<?php echo $direcciones->id_tipodireccion->SelectOptionListHtml("x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "tipo_direccion") && !$direcciones->id_tipodireccion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $direcciones->id_tipodireccion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion',url:'tipo_direccionaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $direcciones->id_tipodireccion->FldCaption() ?></span></button>
+<?php } ?>
 </span>
 <?php } else { ?>
-<span id="el$rowindex$_direcciones_direccion" class="form-group direcciones_direccion">
-<span<?php echo $direcciones->direccion->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $direcciones->direccion->ViewValue ?></p></span>
+<span id="el$rowindex$_direcciones_id_tipodireccion" class="form-group direcciones_id_tipodireccion">
+<span<?php echo $direcciones->id_tipodireccion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->id_tipodireccion->ViewValue ?></p></span>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="x<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->FormValue) ?>">
 <?php } ?>
-<input type="hidden" data-table="direcciones" data-field="x_direccion" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion" value="<?php echo ew_HtmlEncode($direcciones->direccion->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_id_tipodireccion" name="o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" id="o<?php echo $direcciones_grid->RowIndex ?>_id_tipodireccion" value="<?php echo ew_HtmlEncode($direcciones->id_tipodireccion->OldValue) ?>">
 </td>
 	<?php } ?>
-	<?php if ($direcciones->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-		<td data-name="ult_fecha_activo">
+	<?php if ($direcciones->tipo_documento->Visible) { // tipo_documento ?>
+		<td data-name="tipo_documento">
 <?php if ($direcciones->CurrentAction <> "F") { ?>
-<span id="el$rowindex$_direcciones_ult_fecha_activo" class="form-group direcciones_ult_fecha_activo">
-<input type="text" data-table="direcciones" data-field="x_ult_fecha_activo" data-format="7" name="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" size="20" placeholder="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->getPlaceHolder()) ?>" value="<?php echo $direcciones->ult_fecha_activo->EditValue ?>"<?php echo $direcciones->ult_fecha_activo->EditAttributes() ?>>
-<?php if (!$direcciones->ult_fecha_activo->ReadOnly && !$direcciones->ult_fecha_activo->Disabled && !isset($direcciones->ult_fecha_activo->EditAttrs["readonly"]) && !isset($direcciones->ult_fecha_activo->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("fdireccionesgrid", "x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo", {"ignoreReadonly":true,"useCurrent":false,"format":7});
-</script>
-<?php } ?>
+<span id="el$rowindex$_direcciones_tipo_documento" class="form-group direcciones_tipo_documento">
+<input type="text" data-table="direcciones" data-field="x_tipo_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($direcciones->tipo_documento->getPlaceHolder()) ?>" value="<?php echo $direcciones->tipo_documento->EditValue ?>"<?php echo $direcciones->tipo_documento->EditAttributes() ?>>
 </span>
 <?php } else { ?>
-<span id="el$rowindex$_direcciones_ult_fecha_activo" class="form-group direcciones_ult_fecha_activo">
-<span<?php echo $direcciones->ult_fecha_activo->ViewAttributes() ?>>
-<p class="form-control-static"><?php echo $direcciones->ult_fecha_activo->ViewValue ?></p></span>
+<span id="el$rowindex$_direcciones_tipo_documento" class="form-group direcciones_tipo_documento">
+<span<?php echo $direcciones->tipo_documento->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->tipo_documento->ViewValue ?></p></span>
 </span>
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="x<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->FormValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->FormValue) ?>">
 <?php } ?>
-<input type="hidden" data-table="direcciones" data-field="x_ult_fecha_activo" name="o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" id="o<?php echo $direcciones_grid->RowIndex ?>_ult_fecha_activo" value="<?php echo ew_HtmlEncode($direcciones->ult_fecha_activo->OldValue) ?>">
+<input type="hidden" data-table="direcciones" data-field="x_tipo_documento" name="o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" id="o<?php echo $direcciones_grid->RowIndex ?>_tipo_documento" value="<?php echo ew_HtmlEncode($direcciones->tipo_documento->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->no_documento->Visible) { // no_documento ?>
+		<td data-name="no_documento">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_no_documento" class="form-group direcciones_no_documento">
+<input type="text" data-table="direcciones" data-field="x_no_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->no_documento->getPlaceHolder()) ?>" value="<?php echo $direcciones->no_documento->EditValue ?>"<?php echo $direcciones->no_documento->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_no_documento" class="form-group direcciones_no_documento">
+<span<?php echo $direcciones->no_documento->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->no_documento->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="x<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_no_documento" name="o<?php echo $direcciones_grid->RowIndex ?>_no_documento" id="o<?php echo $direcciones_grid->RowIndex ?>_no_documento" value="<?php echo ew_HtmlEncode($direcciones->no_documento->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->nombres->Visible) { // nombres ?>
+		<td data-name="nombres">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_nombres" class="form-group direcciones_nombres">
+<input type="text" data-table="direcciones" data-field="x_nombres" name="x<?php echo $direcciones_grid->RowIndex ?>_nombres" id="x<?php echo $direcciones_grid->RowIndex ?>_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->nombres->getPlaceHolder()) ?>" value="<?php echo $direcciones->nombres->EditValue ?>"<?php echo $direcciones->nombres->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_nombres" class="form-group direcciones_nombres">
+<span<?php echo $direcciones->nombres->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->nombres->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="x<?php echo $direcciones_grid->RowIndex ?>_nombres" id="x<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_nombres" name="o<?php echo $direcciones_grid->RowIndex ?>_nombres" id="o<?php echo $direcciones_grid->RowIndex ?>_nombres" value="<?php echo ew_HtmlEncode($direcciones->nombres->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->paterno->Visible) { // paterno ?>
+		<td data-name="paterno">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_paterno" class="form-group direcciones_paterno">
+<input type="text" data-table="direcciones" data-field="x_paterno" name="x<?php echo $direcciones_grid->RowIndex ?>_paterno" id="x<?php echo $direcciones_grid->RowIndex ?>_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->paterno->getPlaceHolder()) ?>" value="<?php echo $direcciones->paterno->EditValue ?>"<?php echo $direcciones->paterno->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_paterno" class="form-group direcciones_paterno">
+<span<?php echo $direcciones->paterno->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->paterno->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="x<?php echo $direcciones_grid->RowIndex ?>_paterno" id="x<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_paterno" name="o<?php echo $direcciones_grid->RowIndex ?>_paterno" id="o<?php echo $direcciones_grid->RowIndex ?>_paterno" value="<?php echo ew_HtmlEncode($direcciones->paterno->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->materno->Visible) { // materno ?>
+		<td data-name="materno">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_materno" class="form-group direcciones_materno">
+<input type="text" data-table="direcciones" data-field="x_materno" name="x<?php echo $direcciones_grid->RowIndex ?>_materno" id="x<?php echo $direcciones_grid->RowIndex ?>_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->materno->getPlaceHolder()) ?>" value="<?php echo $direcciones->materno->EditValue ?>"<?php echo $direcciones->materno->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_materno" class="form-group direcciones_materno">
+<span<?php echo $direcciones->materno->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->materno->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="x<?php echo $direcciones_grid->RowIndex ?>_materno" id="x<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_materno" name="o<?php echo $direcciones_grid->RowIndex ?>_materno" id="o<?php echo $direcciones_grid->RowIndex ?>_materno" value="<?php echo ew_HtmlEncode($direcciones->materno->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->pais->Visible) { // pais ?>
+		<td data-name="pais">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_pais" class="form-group direcciones_pais">
+<input type="text" data-table="direcciones" data-field="x_pais" name="x<?php echo $direcciones_grid->RowIndex ?>_pais" id="x<?php echo $direcciones_grid->RowIndex ?>_pais" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->pais->getPlaceHolder()) ?>" value="<?php echo $direcciones->pais->EditValue ?>"<?php echo $direcciones->pais->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_pais" class="form-group direcciones_pais">
+<span<?php echo $direcciones->pais->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->pais->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="x<?php echo $direcciones_grid->RowIndex ?>_pais" id="x<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_pais" name="o<?php echo $direcciones_grid->RowIndex ?>_pais" id="o<?php echo $direcciones_grid->RowIndex ?>_pais" value="<?php echo ew_HtmlEncode($direcciones->pais->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->departamento->Visible) { // departamento ?>
+		<td data-name="departamento">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_departamento" class="form-group direcciones_departamento">
+<input type="text" data-table="direcciones" data-field="x_departamento" name="x<?php echo $direcciones_grid->RowIndex ?>_departamento" id="x<?php echo $direcciones_grid->RowIndex ?>_departamento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->departamento->getPlaceHolder()) ?>" value="<?php echo $direcciones->departamento->EditValue ?>"<?php echo $direcciones->departamento->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_departamento" class="form-group direcciones_departamento">
+<span<?php echo $direcciones->departamento->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->departamento->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="x<?php echo $direcciones_grid->RowIndex ?>_departamento" id="x<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_departamento" name="o<?php echo $direcciones_grid->RowIndex ?>_departamento" id="o<?php echo $direcciones_grid->RowIndex ?>_departamento" value="<?php echo ew_HtmlEncode($direcciones->departamento->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->provincia->Visible) { // provincia ?>
+		<td data-name="provincia">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_provincia" class="form-group direcciones_provincia">
+<input type="text" data-table="direcciones" data-field="x_provincia" name="x<?php echo $direcciones_grid->RowIndex ?>_provincia" id="x<?php echo $direcciones_grid->RowIndex ?>_provincia" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->provincia->getPlaceHolder()) ?>" value="<?php echo $direcciones->provincia->EditValue ?>"<?php echo $direcciones->provincia->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_provincia" class="form-group direcciones_provincia">
+<span<?php echo $direcciones->provincia->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->provincia->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="x<?php echo $direcciones_grid->RowIndex ?>_provincia" id="x<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_provincia" name="o<?php echo $direcciones_grid->RowIndex ?>_provincia" id="o<?php echo $direcciones_grid->RowIndex ?>_provincia" value="<?php echo ew_HtmlEncode($direcciones->provincia->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->municipio->Visible) { // municipio ?>
+		<td data-name="municipio">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_municipio" class="form-group direcciones_municipio">
+<input type="text" data-table="direcciones" data-field="x_municipio" name="x<?php echo $direcciones_grid->RowIndex ?>_municipio" id="x<?php echo $direcciones_grid->RowIndex ?>_municipio" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->municipio->getPlaceHolder()) ?>" value="<?php echo $direcciones->municipio->EditValue ?>"<?php echo $direcciones->municipio->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_municipio" class="form-group direcciones_municipio">
+<span<?php echo $direcciones->municipio->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->municipio->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="x<?php echo $direcciones_grid->RowIndex ?>_municipio" id="x<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_municipio" name="o<?php echo $direcciones_grid->RowIndex ?>_municipio" id="o<?php echo $direcciones_grid->RowIndex ?>_municipio" value="<?php echo ew_HtmlEncode($direcciones->municipio->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->localidad->Visible) { // localidad ?>
+		<td data-name="localidad">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_localidad" class="form-group direcciones_localidad">
+<input type="text" data-table="direcciones" data-field="x_localidad" name="x<?php echo $direcciones_grid->RowIndex ?>_localidad" id="x<?php echo $direcciones_grid->RowIndex ?>_localidad" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->localidad->getPlaceHolder()) ?>" value="<?php echo $direcciones->localidad->EditValue ?>"<?php echo $direcciones->localidad->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_localidad" class="form-group direcciones_localidad">
+<span<?php echo $direcciones->localidad->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->localidad->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="x<?php echo $direcciones_grid->RowIndex ?>_localidad" id="x<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_localidad" name="o<?php echo $direcciones_grid->RowIndex ?>_localidad" id="o<?php echo $direcciones_grid->RowIndex ?>_localidad" value="<?php echo ew_HtmlEncode($direcciones->localidad->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->distrito->Visible) { // distrito ?>
+		<td data-name="distrito">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_distrito" class="form-group direcciones_distrito">
+<input type="text" data-table="direcciones" data-field="x_distrito" name="x<?php echo $direcciones_grid->RowIndex ?>_distrito" id="x<?php echo $direcciones_grid->RowIndex ?>_distrito" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($direcciones->distrito->getPlaceHolder()) ?>" value="<?php echo $direcciones->distrito->EditValue ?>"<?php echo $direcciones->distrito->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_distrito" class="form-group direcciones_distrito">
+<span<?php echo $direcciones->distrito->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->distrito->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="x<?php echo $direcciones_grid->RowIndex ?>_distrito" id="x<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_distrito" name="o<?php echo $direcciones_grid->RowIndex ?>_distrito" id="o<?php echo $direcciones_grid->RowIndex ?>_distrito" value="<?php echo ew_HtmlEncode($direcciones->distrito->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->zona->Visible) { // zona ?>
+		<td data-name="zona">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_zona" class="form-group direcciones_zona">
+<input type="text" data-table="direcciones" data-field="x_zona" name="x<?php echo $direcciones_grid->RowIndex ?>_zona" id="x<?php echo $direcciones_grid->RowIndex ?>_zona" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->zona->getPlaceHolder()) ?>" value="<?php echo $direcciones->zona->EditValue ?>"<?php echo $direcciones->zona->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_zona" class="form-group direcciones_zona">
+<span<?php echo $direcciones->zona->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->zona->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="x<?php echo $direcciones_grid->RowIndex ?>_zona" id="x<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_zona" name="o<?php echo $direcciones_grid->RowIndex ?>_zona" id="o<?php echo $direcciones_grid->RowIndex ?>_zona" value="<?php echo ew_HtmlEncode($direcciones->zona->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion1->Visible) { // direccion1 ?>
+		<td data-name="direccion1">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_direccion1" class="form-group direcciones_direccion1">
+<input type="text" data-table="direcciones" data-field="x_direccion1" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" size="60" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion1->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion1->EditValue ?>"<?php echo $direcciones->direccion1->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_direccion1" class="form-group direcciones_direccion1">
+<span<?php echo $direcciones->direccion1->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->direccion1->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion1" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion1" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion1" value="<?php echo ew_HtmlEncode($direcciones->direccion1->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion2->Visible) { // direccion2 ?>
+		<td data-name="direccion2">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_direccion2" class="form-group direcciones_direccion2">
+<input type="text" data-table="direcciones" data-field="x_direccion2" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion2->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion2->EditValue ?>"<?php echo $direcciones->direccion2->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_direccion2" class="form-group direcciones_direccion2">
+<span<?php echo $direcciones->direccion2->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->direccion2->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion2" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion2" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion2" value="<?php echo ew_HtmlEncode($direcciones->direccion2->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion3->Visible) { // direccion3 ?>
+		<td data-name="direccion3">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_direccion3" class="form-group direcciones_direccion3">
+<input type="text" data-table="direcciones" data-field="x_direccion3" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion3->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion3->EditValue ?>"<?php echo $direcciones->direccion3->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_direccion3" class="form-group direcciones_direccion3">
+<span<?php echo $direcciones->direccion3->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->direccion3->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion3" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion3" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion3" value="<?php echo ew_HtmlEncode($direcciones->direccion3->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($direcciones->direccion4->Visible) { // direccion4 ?>
+		<td data-name="direccion4">
+<?php if ($direcciones->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_direcciones_direccion4" class="form-group direcciones_direccion4">
+<input type="text" data-table="direcciones" data-field="x_direccion4" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($direcciones->direccion4->getPlaceHolder()) ?>" value="<?php echo $direcciones->direccion4->EditValue ?>"<?php echo $direcciones->direccion4->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_direcciones_direccion4" class="form-group direcciones_direccion4">
+<span<?php echo $direcciones->direccion4->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $direcciones->direccion4->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="x<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="direcciones" data-field="x_direccion4" name="o<?php echo $direcciones_grid->RowIndex ?>_direccion4" id="o<?php echo $direcciones_grid->RowIndex ?>_direccion4" value="<?php echo ew_HtmlEncode($direcciones->direccion4->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($direcciones->mapa->Visible) { // mapa ?>
@@ -863,8 +1680,7 @@ ew_CreateDateTimePicker("fdireccionesgrid", "x<?php echo $direcciones_grid->RowI
 <span<?php echo $direcciones->mapa->ViewAttributes() ?>><script type="text/javascript">
 ewGoogleMaps[ewGoogleMaps.length] = jQuery.extend({"id":"gm_direcciones_x_mapa","name":"Google Maps","apikey":"AIzaSyDFibhqbazLZqySy6EuVE_BHRUvkhyIVLg","width":400,"width_field":null,"height":400,"height_field":null,"latitude":null,"latitude_field":"latitud","longitude":null,"longitude_field":"longitud","address":null,"address_field":null,"type":"HYBRID","type_field":null,"zoom":18,"zoom_field":null,"title":null,"title_field":"direccion","icon":null,"icon_field":null,"description":null,"description_field":null,"use_single_map":true,"single_map_width":400,"single_map_height":400,"show_map_on_top":true,"show_all_markers":true,"geocoding_delay":250,"use_marker_clusterer":false,"cluster_max_zoom":-1,"cluster_grid_size":-1,"cluster_styles":-1,"template_id":"orig<?php echo $direcciones_grid->RowCnt ?>_direcciones_mapa"}, {
 	latitude: <?php echo ew_VarToJson($direcciones->latitud->CurrentValue, "undefined") ?>,
-	longitude: <?php echo ew_VarToJson($direcciones->longitud->CurrentValue, "undefined") ?>,
-	title: <?php echo ew_VarToJson($direcciones->direccion->CurrentValue, "string") ?>
+	longitude: <?php echo ew_VarToJson($direcciones->longitud->CurrentValue, "undefined") ?>
 });
 </script>
 </span>

@@ -346,6 +346,9 @@ class cpersonas_grid extends cpersonas {
 		$this->SetupListOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->id_ref->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
@@ -353,6 +356,7 @@ class cpersonas_grid extends cpersonas {
 		$this->materno->SetVisibility();
 		$this->fecha_nacimiento->SetVisibility();
 		$this->fecha_registro->SetVisibility();
+		$this->imagen->SetVisibility();
 		$this->estado->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
@@ -371,34 +375,10 @@ class cpersonas_grid extends cpersonas {
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
 
-			// Process auto fill for detail table 'direcciones'
-			if (@$_POST["grid"] == "fdireccionesgrid") {
-				if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
-				$GLOBALS["direcciones_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'telefonos'
-			if (@$_POST["grid"] == "ftelefonosgrid") {
-				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				$GLOBALS["telefonos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'emails'
-			if (@$_POST["grid"] == "femailsgrid") {
-				if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
-				$GLOBALS["emails_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'vehiculos'
-			if (@$_POST["grid"] == "fvehiculosgrid") {
-				if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
-				$GLOBALS["vehiculos_grid"]->Page_Init();
+			// Process auto fill for detail table 'deuda_persona'
+			if (@$_POST["grid"] == "fdeuda_personagrid") {
+				if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
+				$GLOBALS["deuda_persona_grid"]->Page_Init();
 				$this->Page_Terminate();
 				exit();
 			}
@@ -506,10 +486,7 @@ class cpersonas_grid extends cpersonas {
 	var $MultiSelectKey;
 	var $Command;
 	var $RestoreSearch = FALSE;
-	var $direcciones_Count;
-	var $telefonos_Count;
-	var $emails_Count;
-	var $vehiculos_Count;
+	var $deuda_persona_Count;
 	var $DetailPages;
 	var $Recordset;
 	var $OldRecordset;
@@ -576,19 +553,23 @@ class cpersonas_grid extends cpersonas {
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+		if ($sFilter == "") {
+			$sFilter = "0=101";
+			$this->SearchWhere = $sFilter;
+		}
 
 		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "deuda_persona") {
-			global $deuda_persona;
-			$rsmaster = $deuda_persona->LoadRs($this->DbMasterFilter);
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "fuentes") {
+			global $fuentes;
+			$rsmaster = $fuentes->LoadRs($this->DbMasterFilter);
 			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
 			if (!$this->MasterRecordExists) {
 				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("deuda_personalist.php"); // Return to master page
+				$this->Page_Terminate("fuenteslist.php"); // Return to master page
 			} else {
-				$deuda_persona->LoadListRowValues($rsmaster);
-				$deuda_persona->RowType = EW_ROWTYPE_MASTER; // Master row
-				$deuda_persona->RenderListRow();
+				$fuentes->LoadListRowValues($rsmaster);
+				$fuentes->RowType = EW_ROWTYPE_MASTER; // Master row
+				$fuentes->RenderListRow();
 				$rsmaster->Close();
 			}
 		}
@@ -855,6 +836,12 @@ class cpersonas_grid extends cpersonas {
 	// Check if empty row
 	function EmptyRow() {
 		global $objForm;
+		if ($objForm->HasValue("x_id_fuente") && $objForm->HasValue("o_id_fuente") && $this->id_fuente->CurrentValue <> $this->id_fuente->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_id_gestion") && $objForm->HasValue("o_id_gestion") && $this->id_gestion->CurrentValue <> $this->id_gestion->OldValue)
+			return FALSE;
+		if ($objForm->HasValue("x_id_ref") && $objForm->HasValue("o_id_ref") && $this->id_ref->CurrentValue <> $this->id_ref->OldValue)
+			return FALSE;
 		if ($objForm->HasValue("x_tipo_documento") && $objForm->HasValue("o_tipo_documento") && $this->tipo_documento->CurrentValue <> $this->tipo_documento->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_no_documento") && $objForm->HasValue("o_no_documento") && $this->no_documento->CurrentValue <> $this->no_documento->OldValue)
@@ -868,6 +855,8 @@ class cpersonas_grid extends cpersonas {
 		if ($objForm->HasValue("x_fecha_nacimiento") && $objForm->HasValue("o_fecha_nacimiento") && $this->fecha_nacimiento->CurrentValue <> $this->fecha_nacimiento->OldValue)
 			return FALSE;
 		if ($objForm->HasValue("x_fecha_registro") && $objForm->HasValue("o_fecha_registro") && $this->fecha_registro->CurrentValue <> $this->fecha_registro->OldValue)
+			return FALSE;
+		if (!ew_Empty($this->imagen->Upload->Value))
 			return FALSE;
 		if ($objForm->HasValue("x_estado") && $objForm->HasValue("o_estado") && $this->estado->CurrentValue <> $this->estado->OldValue)
 			return FALSE;
@@ -978,7 +967,7 @@ class cpersonas_grid extends cpersonas {
 				$this->setCurrentMasterTable(""); // Clear master table
 				$this->DbMasterFilter = "";
 				$this->DbDetailFilter = "";
-				$this->Id->setSessionValue("");
+				$this->id_fuente->setSessionValue("");
 			}
 
 			// Reset sorting order
@@ -1223,12 +1212,21 @@ class cpersonas_grid extends cpersonas {
 		global $objForm, $Language;
 
 		// Get upload data
+		$this->imagen->Upload->Index = $objForm->Index;
+		$this->imagen->Upload->UploadFile();
+		$this->imagen->CurrentValue = $this->imagen->Upload->FileName;
 	}
 
 	// Load default values
 	function LoadDefaultValues() {
 		$this->Id->CurrentValue = NULL;
 		$this->Id->OldValue = $this->Id->CurrentValue;
+		$this->id_fuente->CurrentValue = 0;
+		$this->id_fuente->OldValue = $this->id_fuente->CurrentValue;
+		$this->id_gestion->CurrentValue = 0;
+		$this->id_gestion->OldValue = $this->id_gestion->CurrentValue;
+		$this->id_ref->CurrentValue = "0";
+		$this->id_ref->OldValue = $this->id_ref->CurrentValue;
 		$this->tipo_documento->CurrentValue = NULL;
 		$this->tipo_documento->OldValue = $this->tipo_documento->CurrentValue;
 		$this->no_documento->CurrentValue = NULL;
@@ -1239,10 +1237,15 @@ class cpersonas_grid extends cpersonas {
 		$this->paterno->OldValue = $this->paterno->CurrentValue;
 		$this->materno->CurrentValue = NULL;
 		$this->materno->OldValue = $this->materno->CurrentValue;
+		$this->especial->CurrentValue = NULL;
+		$this->especial->OldValue = $this->especial->CurrentValue;
 		$this->fecha_nacimiento->CurrentValue = NULL;
 		$this->fecha_nacimiento->OldValue = $this->fecha_nacimiento->CurrentValue;
 		$this->fecha_registro->CurrentValue = "0000-00-00 00:00:00";
 		$this->fecha_registro->OldValue = $this->fecha_registro->CurrentValue;
+		$this->imagen->Upload->DbValue = NULL;
+		$this->imagen->OldValue = $this->imagen->Upload->DbValue;
+		$this->imagen->Upload->Index = $this->RowIndex;
 		$this->observaciones->CurrentValue = NULL;
 		$this->observaciones->OldValue = $this->observaciones->CurrentValue;
 		$this->estado->CurrentValue = 1;
@@ -1255,8 +1258,21 @@ class cpersonas_grid extends cpersonas {
 		// Load from form
 		global $objForm;
 		$objForm->FormName = $this->FormName;
+		$this->GetUploadFiles(); // Get upload files
 		if (!$this->Id->FldIsDetailKey && $this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->Id->setFormValue($objForm->GetValue("x_Id"));
+		if (!$this->id_fuente->FldIsDetailKey) {
+			$this->id_fuente->setFormValue($objForm->GetValue("x_id_fuente"));
+		}
+		$this->id_fuente->setOldValue($objForm->GetValue("o_id_fuente"));
+		if (!$this->id_gestion->FldIsDetailKey) {
+			$this->id_gestion->setFormValue($objForm->GetValue("x_id_gestion"));
+		}
+		$this->id_gestion->setOldValue($objForm->GetValue("o_id_gestion"));
+		if (!$this->id_ref->FldIsDetailKey) {
+			$this->id_ref->setFormValue($objForm->GetValue("x_id_ref"));
+		}
+		$this->id_ref->setOldValue($objForm->GetValue("o_id_ref"));
 		if (!$this->tipo_documento->FldIsDetailKey) {
 			$this->tipo_documento->setFormValue($objForm->GetValue("x_tipo_documento"));
 		}
@@ -1298,6 +1314,9 @@ class cpersonas_grid extends cpersonas {
 		global $objForm;
 		if ($this->CurrentAction <> "gridadd" && $this->CurrentAction <> "add")
 			$this->Id->CurrentValue = $this->Id->FormValue;
+		$this->id_fuente->CurrentValue = $this->id_fuente->FormValue;
+		$this->id_gestion->CurrentValue = $this->id_gestion->FormValue;
+		$this->id_ref->CurrentValue = $this->id_ref->FormValue;
 		$this->tipo_documento->CurrentValue = $this->tipo_documento->FormValue;
 		$this->no_documento->CurrentValue = $this->no_documento->FormValue;
 		$this->nombres->CurrentValue = $this->nombres->FormValue;
@@ -1370,13 +1389,20 @@ class cpersonas_grid extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->id_ref->setDbValue($row['id_ref']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
 		$this->paterno->setDbValue($row['paterno']);
 		$this->materno->setDbValue($row['materno']);
+		$this->especial->setDbValue($row['especial']);
 		$this->fecha_nacimiento->setDbValue($row['fecha_nacimiento']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
+		$this->imagen->Upload->DbValue = $row['imagen'];
+		$this->imagen->CurrentValue = $this->imagen->Upload->DbValue;
+		$this->imagen->Upload->Index = $this->RowIndex;
 		$this->observaciones->setDbValue($row['observaciones']);
 		$this->estado->setDbValue($row['estado']);
 	}
@@ -1386,13 +1412,18 @@ class cpersonas_grid extends cpersonas {
 		$this->LoadDefaultValues();
 		$row = array();
 		$row['Id'] = $this->Id->CurrentValue;
+		$row['id_fuente'] = $this->id_fuente->CurrentValue;
+		$row['id_gestion'] = $this->id_gestion->CurrentValue;
+		$row['id_ref'] = $this->id_ref->CurrentValue;
 		$row['tipo_documento'] = $this->tipo_documento->CurrentValue;
 		$row['no_documento'] = $this->no_documento->CurrentValue;
 		$row['nombres'] = $this->nombres->CurrentValue;
 		$row['paterno'] = $this->paterno->CurrentValue;
 		$row['materno'] = $this->materno->CurrentValue;
+		$row['especial'] = $this->especial->CurrentValue;
 		$row['fecha_nacimiento'] = $this->fecha_nacimiento->CurrentValue;
 		$row['fecha_registro'] = $this->fecha_registro->CurrentValue;
+		$row['imagen'] = $this->imagen->Upload->DbValue;
 		$row['observaciones'] = $this->observaciones->CurrentValue;
 		$row['estado'] = $this->estado->CurrentValue;
 		return $row;
@@ -1404,13 +1435,18 @@ class cpersonas_grid extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->id_ref->DbValue = $row['id_ref'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
 		$this->paterno->DbValue = $row['paterno'];
 		$this->materno->DbValue = $row['materno'];
+		$this->especial->DbValue = $row['especial'];
 		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
 		$this->fecha_registro->DbValue = $row['fecha_registro'];
+		$this->imagen->Upload->DbValue = $row['imagen'];
 		$this->observaciones->DbValue = $row['observaciones'];
 		$this->estado->DbValue = $row['estado'];
 	}
@@ -1458,13 +1494,21 @@ class cpersonas_grid extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
+		// id_fuente
+		// id_gestion
+		// id_ref
 		// tipo_documento
 		// no_documento
 		// nombres
 		// paterno
 		// materno
+		// especial
 		// fecha_nacimiento
 		// fecha_registro
+		// imagen
+
+		$this->imagen->CellCssStyle = "white-space: nowrap;";
+
 		// observaciones
 		// estado
 
@@ -1473,6 +1517,60 @@ class cpersonas_grid extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// id_ref
+		$this->id_ref->ViewValue = $this->id_ref->CurrentValue;
+		$this->id_ref->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -1499,6 +1597,10 @@ class cpersonas_grid extends cpersonas {
 		$this->materno->ViewValue = $this->materno->CurrentValue;
 		$this->materno->ViewCustomAttributes = "";
 
+		// especial
+		$this->especial->ViewValue = $this->especial->CurrentValue;
+		$this->especial->ViewCustomAttributes = "";
+
 		// fecha_nacimiento
 		$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
 		$this->fecha_nacimiento->ViewValue = ew_FormatDateTime($this->fecha_nacimiento->ViewValue, 7);
@@ -1508,6 +1610,18 @@ class cpersonas_grid extends cpersonas {
 		$this->fecha_registro->ViewValue = $this->fecha_registro->CurrentValue;
 		$this->fecha_registro->ViewValue = ew_FormatDateTime($this->fecha_registro->ViewValue, 11);
 		$this->fecha_registro->ViewCustomAttributes = "";
+
+		// imagen
+		$this->imagen->UploadPath = 'uploads/';
+		if (!ew_Empty($this->imagen->Upload->DbValue)) {
+			$this->imagen->ImageWidth = 120;
+			$this->imagen->ImageHeight = 120;
+			$this->imagen->ImageAlt = $this->imagen->FldAlt();
+			$this->imagen->ViewValue = $this->imagen->Upload->DbValue;
+		} else {
+			$this->imagen->ViewValue = "";
+		}
+		$this->imagen->ViewCustomAttributes = "";
 
 		// observaciones
 		$this->observaciones->ViewValue = $this->observaciones->CurrentValue;
@@ -1526,6 +1640,23 @@ class cpersonas_grid extends cpersonas {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
+			$this->id_ref->TooltipValue = "";
+			if ($this->Export == "")
+				$this->id_ref->ViewValue = $this->HighlightValue($this->id_ref);
+
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -1540,16 +1671,22 @@ class cpersonas_grid extends cpersonas {
 			$this->nombres->LinkCustomAttributes = "";
 			$this->nombres->HrefValue = "";
 			$this->nombres->TooltipValue = "";
+			if ($this->Export == "")
+				$this->nombres->ViewValue = $this->HighlightValue($this->nombres);
 
 			// paterno
 			$this->paterno->LinkCustomAttributes = "";
 			$this->paterno->HrefValue = "";
 			$this->paterno->TooltipValue = "";
+			if ($this->Export == "")
+				$this->paterno->ViewValue = $this->HighlightValue($this->paterno);
 
 			// materno
 			$this->materno->LinkCustomAttributes = "";
 			$this->materno->HrefValue = "";
 			$this->materno->TooltipValue = "";
+			if ($this->Export == "")
+				$this->materno->ViewValue = $this->HighlightValue($this->materno);
 
 			// fecha_nacimiento
 			$this->fecha_nacimiento->LinkCustomAttributes = "";
@@ -1561,6 +1698,25 @@ class cpersonas_grid extends cpersonas {
 			$this->fecha_registro->HrefValue = "";
 			$this->fecha_registro->TooltipValue = "";
 
+			// imagen
+			$this->imagen->LinkCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+				$this->imagen->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+			} else {
+				$this->imagen->HrefValue = "";
+			}
+			$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
+			$this->imagen->TooltipValue = "";
+			if ($this->imagen->UseColorbox) {
+				if (ew_Empty($this->imagen->TooltipValue))
+					$this->imagen->LinkAttrs["title"] = $Language->Phrase("ViewImageGallery");
+				$this->imagen->LinkAttrs["data-rel"] = "personas_x" . $this->RowCnt . "_imagen";
+				ew_AppendClass($this->imagen->LinkAttrs["class"], "ewLightbox");
+			}
+
 			// estado
 			$this->estado->LinkCustomAttributes = "";
 			$this->estado->HrefValue = "";
@@ -1568,8 +1724,85 @@ class cpersonas_grid extends cpersonas {
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
 			// Id
-			// tipo_documento
+			// id_fuente
 
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if ($this->id_fuente->getSessionValue() <> "") {
+				$this->id_fuente->CurrentValue = $this->id_fuente->getSessionValue();
+				$this->id_fuente->OldValue = $this->id_fuente->CurrentValue;
+			if (strval($this->id_fuente->CurrentValue) <> "") {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = Conn()->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$arwrk = array();
+					$arwrk[1] = $rswrk->fields('DispFld');
+					$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+					$rswrk->Close();
+				} else {
+					$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+				}
+			} else {
+				$this->id_fuente->ViewValue = NULL;
+			}
+			$this->id_fuente->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->id_fuente->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_fuente->EditValue = $arwrk;
+			}
+
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
+
+			// id_ref
+			$this->id_ref->EditAttrs["class"] = "form-control";
+			$this->id_ref->EditCustomAttributes = "";
+			$this->id_ref->EditValue = ew_HtmlEncode($this->id_ref->CurrentValue);
+			$this->id_ref->PlaceHolder = ew_RemoveHtml($this->id_ref->FldCaption());
+
+			// tipo_documento
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
 			$this->tipo_documento->EditCustomAttributes = "";
 			$this->tipo_documento->EditValue = $this->tipo_documento->Options(TRUE);
@@ -1610,6 +1843,22 @@ class cpersonas_grid extends cpersonas {
 			$this->fecha_registro->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_registro->CurrentValue, 11));
 			$this->fecha_registro->PlaceHolder = ew_RemoveHtml($this->fecha_registro->FldCaption());
 
+			// imagen
+			$this->imagen->EditAttrs["class"] = "form-control";
+			$this->imagen->EditCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->ImageWidth = 120;
+				$this->imagen->ImageHeight = 120;
+				$this->imagen->ImageAlt = $this->imagen->FldAlt();
+				$this->imagen->EditValue = $this->imagen->Upload->DbValue;
+			} else {
+				$this->imagen->EditValue = "";
+			}
+			if (!ew_Empty($this->imagen->CurrentValue))
+				$this->imagen->Upload->FileName = $this->imagen->CurrentValue;
+			if (is_numeric($this->RowIndex) && !$this->EventCancelled) ew_RenderUploadField($this->imagen, $this->RowIndex);
+
 			// estado
 			$this->estado->EditCustomAttributes = "";
 			$this->estado->EditValue = $this->estado->Options(FALSE);
@@ -1619,6 +1868,18 @@ class cpersonas_grid extends cpersonas {
 
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
+
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
 
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
@@ -1647,6 +1908,18 @@ class cpersonas_grid extends cpersonas {
 			// fecha_registro
 			$this->fecha_registro->LinkCustomAttributes = "";
 			$this->fecha_registro->HrefValue = "";
+
+			// imagen
+			$this->imagen->LinkCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+				$this->imagen->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+			} else {
+				$this->imagen->HrefValue = "";
+			}
+			$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -1659,6 +1932,83 @@ class cpersonas_grid extends cpersonas {
 			$this->Id->EditValue = $this->Id->CurrentValue;
 			$this->Id->ViewCustomAttributes = "";
 
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if ($this->id_fuente->getSessionValue() <> "") {
+				$this->id_fuente->CurrentValue = $this->id_fuente->getSessionValue();
+				$this->id_fuente->OldValue = $this->id_fuente->CurrentValue;
+			if (strval($this->id_fuente->CurrentValue) <> "") {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = Conn()->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$arwrk = array();
+					$arwrk[1] = $rswrk->fields('DispFld');
+					$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+					$rswrk->Close();
+				} else {
+					$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+				}
+			} else {
+				$this->id_fuente->ViewValue = NULL;
+			}
+			$this->id_fuente->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->id_fuente->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_fuente->EditValue = $arwrk;
+			}
+
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
+
+			// id_ref
+			$this->id_ref->EditAttrs["class"] = "form-control";
+			$this->id_ref->EditCustomAttributes = "";
+			$this->id_ref->EditValue = ew_HtmlEncode($this->id_ref->CurrentValue);
+			$this->id_ref->PlaceHolder = ew_RemoveHtml($this->id_ref->FldCaption());
+
 			// tipo_documento
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
 			$this->tipo_documento->EditCustomAttributes = "";
@@ -1700,6 +2050,22 @@ class cpersonas_grid extends cpersonas {
 			$this->fecha_registro->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->fecha_registro->CurrentValue, 11));
 			$this->fecha_registro->PlaceHolder = ew_RemoveHtml($this->fecha_registro->FldCaption());
 
+			// imagen
+			$this->imagen->EditAttrs["class"] = "form-control";
+			$this->imagen->EditCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->ImageWidth = 120;
+				$this->imagen->ImageHeight = 120;
+				$this->imagen->ImageAlt = $this->imagen->FldAlt();
+				$this->imagen->EditValue = $this->imagen->Upload->DbValue;
+			} else {
+				$this->imagen->EditValue = "";
+			}
+			if (!ew_Empty($this->imagen->CurrentValue))
+				$this->imagen->Upload->FileName = $this->imagen->CurrentValue;
+			if (is_numeric($this->RowIndex) && !$this->EventCancelled) ew_RenderUploadField($this->imagen, $this->RowIndex);
+
 			// estado
 			$this->estado->EditCustomAttributes = "";
 			$this->estado->EditValue = $this->estado->Options(FALSE);
@@ -1709,6 +2075,18 @@ class cpersonas_grid extends cpersonas {
 
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
+
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
 
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
@@ -1737,6 +2115,18 @@ class cpersonas_grid extends cpersonas {
 			// fecha_registro
 			$this->fecha_registro->LinkCustomAttributes = "";
 			$this->fecha_registro->HrefValue = "";
+
+			// imagen
+			$this->imagen->LinkCustomAttributes = "";
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->DbValue)) {
+				$this->imagen->HrefValue = ew_GetFileUploadUrl($this->imagen, $this->imagen->Upload->DbValue); // Add prefix/suffix
+				$this->imagen->LinkAttrs["target"] = ""; // Add target
+				if ($this->Export <> "") $this->imagen->HrefValue = ew_FullUrl($this->imagen->HrefValue, "href");
+			} else {
+				$this->imagen->HrefValue = "";
+			}
+			$this->imagen->HrefValue2 = $this->imagen->UploadPath . $this->imagen->Upload->DbValue;
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -1815,50 +2205,6 @@ class cpersonas_grid extends cpersonas {
 		}
 		$rows = ($rs) ? $rs->GetRows() : array();
 
-		// Check if records exist for detail table 'direcciones'
-		if (!isset($GLOBALS["direcciones"])) $GLOBALS["direcciones"] = new cdirecciones();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["direcciones"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "direcciones", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'telefonos'
-		if (!isset($GLOBALS["telefonos"])) $GLOBALS["telefonos"] = new ctelefonos();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["telefonos"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "telefonos", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'emails'
-		if (!isset($GLOBALS["emails"])) $GLOBALS["emails"] = new cemails();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["emails"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "emails", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'vehiculos'
-		if (!isset($GLOBALS["vehiculos"])) $GLOBALS["vehiculos"] = new cvehiculos();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["vehiculos"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "vehiculos", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
 		// Clone old rows
 		$rsold = $rows;
 		if ($rs)
@@ -1933,7 +2279,18 @@ class cpersonas_grid extends cpersonas {
 			// Save old values
 			$rsold = &$rs->fields;
 			$this->LoadDbValues($rsold);
+			$this->imagen->OldUploadPath = 'uploads/';
+			$this->imagen->UploadPath = $this->imagen->OldUploadPath;
 			$rsnew = array();
+
+			// id_fuente
+			$this->id_fuente->SetDbValueDef($rsnew, $this->id_fuente->CurrentValue, 0, $this->id_fuente->ReadOnly);
+
+			// id_gestion
+			$this->id_gestion->SetDbValueDef($rsnew, $this->id_gestion->CurrentValue, 0, $this->id_gestion->ReadOnly);
+
+			// id_ref
+			$this->id_ref->SetDbValueDef($rsnew, $this->id_ref->CurrentValue, NULL, $this->id_ref->ReadOnly);
 
 			// tipo_documento
 			$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, $this->tipo_documento->ReadOnly);
@@ -1942,10 +2299,10 @@ class cpersonas_grid extends cpersonas {
 			$this->no_documento->SetDbValueDef($rsnew, $this->no_documento->CurrentValue, NULL, $this->no_documento->ReadOnly);
 
 			// nombres
-			$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, "", $this->nombres->ReadOnly);
+			$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, NULL, $this->nombres->ReadOnly);
 
 			// paterno
-			$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, "", $this->paterno->ReadOnly);
+			$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, NULL, $this->paterno->ReadOnly);
 
 			// materno
 			$this->materno->SetDbValueDef($rsnew, $this->materno->CurrentValue, "", $this->materno->ReadOnly);
@@ -1956,29 +2313,23 @@ class cpersonas_grid extends cpersonas {
 			// fecha_registro
 			$this->fecha_registro->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_registro->CurrentValue, 11), ew_CurrentDate(), $this->fecha_registro->ReadOnly);
 
+			// imagen
+			if ($this->imagen->Visible && !$this->imagen->ReadOnly && !$this->imagen->Upload->KeepFile) {
+				$this->imagen->Upload->DbValue = $rsold['imagen']; // Get original value
+				if ($this->imagen->Upload->FileName == "") {
+					$rsnew['imagen'] = NULL;
+				} else {
+					$rsnew['imagen'] = $this->imagen->Upload->FileName;
+				}
+			}
+
 			// estado
 			$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, 0, $this->estado->ReadOnly);
-
-			// Check referential integrity for master table 'deuda_persona'
-			$bValidMasterRecord = TRUE;
-			$sMasterFilter = $this->SqlMasterFilter_deuda_persona();
-			$KeyValue = isset($rsnew['Id']) ? $rsnew['Id'] : $rsold['Id'];
-			if (strval($KeyValue) <> "") {
-				$sMasterFilter = str_replace("@id_persona@", ew_AdjustSql($KeyValue), $sMasterFilter);
-			} else {
-				$bValidMasterRecord = FALSE;
-			}
-			if ($bValidMasterRecord) {
-				if (!isset($GLOBALS["deuda_persona"])) $GLOBALS["deuda_persona"] = new cdeuda_persona();
-				$rsmaster = $GLOBALS["deuda_persona"]->LoadRs($sMasterFilter);
-				$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-				$rsmaster->Close();
-			}
-			if (!$bValidMasterRecord) {
-				$sRelatedRecordMsg = str_replace("%t", "deuda_persona", $Language->Phrase("RelatedRecordRequired"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				$rs->Close();
-				return FALSE;
+			if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+				$this->imagen->UploadPath = 'uploads/';
+				if (!ew_Empty($this->imagen->Upload->Value)) {
+					$rsnew['imagen'] = ew_UploadFileNameEx($this->imagen->PhysicalUploadPath(), $rsnew['imagen']); // Get new file name
+				}
 			}
 
 			// Call Row Updating event
@@ -1991,6 +2342,14 @@ class cpersonas_grid extends cpersonas {
 					$EditRow = TRUE; // No field to update
 				$conn->raiseErrorFn = '';
 				if ($EditRow) {
+					if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+						if (!ew_Empty($this->imagen->Upload->Value)) {
+							if (!$this->imagen->Upload->SaveToFile($rsnew['imagen'], TRUE)) {
+								$this->setFailureMessage($Language->Phrase("UploadErrMsg7"));
+								return FALSE;
+							}
+						}
+					}
 				}
 			} else {
 				if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -2010,6 +2369,9 @@ class cpersonas_grid extends cpersonas {
 		if ($EditRow)
 			$this->Row_Updated($rsold, $rsnew);
 		$rs->Close();
+
+		// imagen
+		ew_CleanUploadTempPath($this->imagen, $this->imagen->Upload->Index);
 		return $EditRow;
 	}
 
@@ -2018,36 +2380,27 @@ class cpersonas_grid extends cpersonas {
 		global $Language, $Security;
 
 		// Set up foreign key field value from Session
-			if ($this->getCurrentMasterTable() == "deuda_persona") {
-				$this->Id->CurrentValue = $this->Id->getSessionValue();
+			if ($this->getCurrentMasterTable() == "fuentes") {
+				$this->id_fuente->CurrentValue = $this->id_fuente->getSessionValue();
 			}
-
-		// Check referential integrity for master table 'deuda_persona'
-		$bValidMasterRecord = TRUE;
-		$sMasterFilter = $this->SqlMasterFilter_deuda_persona();
-		if (strval($this->Id->CurrentValue) <> "") {
-			$sMasterFilter = str_replace("@id_persona@", ew_AdjustSql($this->Id->CurrentValue, "DB"), $sMasterFilter);
-		} else {
-			$bValidMasterRecord = FALSE;
-		}
-		if ($bValidMasterRecord) {
-			if (!isset($GLOBALS["deuda_persona"])) $GLOBALS["deuda_persona"] = new cdeuda_persona();
-			$rsmaster = $GLOBALS["deuda_persona"]->LoadRs($sMasterFilter);
-			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-			$rsmaster->Close();
-		}
-		if (!$bValidMasterRecord) {
-			$sRelatedRecordMsg = str_replace("%t", "deuda_persona", $Language->Phrase("RelatedRecordRequired"));
-			$this->setFailureMessage($sRelatedRecordMsg);
-			return FALSE;
-		}
 		$conn = &$this->Connection();
 
 		// Load db values from rsold
 		$this->LoadDbValues($rsold);
 		if ($rsold) {
+			$this->imagen->OldUploadPath = 'uploads/';
+			$this->imagen->UploadPath = $this->imagen->OldUploadPath;
 		}
 		$rsnew = array();
+
+		// id_fuente
+		$this->id_fuente->SetDbValueDef($rsnew, $this->id_fuente->CurrentValue, 0, strval($this->id_fuente->CurrentValue) == "");
+
+		// id_gestion
+		$this->id_gestion->SetDbValueDef($rsnew, $this->id_gestion->CurrentValue, 0, strval($this->id_gestion->CurrentValue) == "");
+
+		// id_ref
+		$this->id_ref->SetDbValueDef($rsnew, $this->id_ref->CurrentValue, NULL, strval($this->id_ref->CurrentValue) == "");
 
 		// tipo_documento
 		$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, FALSE);
@@ -2056,10 +2409,10 @@ class cpersonas_grid extends cpersonas {
 		$this->no_documento->SetDbValueDef($rsnew, $this->no_documento->CurrentValue, NULL, FALSE);
 
 		// nombres
-		$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, "", FALSE);
+		$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, NULL, FALSE);
 
 		// paterno
-		$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, "", FALSE);
+		$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, NULL, FALSE);
 
 		// materno
 		$this->materno->SetDbValueDef($rsnew, $this->materno->CurrentValue, "", FALSE);
@@ -2070,8 +2423,24 @@ class cpersonas_grid extends cpersonas {
 		// fecha_registro
 		$this->fecha_registro->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_registro->CurrentValue, 11), ew_CurrentDate(), FALSE);
 
+		// imagen
+		if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+			$this->imagen->Upload->DbValue = ""; // No need to delete old file
+			if ($this->imagen->Upload->FileName == "") {
+				$rsnew['imagen'] = NULL;
+			} else {
+				$rsnew['imagen'] = $this->imagen->Upload->FileName;
+			}
+		}
+
 		// estado
 		$this->estado->SetDbValueDef($rsnew, $this->estado->CurrentValue, 0, strval($this->estado->CurrentValue) == "");
+		if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+			$this->imagen->UploadPath = 'uploads/';
+			if (!ew_Empty($this->imagen->Upload->Value)) {
+				$rsnew['imagen'] = ew_UploadFileNameEx($this->imagen->PhysicalUploadPath(), $rsnew['imagen']); // Get new file name
+			}
+		}
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -2081,6 +2450,14 @@ class cpersonas_grid extends cpersonas {
 			$AddRow = $this->Insert($rsnew);
 			$conn->raiseErrorFn = '';
 			if ($AddRow) {
+				if ($this->imagen->Visible && !$this->imagen->Upload->KeepFile) {
+					if (!ew_Empty($this->imagen->Upload->Value)) {
+						if (!$this->imagen->Upload->SaveToFile($rsnew['imagen'], TRUE)) {
+							$this->setFailureMessage($Language->Phrase("UploadErrMsg7"));
+							return FALSE;
+						}
+					}
+				}
 			}
 		} else {
 			if ($this->getSuccessMessage() <> "" || $this->getFailureMessage() <> "") {
@@ -2100,6 +2477,9 @@ class cpersonas_grid extends cpersonas {
 			$rs = ($rsold == NULL) ? NULL : $rsold->fields;
 			$this->Row_Inserted($rs, $rsnew);
 		}
+
+		// imagen
+		ew_CleanUploadTempPath($this->imagen, $this->imagen->Upload->Index);
 		return $AddRow;
 	}
 
@@ -2108,9 +2488,9 @@ class cpersonas_grid extends cpersonas {
 
 		// Hide foreign keys
 		$sMasterTblVar = $this->getCurrentMasterTable();
-		if ($sMasterTblVar == "deuda_persona") {
-			$this->Id->Visible = FALSE;
-			if ($GLOBALS["deuda_persona"]->EventCancelled) $this->EventCancelled = TRUE;
+		if ($sMasterTblVar == "fuentes") {
+			$this->id_fuente->Visible = FALSE;
+			if ($GLOBALS["fuentes"]->EventCancelled) $this->EventCancelled = TRUE;
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
@@ -2121,6 +2501,34 @@ class cpersonas_grid extends cpersonas {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
 		switch ($fld->FldVar) {
+		case "x_id_fuente":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
 		}
 	}
 
@@ -2136,6 +2544,8 @@ class cpersonas_grid extends cpersonas {
 	function Page_Load() {
 
 		//echo "Page Load";
+	if (!isset($_GET["cmd"]) && !isset($_GET["export"]))
+						$this->ResetSearchParms();
 	}
 
 	// Page Unload event

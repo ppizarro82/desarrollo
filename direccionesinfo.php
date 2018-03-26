@@ -8,11 +8,25 @@ $direcciones = NULL;
 //
 class cdirecciones extends cTable {
 	var $Id;
-	var $id_persona;
-	var $id_ciudad;
-	var $tipo_direccion;
-	var $direccion;
-	var $ult_fecha_activo;
+	var $id_fuente;
+	var $id_gestion;
+	var $id_tipodireccion;
+	var $tipo_documento;
+	var $no_documento;
+	var $nombres;
+	var $paterno;
+	var $materno;
+	var $pais;
+	var $departamento;
+	var $provincia;
+	var $municipio;
+	var $localidad;
+	var $distrito;
+	var $zona;
+	var $direccion1;
+	var $direccion2;
+	var $direccion3;
+	var $direccion4;
 	var $mapa;
 	var $longitud;
 	var $latitud;
@@ -54,40 +68,108 @@ class cdirecciones extends cTable {
 		$this->Id->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['Id'] = &$this->Id;
 
-		// id_persona
-		$this->id_persona = new cField('direcciones', 'direcciones', 'x_id_persona', 'id_persona', '`id_persona`', '`id_persona`', 3, -1, FALSE, '`id_persona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
-		$this->id_persona->Sortable = TRUE; // Allow sort
-		$this->id_persona->UsePleaseSelect = TRUE; // Use PleaseSelect by default
-		$this->id_persona->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
-		$this->id_persona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['id_persona'] = &$this->id_persona;
+		// id_fuente
+		$this->id_fuente = new cField('direcciones', 'direcciones', 'x_id_fuente', 'id_fuente', '`id_fuente`', '`id_fuente`', 3, -1, FALSE, '`id_fuente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_fuente->Sortable = TRUE; // Allow sort
+		$this->id_fuente->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_fuente->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_fuente->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_fuente'] = &$this->id_fuente;
 
-		// id_ciudad
-		$this->id_ciudad = new cField('direcciones', 'direcciones', 'x_id_ciudad', 'id_ciudad', '`id_ciudad`', '`id_ciudad`', 3, -1, FALSE, '`id_ciudad`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
-		$this->id_ciudad->Sortable = TRUE; // Allow sort
-		$this->id_ciudad->UsePleaseSelect = TRUE; // Use PleaseSelect by default
-		$this->id_ciudad->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
-		$this->id_ciudad->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['id_ciudad'] = &$this->id_ciudad;
+		// id_gestion
+		$this->id_gestion = new cField('direcciones', 'direcciones', 'x_id_gestion', 'id_gestion', '`id_gestion`', '`id_gestion`', 3, -1, FALSE, '`id_gestion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_gestion->Sortable = TRUE; // Allow sort
+		$this->id_gestion->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_gestion->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_gestion->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_gestion'] = &$this->id_gestion;
 
-		// tipo_direccion
-		$this->tipo_direccion = new cField('direcciones', 'direcciones', 'x_tipo_direccion', 'tipo_direccion', '`tipo_direccion`', '`tipo_direccion`', 200, -1, FALSE, '`tipo_direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
-		$this->tipo_direccion->Sortable = TRUE; // Allow sort
-		$this->tipo_direccion->UsePleaseSelect = TRUE; // Use PleaseSelect by default
-		$this->tipo_direccion->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
-		$this->tipo_direccion->OptionCount = 5;
-		$this->fields['tipo_direccion'] = &$this->tipo_direccion;
+		// id_tipodireccion
+		$this->id_tipodireccion = new cField('direcciones', 'direcciones', 'x_id_tipodireccion', 'id_tipodireccion', '`id_tipodireccion`', '`id_tipodireccion`', 3, -1, FALSE, '`id_tipodireccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_tipodireccion->Sortable = TRUE; // Allow sort
+		$this->id_tipodireccion->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_tipodireccion->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->fields['id_tipodireccion'] = &$this->id_tipodireccion;
 
-		// direccion
-		$this->direccion = new cField('direcciones', 'direcciones', 'x_direccion', 'direccion', '`direccion`', '`direccion`', 200, -1, FALSE, '`direccion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
-		$this->direccion->Sortable = TRUE; // Allow sort
-		$this->fields['direccion'] = &$this->direccion;
+		// tipo_documento
+		$this->tipo_documento = new cField('direcciones', 'direcciones', 'x_tipo_documento', 'tipo_documento', '`tipo_documento`', '`tipo_documento`', 200, -1, FALSE, '`tipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->tipo_documento->Sortable = TRUE; // Allow sort
+		$this->fields['tipo_documento'] = &$this->tipo_documento;
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo = new cField('direcciones', 'direcciones', 'x_ult_fecha_activo', 'ult_fecha_activo', '`ult_fecha_activo`', ew_CastDateFieldForLike('`ult_fecha_activo`', 7, "DB"), 135, 7, FALSE, '`ult_fecha_activo`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
-		$this->ult_fecha_activo->Sortable = TRUE; // Allow sort
-		$this->ult_fecha_activo->FldDefaultErrMsg = str_replace("%s", $GLOBALS["EW_DATE_SEPARATOR"], $Language->Phrase("IncorrectDateDMY"));
-		$this->fields['ult_fecha_activo'] = &$this->ult_fecha_activo;
+		// no_documento
+		$this->no_documento = new cField('direcciones', 'direcciones', 'x_no_documento', 'no_documento', '`no_documento`', '`no_documento`', 200, -1, FALSE, '`no_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->no_documento->Sortable = TRUE; // Allow sort
+		$this->fields['no_documento'] = &$this->no_documento;
+
+		// nombres
+		$this->nombres = new cField('direcciones', 'direcciones', 'x_nombres', 'nombres', '`nombres`', '`nombres`', 200, -1, FALSE, '`nombres`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->nombres->Sortable = TRUE; // Allow sort
+		$this->fields['nombres'] = &$this->nombres;
+
+		// paterno
+		$this->paterno = new cField('direcciones', 'direcciones', 'x_paterno', 'paterno', '`paterno`', '`paterno`', 200, -1, FALSE, '`paterno`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->paterno->Sortable = TRUE; // Allow sort
+		$this->fields['paterno'] = &$this->paterno;
+
+		// materno
+		$this->materno = new cField('direcciones', 'direcciones', 'x_materno', 'materno', '`materno`', '`materno`', 200, -1, FALSE, '`materno`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->materno->Sortable = TRUE; // Allow sort
+		$this->fields['materno'] = &$this->materno;
+
+		// pais
+		$this->pais = new cField('direcciones', 'direcciones', 'x_pais', 'pais', '`pais`', '`pais`', 200, -1, FALSE, '`pais`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->pais->Sortable = TRUE; // Allow sort
+		$this->fields['pais'] = &$this->pais;
+
+		// departamento
+		$this->departamento = new cField('direcciones', 'direcciones', 'x_departamento', 'departamento', '`departamento`', '`departamento`', 200, -1, FALSE, '`departamento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->departamento->Sortable = TRUE; // Allow sort
+		$this->fields['departamento'] = &$this->departamento;
+
+		// provincia
+		$this->provincia = new cField('direcciones', 'direcciones', 'x_provincia', 'provincia', '`provincia`', '`provincia`', 200, -1, FALSE, '`provincia`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->provincia->Sortable = TRUE; // Allow sort
+		$this->fields['provincia'] = &$this->provincia;
+
+		// municipio
+		$this->municipio = new cField('direcciones', 'direcciones', 'x_municipio', 'municipio', '`municipio`', '`municipio`', 200, -1, FALSE, '`municipio`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->municipio->Sortable = TRUE; // Allow sort
+		$this->fields['municipio'] = &$this->municipio;
+
+		// localidad
+		$this->localidad = new cField('direcciones', 'direcciones', 'x_localidad', 'localidad', '`localidad`', '`localidad`', 200, -1, FALSE, '`localidad`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->localidad->Sortable = TRUE; // Allow sort
+		$this->fields['localidad'] = &$this->localidad;
+
+		// distrito
+		$this->distrito = new cField('direcciones', 'direcciones', 'x_distrito', 'distrito', '`distrito`', '`distrito`', 200, -1, FALSE, '`distrito`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->distrito->Sortable = TRUE; // Allow sort
+		$this->fields['distrito'] = &$this->distrito;
+
+		// zona
+		$this->zona = new cField('direcciones', 'direcciones', 'x_zona', 'zona', '`zona`', '`zona`', 200, -1, FALSE, '`zona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->zona->Sortable = TRUE; // Allow sort
+		$this->fields['zona'] = &$this->zona;
+
+		// direccion1
+		$this->direccion1 = new cField('direcciones', 'direcciones', 'x_direccion1', 'direccion1', '`direccion1`', '`direccion1`', 200, -1, FALSE, '`direccion1`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->direccion1->Sortable = TRUE; // Allow sort
+		$this->fields['direccion1'] = &$this->direccion1;
+
+		// direccion2
+		$this->direccion2 = new cField('direcciones', 'direcciones', 'x_direccion2', 'direccion2', '`direccion2`', '`direccion2`', 200, -1, FALSE, '`direccion2`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->direccion2->Sortable = TRUE; // Allow sort
+		$this->fields['direccion2'] = &$this->direccion2;
+
+		// direccion3
+		$this->direccion3 = new cField('direcciones', 'direcciones', 'x_direccion3', 'direccion3', '`direccion3`', '`direccion3`', 200, -1, FALSE, '`direccion3`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->direccion3->Sortable = TRUE; // Allow sort
+		$this->fields['direccion3'] = &$this->direccion3;
+
+		// direccion4
+		$this->direccion4 = new cField('direcciones', 'direcciones', 'x_direccion4', 'direccion4', '`direccion4`', '`direccion4`', 200, -1, FALSE, '`direccion4`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->direccion4->Sortable = TRUE; // Allow sort
+		$this->fields['direccion4'] = &$this->direccion4;
 
 		// mapa
 		$this->mapa = new cField('direcciones', 'direcciones', 'x_mapa', 'mapa', '`mapa`', '`mapa`', 200, -1, FALSE, '`mapa`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
@@ -140,53 +222,6 @@ class cdirecciones extends cTable {
 		} else {
 			$ofld->setSort("");
 		}
-	}
-
-	// Current master table name
-	function getCurrentMasterTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
-	}
-
-	function setCurrentMasterTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
-	}
-
-	// Session master WHERE clause
-	function GetMasterFilter() {
-
-		// Master filter
-		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "personas") {
-			if ($this->id_persona->getSessionValue() <> "")
-				$sMasterFilter .= "`Id`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
-		return $sMasterFilter;
-	}
-
-	// Session detail WHERE clause
-	function GetDetailFilter() {
-
-		// Detail filter
-		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "personas") {
-			if ($this->id_persona->getSessionValue() <> "")
-				$sDetailFilter .= "`id_persona`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
-		return $sDetailFilter;
-	}
-
-	// Master filter
-	function SqlMasterFilter_personas() {
-		return "`Id`=@Id@";
-	}
-
-	// Detail filter
-	function SqlDetailFilter_personas() {
-		return "`id_persona`=@id_persona@";
 	}
 
 	// Table level SQL
@@ -261,7 +296,7 @@ class cdirecciones extends cTable {
 	var $_SqlOrderBy = "";
 
 	function getSqlOrderBy() { // Order By
-		return ($this->_SqlOrderBy <> "") ? $this->_SqlOrderBy : "`ult_fecha_activo` DESC";
+		return ($this->_SqlOrderBy <> "") ? $this->_SqlOrderBy : "";
 	}
 
 	function SqlOrderBy() { // For backward compatibility
@@ -580,10 +615,6 @@ class cdirecciones extends cTable {
 
 	// Add master url
 	function AddMasterUrl($url) {
-		if ($this->getCurrentMasterTable() == "personas" && strpos($url, EW_TABLE_SHOW_MASTER . "=") === FALSE) {
-			$url .= (strpos($url, "?") !== FALSE ? "&" : "?") . EW_TABLE_SHOW_MASTER . "=" . $this->getCurrentMasterTable();
-			$url .= "&fk_Id=" . urlencode($this->id_persona->CurrentValue);
-		}
 		return $url;
 	}
 
@@ -681,11 +712,25 @@ class cdirecciones extends cTable {
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
 		$this->Id->setDbValue($rs->fields('Id'));
-		$this->id_persona->setDbValue($rs->fields('id_persona'));
-		$this->id_ciudad->setDbValue($rs->fields('id_ciudad'));
-		$this->tipo_direccion->setDbValue($rs->fields('tipo_direccion'));
-		$this->direccion->setDbValue($rs->fields('direccion'));
-		$this->ult_fecha_activo->setDbValue($rs->fields('ult_fecha_activo'));
+		$this->id_fuente->setDbValue($rs->fields('id_fuente'));
+		$this->id_gestion->setDbValue($rs->fields('id_gestion'));
+		$this->id_tipodireccion->setDbValue($rs->fields('id_tipodireccion'));
+		$this->tipo_documento->setDbValue($rs->fields('tipo_documento'));
+		$this->no_documento->setDbValue($rs->fields('no_documento'));
+		$this->nombres->setDbValue($rs->fields('nombres'));
+		$this->paterno->setDbValue($rs->fields('paterno'));
+		$this->materno->setDbValue($rs->fields('materno'));
+		$this->pais->setDbValue($rs->fields('pais'));
+		$this->departamento->setDbValue($rs->fields('departamento'));
+		$this->provincia->setDbValue($rs->fields('provincia'));
+		$this->municipio->setDbValue($rs->fields('municipio'));
+		$this->localidad->setDbValue($rs->fields('localidad'));
+		$this->distrito->setDbValue($rs->fields('distrito'));
+		$this->zona->setDbValue($rs->fields('zona'));
+		$this->direccion1->setDbValue($rs->fields('direccion1'));
+		$this->direccion2->setDbValue($rs->fields('direccion2'));
+		$this->direccion3->setDbValue($rs->fields('direccion3'));
+		$this->direccion4->setDbValue($rs->fields('direccion4'));
 		$this->mapa->setDbValue($rs->fields('mapa'));
 		$this->longitud->setDbValue($rs->fields('longitud'));
 		$this->latitud->setDbValue($rs->fields('latitud'));
@@ -700,11 +745,25 @@ class cdirecciones extends cTable {
 
 	// Common render codes
 		// Id
-		// id_persona
-		// id_ciudad
-		// tipo_direccion
-		// direccion
-		// ult_fecha_activo
+		// id_fuente
+		// id_gestion
+		// id_tipodireccion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// pais
+		// departamento
+		// provincia
+		// municipio
+		// localidad
+		// distrito
+		// zona
+		// direccion1
+		// direccion2
+		// direccion3
+		// direccion4
 		// mapa
 		// longitud
 		// latitud
@@ -713,73 +772,145 @@ class cdirecciones extends cTable {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
-			}
-		} else {
-			$this->id_persona->ViewValue = NULL;
-		}
-		$this->id_persona->ViewCustomAttributes = "";
-
-		// id_ciudad
-		if (strval($this->id_ciudad->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
-		$sWhereWrk = "";
-		$this->id_ciudad->LookupFilters = array();
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
 		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$this->id_ciudad->ViewValue = $this->id_ciudad->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_ciudad->ViewValue = $this->id_ciudad->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_ciudad->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_ciudad->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// tipo_direccion
-		if (strval($this->tipo_direccion->CurrentValue) <> "") {
-			$this->tipo_direccion->ViewValue = $this->tipo_direccion->OptionCaption($this->tipo_direccion->CurrentValue);
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
 		} else {
-			$this->tipo_direccion->ViewValue = NULL;
+			$this->id_gestion->ViewValue = NULL;
 		}
-		$this->tipo_direccion->ViewCustomAttributes = "";
+		$this->id_gestion->ViewCustomAttributes = "";
 
-		// direccion
-		$this->direccion->ViewValue = $this->direccion->CurrentValue;
-		$this->direccion->ViewCustomAttributes = "";
+		// id_tipodireccion
+		if (strval($this->id_tipodireccion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_tipodireccion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `tipo_direccion`";
+		$sWhereWrk = "";
+		$this->id_tipodireccion->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_tipodireccion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_tipodireccion->ViewValue = $this->id_tipodireccion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_tipodireccion->ViewValue = $this->id_tipodireccion->CurrentValue;
+			}
+		} else {
+			$this->id_tipodireccion->ViewValue = NULL;
+		}
+		$this->id_tipodireccion->ViewCustomAttributes = "";
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->ViewValue = $this->ult_fecha_activo->CurrentValue;
-		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
-		$this->ult_fecha_activo->ViewCustomAttributes = "";
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
+
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// pais
+		$this->pais->ViewValue = $this->pais->CurrentValue;
+		$this->pais->ViewCustomAttributes = "";
+
+		// departamento
+		$this->departamento->ViewValue = $this->departamento->CurrentValue;
+		$this->departamento->ViewCustomAttributes = "";
+
+		// provincia
+		$this->provincia->ViewValue = $this->provincia->CurrentValue;
+		$this->provincia->ViewCustomAttributes = "";
+
+		// municipio
+		$this->municipio->ViewValue = $this->municipio->CurrentValue;
+		$this->municipio->ViewCustomAttributes = "";
+
+		// localidad
+		$this->localidad->ViewValue = $this->localidad->CurrentValue;
+		$this->localidad->ViewCustomAttributes = "";
+
+		// distrito
+		$this->distrito->ViewValue = $this->distrito->CurrentValue;
+		$this->distrito->ViewCustomAttributes = "";
+
+		// zona
+		$this->zona->ViewValue = $this->zona->CurrentValue;
+		$this->zona->ViewCustomAttributes = "";
+
+		// direccion1
+		$this->direccion1->ViewValue = $this->direccion1->CurrentValue;
+		$this->direccion1->ViewCustomAttributes = "";
+
+		// direccion2
+		$this->direccion2->ViewValue = $this->direccion2->CurrentValue;
+		$this->direccion2->ViewCustomAttributes = "";
+
+		// direccion3
+		$this->direccion3->ViewValue = $this->direccion3->CurrentValue;
+		$this->direccion3->ViewCustomAttributes = "";
+
+		// direccion4
+		$this->direccion4->ViewValue = $this->direccion4->CurrentValue;
+		$this->direccion4->ViewCustomAttributes = "";
 
 		// mapa
 		$this->mapa->ViewValue = $this->mapa->CurrentValue;
@@ -798,36 +929,100 @@ class cdirecciones extends cTable {
 		$this->Id->HrefValue = "";
 		$this->Id->TooltipValue = "";
 
-		// id_persona
-		$this->id_persona->LinkCustomAttributes = "";
-		if (!ew_Empty($this->id_persona->CurrentValue)) {
-			$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-			$this->id_persona->LinkAttrs["target"] = ""; // Add target
-			if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-		} else {
-			$this->id_persona->HrefValue = "";
-		}
-		$this->id_persona->TooltipValue = "";
+		// id_fuente
+		$this->id_fuente->LinkCustomAttributes = "";
+		$this->id_fuente->HrefValue = "";
+		$this->id_fuente->TooltipValue = "";
 
-		// id_ciudad
-		$this->id_ciudad->LinkCustomAttributes = "";
-		$this->id_ciudad->HrefValue = "";
-		$this->id_ciudad->TooltipValue = "";
+		// id_gestion
+		$this->id_gestion->LinkCustomAttributes = "";
+		$this->id_gestion->HrefValue = "";
+		$this->id_gestion->TooltipValue = "";
 
-		// tipo_direccion
-		$this->tipo_direccion->LinkCustomAttributes = "";
-		$this->tipo_direccion->HrefValue = "";
-		$this->tipo_direccion->TooltipValue = "";
+		// id_tipodireccion
+		$this->id_tipodireccion->LinkCustomAttributes = "";
+		$this->id_tipodireccion->HrefValue = "";
+		$this->id_tipodireccion->TooltipValue = "";
 
-		// direccion
-		$this->direccion->LinkCustomAttributes = "";
-		$this->direccion->HrefValue = "";
-		$this->direccion->TooltipValue = "";
+		// tipo_documento
+		$this->tipo_documento->LinkCustomAttributes = "";
+		$this->tipo_documento->HrefValue = "";
+		$this->tipo_documento->TooltipValue = "";
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->LinkCustomAttributes = "";
-		$this->ult_fecha_activo->HrefValue = "";
-		$this->ult_fecha_activo->TooltipValue = "";
+		// no_documento
+		$this->no_documento->LinkCustomAttributes = "";
+		$this->no_documento->HrefValue = "";
+		$this->no_documento->TooltipValue = "";
+
+		// nombres
+		$this->nombres->LinkCustomAttributes = "";
+		$this->nombres->HrefValue = "";
+		$this->nombres->TooltipValue = "";
+
+		// paterno
+		$this->paterno->LinkCustomAttributes = "";
+		$this->paterno->HrefValue = "";
+		$this->paterno->TooltipValue = "";
+
+		// materno
+		$this->materno->LinkCustomAttributes = "";
+		$this->materno->HrefValue = "";
+		$this->materno->TooltipValue = "";
+
+		// pais
+		$this->pais->LinkCustomAttributes = "";
+		$this->pais->HrefValue = "";
+		$this->pais->TooltipValue = "";
+
+		// departamento
+		$this->departamento->LinkCustomAttributes = "";
+		$this->departamento->HrefValue = "";
+		$this->departamento->TooltipValue = "";
+
+		// provincia
+		$this->provincia->LinkCustomAttributes = "";
+		$this->provincia->HrefValue = "";
+		$this->provincia->TooltipValue = "";
+
+		// municipio
+		$this->municipio->LinkCustomAttributes = "";
+		$this->municipio->HrefValue = "";
+		$this->municipio->TooltipValue = "";
+
+		// localidad
+		$this->localidad->LinkCustomAttributes = "";
+		$this->localidad->HrefValue = "";
+		$this->localidad->TooltipValue = "";
+
+		// distrito
+		$this->distrito->LinkCustomAttributes = "";
+		$this->distrito->HrefValue = "";
+		$this->distrito->TooltipValue = "";
+
+		// zona
+		$this->zona->LinkCustomAttributes = "";
+		$this->zona->HrefValue = "";
+		$this->zona->TooltipValue = "";
+
+		// direccion1
+		$this->direccion1->LinkCustomAttributes = "";
+		$this->direccion1->HrefValue = "";
+		$this->direccion1->TooltipValue = "";
+
+		// direccion2
+		$this->direccion2->LinkCustomAttributes = "";
+		$this->direccion2->HrefValue = "";
+		$this->direccion2->TooltipValue = "";
+
+		// direccion3
+		$this->direccion3->LinkCustomAttributes = "";
+		$this->direccion3->HrefValue = "";
+		$this->direccion3->TooltipValue = "";
+
+		// direccion4
+		$this->direccion4->LinkCustomAttributes = "";
+		$this->direccion4->HrefValue = "";
+		$this->direccion4->TooltipValue = "";
 
 		// mapa
 		$this->mapa->LinkCustomAttributes = "";
@@ -864,59 +1059,113 @@ class cdirecciones extends cTable {
 		$this->Id->EditValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		$this->id_persona->EditAttrs["class"] = "form-control";
-		$this->id_persona->EditCustomAttributes = "";
-		if ($this->id_persona->getSessionValue() <> "") {
-			$this->id_persona->CurrentValue = $this->id_persona->getSessionValue();
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
-		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
-			}
-		} else {
-			$this->id_persona->ViewValue = NULL;
-		}
-		$this->id_persona->ViewCustomAttributes = "";
-		} else {
-		}
+		// id_fuente
+		$this->id_fuente->EditAttrs["class"] = "form-control";
+		$this->id_fuente->EditCustomAttributes = "";
 
-		// id_ciudad
-		$this->id_ciudad->EditAttrs["class"] = "form-control";
-		$this->id_ciudad->EditCustomAttributes = 'onChange=initMap(this);';
+		// id_gestion
+		$this->id_gestion->EditAttrs["class"] = "form-control";
+		$this->id_gestion->EditCustomAttributes = "";
 
-		// tipo_direccion
-		$this->tipo_direccion->EditAttrs["class"] = "form-control";
-		$this->tipo_direccion->EditCustomAttributes = "";
-		$this->tipo_direccion->EditValue = $this->tipo_direccion->Options(TRUE);
+		// id_tipodireccion
+		$this->id_tipodireccion->EditAttrs["class"] = "form-control";
+		$this->id_tipodireccion->EditCustomAttributes = "";
 
-		// direccion
-		$this->direccion->EditAttrs["class"] = "form-control";
-		$this->direccion->EditCustomAttributes = "";
-		$this->direccion->EditValue = $this->direccion->CurrentValue;
-		$this->direccion->PlaceHolder = ew_RemoveHtml($this->direccion->FldCaption());
+		// tipo_documento
+		$this->tipo_documento->EditAttrs["class"] = "form-control";
+		$this->tipo_documento->EditCustomAttributes = "";
+		$this->tipo_documento->EditValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->PlaceHolder = ew_RemoveHtml($this->tipo_documento->FldCaption());
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->EditAttrs["class"] = "form-control";
-		$this->ult_fecha_activo->EditCustomAttributes = "";
-		$this->ult_fecha_activo->EditValue = ew_FormatDateTime($this->ult_fecha_activo->CurrentValue, 7);
-		$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
+		// no_documento
+		$this->no_documento->EditAttrs["class"] = "form-control";
+		$this->no_documento->EditCustomAttributes = "";
+		$this->no_documento->EditValue = $this->no_documento->CurrentValue;
+		$this->no_documento->PlaceHolder = ew_RemoveHtml($this->no_documento->FldCaption());
+
+		// nombres
+		$this->nombres->EditAttrs["class"] = "form-control";
+		$this->nombres->EditCustomAttributes = "";
+		$this->nombres->EditValue = $this->nombres->CurrentValue;
+		$this->nombres->PlaceHolder = ew_RemoveHtml($this->nombres->FldCaption());
+
+		// paterno
+		$this->paterno->EditAttrs["class"] = "form-control";
+		$this->paterno->EditCustomAttributes = "";
+		$this->paterno->EditValue = $this->paterno->CurrentValue;
+		$this->paterno->PlaceHolder = ew_RemoveHtml($this->paterno->FldCaption());
+
+		// materno
+		$this->materno->EditAttrs["class"] = "form-control";
+		$this->materno->EditCustomAttributes = "";
+		$this->materno->EditValue = $this->materno->CurrentValue;
+		$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+		// pais
+		$this->pais->EditAttrs["class"] = "form-control";
+		$this->pais->EditCustomAttributes = "";
+		$this->pais->EditValue = $this->pais->CurrentValue;
+		$this->pais->PlaceHolder = ew_RemoveHtml($this->pais->FldCaption());
+
+		// departamento
+		$this->departamento->EditAttrs["class"] = "form-control";
+		$this->departamento->EditCustomAttributes = "";
+		$this->departamento->EditValue = $this->departamento->CurrentValue;
+		$this->departamento->PlaceHolder = ew_RemoveHtml($this->departamento->FldCaption());
+
+		// provincia
+		$this->provincia->EditAttrs["class"] = "form-control";
+		$this->provincia->EditCustomAttributes = "";
+		$this->provincia->EditValue = $this->provincia->CurrentValue;
+		$this->provincia->PlaceHolder = ew_RemoveHtml($this->provincia->FldCaption());
+
+		// municipio
+		$this->municipio->EditAttrs["class"] = "form-control";
+		$this->municipio->EditCustomAttributes = "";
+		$this->municipio->EditValue = $this->municipio->CurrentValue;
+		$this->municipio->PlaceHolder = ew_RemoveHtml($this->municipio->FldCaption());
+
+		// localidad
+		$this->localidad->EditAttrs["class"] = "form-control";
+		$this->localidad->EditCustomAttributes = "";
+		$this->localidad->EditValue = $this->localidad->CurrentValue;
+		$this->localidad->PlaceHolder = ew_RemoveHtml($this->localidad->FldCaption());
+
+		// distrito
+		$this->distrito->EditAttrs["class"] = "form-control";
+		$this->distrito->EditCustomAttributes = "";
+		$this->distrito->EditValue = $this->distrito->CurrentValue;
+		$this->distrito->PlaceHolder = ew_RemoveHtml($this->distrito->FldCaption());
+
+		// zona
+		$this->zona->EditAttrs["class"] = "form-control";
+		$this->zona->EditCustomAttributes = "";
+		$this->zona->EditValue = $this->zona->CurrentValue;
+		$this->zona->PlaceHolder = ew_RemoveHtml($this->zona->FldCaption());
+
+		// direccion1
+		$this->direccion1->EditAttrs["class"] = "form-control";
+		$this->direccion1->EditCustomAttributes = "";
+		$this->direccion1->EditValue = $this->direccion1->CurrentValue;
+		$this->direccion1->PlaceHolder = ew_RemoveHtml($this->direccion1->FldCaption());
+
+		// direccion2
+		$this->direccion2->EditAttrs["class"] = "form-control";
+		$this->direccion2->EditCustomAttributes = "";
+		$this->direccion2->EditValue = $this->direccion2->CurrentValue;
+		$this->direccion2->PlaceHolder = ew_RemoveHtml($this->direccion2->FldCaption());
+
+		// direccion3
+		$this->direccion3->EditAttrs["class"] = "form-control";
+		$this->direccion3->EditCustomAttributes = "";
+		$this->direccion3->EditValue = $this->direccion3->CurrentValue;
+		$this->direccion3->PlaceHolder = ew_RemoveHtml($this->direccion3->FldCaption());
+
+		// direccion4
+		$this->direccion4->EditAttrs["class"] = "form-control";
+		$this->direccion4->EditCustomAttributes = "";
+		$this->direccion4->EditValue = $this->direccion4->CurrentValue;
+		$this->direccion4->PlaceHolder = ew_RemoveHtml($this->direccion4->FldCaption());
 
 		// mapa
 		$this->mapa->EditAttrs["class"] = "form-control";
@@ -964,21 +1213,49 @@ class cdirecciones extends cTable {
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
-					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
-					if ($this->id_ciudad->Exportable) $Doc->ExportCaption($this->id_ciudad);
-					if ($this->tipo_direccion->Exportable) $Doc->ExportCaption($this->tipo_direccion);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->ult_fecha_activo->Exportable) $Doc->ExportCaption($this->ult_fecha_activo);
+					if ($this->id_fuente->Exportable) $Doc->ExportCaption($this->id_fuente);
+					if ($this->id_gestion->Exportable) $Doc->ExportCaption($this->id_gestion);
+					if ($this->id_tipodireccion->Exportable) $Doc->ExportCaption($this->id_tipodireccion);
+					if ($this->tipo_documento->Exportable) $Doc->ExportCaption($this->tipo_documento);
+					if ($this->no_documento->Exportable) $Doc->ExportCaption($this->no_documento);
+					if ($this->nombres->Exportable) $Doc->ExportCaption($this->nombres);
+					if ($this->paterno->Exportable) $Doc->ExportCaption($this->paterno);
+					if ($this->materno->Exportable) $Doc->ExportCaption($this->materno);
+					if ($this->pais->Exportable) $Doc->ExportCaption($this->pais);
+					if ($this->departamento->Exportable) $Doc->ExportCaption($this->departamento);
+					if ($this->provincia->Exportable) $Doc->ExportCaption($this->provincia);
+					if ($this->municipio->Exportable) $Doc->ExportCaption($this->municipio);
+					if ($this->localidad->Exportable) $Doc->ExportCaption($this->localidad);
+					if ($this->distrito->Exportable) $Doc->ExportCaption($this->distrito);
+					if ($this->zona->Exportable) $Doc->ExportCaption($this->zona);
+					if ($this->direccion1->Exportable) $Doc->ExportCaption($this->direccion1);
+					if ($this->direccion2->Exportable) $Doc->ExportCaption($this->direccion2);
+					if ($this->direccion3->Exportable) $Doc->ExportCaption($this->direccion3);
+					if ($this->direccion4->Exportable) $Doc->ExportCaption($this->direccion4);
 					if ($this->mapa->Exportable) $Doc->ExportCaption($this->mapa);
 					if ($this->longitud->Exportable) $Doc->ExportCaption($this->longitud);
 					if ($this->latitud->Exportable) $Doc->ExportCaption($this->latitud);
 				} else {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
-					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
-					if ($this->id_ciudad->Exportable) $Doc->ExportCaption($this->id_ciudad);
-					if ($this->tipo_direccion->Exportable) $Doc->ExportCaption($this->tipo_direccion);
-					if ($this->direccion->Exportable) $Doc->ExportCaption($this->direccion);
-					if ($this->ult_fecha_activo->Exportable) $Doc->ExportCaption($this->ult_fecha_activo);
+					if ($this->id_fuente->Exportable) $Doc->ExportCaption($this->id_fuente);
+					if ($this->id_gestion->Exportable) $Doc->ExportCaption($this->id_gestion);
+					if ($this->id_tipodireccion->Exportable) $Doc->ExportCaption($this->id_tipodireccion);
+					if ($this->tipo_documento->Exportable) $Doc->ExportCaption($this->tipo_documento);
+					if ($this->no_documento->Exportable) $Doc->ExportCaption($this->no_documento);
+					if ($this->nombres->Exportable) $Doc->ExportCaption($this->nombres);
+					if ($this->paterno->Exportable) $Doc->ExportCaption($this->paterno);
+					if ($this->materno->Exportable) $Doc->ExportCaption($this->materno);
+					if ($this->pais->Exportable) $Doc->ExportCaption($this->pais);
+					if ($this->departamento->Exportable) $Doc->ExportCaption($this->departamento);
+					if ($this->provincia->Exportable) $Doc->ExportCaption($this->provincia);
+					if ($this->municipio->Exportable) $Doc->ExportCaption($this->municipio);
+					if ($this->localidad->Exportable) $Doc->ExportCaption($this->localidad);
+					if ($this->distrito->Exportable) $Doc->ExportCaption($this->distrito);
+					if ($this->zona->Exportable) $Doc->ExportCaption($this->zona);
+					if ($this->direccion1->Exportable) $Doc->ExportCaption($this->direccion1);
+					if ($this->direccion2->Exportable) $Doc->ExportCaption($this->direccion2);
+					if ($this->direccion3->Exportable) $Doc->ExportCaption($this->direccion3);
+					if ($this->direccion4->Exportable) $Doc->ExportCaption($this->direccion4);
 					if ($this->mapa->Exportable) $Doc->ExportCaption($this->mapa);
 					if ($this->longitud->Exportable) $Doc->ExportCaption($this->longitud);
 					if ($this->latitud->Exportable) $Doc->ExportCaption($this->latitud);
@@ -1014,21 +1291,49 @@ class cdirecciones extends cTable {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
-						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
-						if ($this->id_ciudad->Exportable) $Doc->ExportField($this->id_ciudad);
-						if ($this->tipo_direccion->Exportable) $Doc->ExportField($this->tipo_direccion);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->ult_fecha_activo->Exportable) $Doc->ExportField($this->ult_fecha_activo);
+						if ($this->id_fuente->Exportable) $Doc->ExportField($this->id_fuente);
+						if ($this->id_gestion->Exportable) $Doc->ExportField($this->id_gestion);
+						if ($this->id_tipodireccion->Exportable) $Doc->ExportField($this->id_tipodireccion);
+						if ($this->tipo_documento->Exportable) $Doc->ExportField($this->tipo_documento);
+						if ($this->no_documento->Exportable) $Doc->ExportField($this->no_documento);
+						if ($this->nombres->Exportable) $Doc->ExportField($this->nombres);
+						if ($this->paterno->Exportable) $Doc->ExportField($this->paterno);
+						if ($this->materno->Exportable) $Doc->ExportField($this->materno);
+						if ($this->pais->Exportable) $Doc->ExportField($this->pais);
+						if ($this->departamento->Exportable) $Doc->ExportField($this->departamento);
+						if ($this->provincia->Exportable) $Doc->ExportField($this->provincia);
+						if ($this->municipio->Exportable) $Doc->ExportField($this->municipio);
+						if ($this->localidad->Exportable) $Doc->ExportField($this->localidad);
+						if ($this->distrito->Exportable) $Doc->ExportField($this->distrito);
+						if ($this->zona->Exportable) $Doc->ExportField($this->zona);
+						if ($this->direccion1->Exportable) $Doc->ExportField($this->direccion1);
+						if ($this->direccion2->Exportable) $Doc->ExportField($this->direccion2);
+						if ($this->direccion3->Exportable) $Doc->ExportField($this->direccion3);
+						if ($this->direccion4->Exportable) $Doc->ExportField($this->direccion4);
 						if ($this->mapa->Exportable) $Doc->ExportField($this->mapa);
 						if ($this->longitud->Exportable) $Doc->ExportField($this->longitud);
 						if ($this->latitud->Exportable) $Doc->ExportField($this->latitud);
 					} else {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
-						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
-						if ($this->id_ciudad->Exportable) $Doc->ExportField($this->id_ciudad);
-						if ($this->tipo_direccion->Exportable) $Doc->ExportField($this->tipo_direccion);
-						if ($this->direccion->Exportable) $Doc->ExportField($this->direccion);
-						if ($this->ult_fecha_activo->Exportable) $Doc->ExportField($this->ult_fecha_activo);
+						if ($this->id_fuente->Exportable) $Doc->ExportField($this->id_fuente);
+						if ($this->id_gestion->Exportable) $Doc->ExportField($this->id_gestion);
+						if ($this->id_tipodireccion->Exportable) $Doc->ExportField($this->id_tipodireccion);
+						if ($this->tipo_documento->Exportable) $Doc->ExportField($this->tipo_documento);
+						if ($this->no_documento->Exportable) $Doc->ExportField($this->no_documento);
+						if ($this->nombres->Exportable) $Doc->ExportField($this->nombres);
+						if ($this->paterno->Exportable) $Doc->ExportField($this->paterno);
+						if ($this->materno->Exportable) $Doc->ExportField($this->materno);
+						if ($this->pais->Exportable) $Doc->ExportField($this->pais);
+						if ($this->departamento->Exportable) $Doc->ExportField($this->departamento);
+						if ($this->provincia->Exportable) $Doc->ExportField($this->provincia);
+						if ($this->municipio->Exportable) $Doc->ExportField($this->municipio);
+						if ($this->localidad->Exportable) $Doc->ExportField($this->localidad);
+						if ($this->distrito->Exportable) $Doc->ExportField($this->distrito);
+						if ($this->zona->Exportable) $Doc->ExportField($this->zona);
+						if ($this->direccion1->Exportable) $Doc->ExportField($this->direccion1);
+						if ($this->direccion2->Exportable) $Doc->ExportField($this->direccion2);
+						if ($this->direccion3->Exportable) $Doc->ExportField($this->direccion3);
+						if ($this->direccion4->Exportable) $Doc->ExportField($this->direccion4);
 						if ($this->mapa->Exportable) $Doc->ExportField($this->mapa);
 						if ($this->longitud->Exportable) $Doc->ExportField($this->longitud);
 						if ($this->latitud->Exportable) $Doc->ExportField($this->latitud);

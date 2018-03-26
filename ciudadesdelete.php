@@ -7,6 +7,7 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "ciudadesinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "paisesinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -259,6 +260,9 @@ class cciudades_delete extends cciudades {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
+		// Table object (paises)
+		if (!isset($GLOBALS['paises'])) $GLOBALS['paises'] = new cpaises();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'delete', TRUE);
@@ -317,7 +321,10 @@ class cciudades_delete extends cciudades {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->id_pais->SetVisibility();
 		$this->nombre->SetVisibility();
+		$this->latitud->SetVisibility();
+		$this->longitud->SetVisibility();
 		$this->estado->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
@@ -395,6 +402,9 @@ class cciudades_delete extends cciudades {
 	//
 	function Page_Main() {
 		global $Language;
+
+		// Set up master/detail parameters
+		$this->SetupMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -499,7 +509,11 @@ class cciudades_delete extends cciudades {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->id_pais->setDbValue($row['id_pais']);
+		$this->nombre_pais->setDbValue($row['nombre_pais']);
 		$this->nombre->setDbValue($row['nombre']);
+		$this->latitud->setDbValue($row['latitud']);
+		$this->longitud->setDbValue($row['longitud']);
 		$this->estado->setDbValue($row['estado']);
 	}
 
@@ -507,7 +521,11 @@ class cciudades_delete extends cciudades {
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['id_pais'] = NULL;
+		$row['nombre_pais'] = NULL;
 		$row['nombre'] = NULL;
+		$row['latitud'] = NULL;
+		$row['longitud'] = NULL;
 		$row['estado'] = NULL;
 		return $row;
 	}
@@ -518,7 +536,11 @@ class cciudades_delete extends cciudades {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->id_pais->DbValue = $row['id_pais'];
+		$this->nombre_pais->DbValue = $row['nombre_pais'];
 		$this->nombre->DbValue = $row['nombre'];
+		$this->latitud->DbValue = $row['latitud'];
+		$this->longitud->DbValue = $row['longitud'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -533,7 +555,14 @@ class cciudades_delete extends cciudades {
 
 		// Common render codes for all row types
 		// Id
+		// id_pais
+		// nombre_pais
+
+		$this->nombre_pais->CellCssStyle = "white-space: nowrap;";
+
 		// nombre
+		// latitud
+		// longitud
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -542,9 +571,41 @@ class cciudades_delete extends cciudades {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
+		// id_pais
+		if (strval($this->id_pais->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_pais->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `paises`";
+		$sWhereWrk = "";
+		$this->id_pais->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_pais, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_pais->ViewValue = $this->id_pais->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_pais->ViewValue = $this->id_pais->CurrentValue;
+			}
+		} else {
+			$this->id_pais->ViewValue = NULL;
+		}
+		$this->id_pais->ViewCustomAttributes = "";
+
 		// nombre
 		$this->nombre->ViewValue = $this->nombre->CurrentValue;
 		$this->nombre->ViewCustomAttributes = "";
+
+		// latitud
+		$this->latitud->ViewValue = $this->latitud->CurrentValue;
+		$this->latitud->ViewCustomAttributes = "";
+
+		// longitud
+		$this->longitud->ViewValue = $this->longitud->CurrentValue;
+		$this->longitud->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -559,10 +620,25 @@ class cciudades_delete extends cciudades {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
+			// id_pais
+			$this->id_pais->LinkCustomAttributes = "";
+			$this->id_pais->HrefValue = "";
+			$this->id_pais->TooltipValue = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
+			$this->latitud->TooltipValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+			$this->longitud->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -598,6 +674,17 @@ class cciudades_delete extends cciudades {
 			return FALSE;
 		}
 		$rows = ($rs) ? $rs->GetRows() : array();
+
+		// Check if records exist for detail table 'provincias'
+		if (!isset($GLOBALS["provincias"])) $GLOBALS["provincias"] = new cprovincias();
+		foreach ($rows as $row) {
+			$rsdetail = $GLOBALS["provincias"]->LoadRs("`id_departamento` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
+			if ($rsdetail && !$rsdetail->EOF) {
+				$sRelatedRecordMsg = str_replace("%t", "provincias", $Language->Phrase("RelatedRecordExists"));
+				$this->setFailureMessage($sRelatedRecordMsg);
+				return FALSE;
+			}
+		}
 		$conn->BeginTrans();
 
 		// Clone old rows
@@ -653,6 +740,66 @@ class cciudades_delete extends cciudades {
 			}
 		}
 		return $DeleteRows;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetupMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "paises") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_Id"] <> "") {
+					$GLOBALS["paises"]->Id->setQueryStringValue($_GET["fk_Id"]);
+					$this->id_pais->setQueryStringValue($GLOBALS["paises"]->Id->QueryStringValue);
+					$this->id_pais->setSessionValue($this->id_pais->QueryStringValue);
+					if (!is_numeric($GLOBALS["paises"]->Id->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "paises") {
+				$bValidMaster = TRUE;
+				if (@$_POST["fk_Id"] <> "") {
+					$GLOBALS["paises"]->Id->setFormValue($_POST["fk_Id"]);
+					$this->id_pais->setFormValue($GLOBALS["paises"]->Id->FormValue);
+					$this->id_pais->setSessionValue($this->id_pais->FormValue);
+					if (!is_numeric($GLOBALS["paises"]->Id->FormValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "paises") {
+				if ($this->id_pais->CurrentValue == "") $this->id_pais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -779,6 +926,8 @@ fciudadesdelete.Form_CustomValidate =
 fciudadesdelete.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
+fciudadesdelete.Lists["x_id_pais"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"paises"};
+fciudadesdelete.Lists["x_id_pais"].Data = "<?php echo $ciudades_delete->id_pais->LookupFilterQuery(FALSE, "delete") ?>";
 fciudadesdelete.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fciudadesdelete.Lists["x_estado"].Options = <?php echo json_encode($ciudades_delete->estado->Options()) ?>;
 
@@ -810,8 +959,17 @@ $ciudades_delete->ShowMessage();
 <?php if ($ciudades->Id->Visible) { // Id ?>
 		<th class="<?php echo $ciudades->Id->HeaderCellClass() ?>"><span id="elh_ciudades_Id" class="ciudades_Id"><?php echo $ciudades->Id->FldCaption() ?></span></th>
 <?php } ?>
+<?php if ($ciudades->id_pais->Visible) { // id_pais ?>
+		<th class="<?php echo $ciudades->id_pais->HeaderCellClass() ?>"><span id="elh_ciudades_id_pais" class="ciudades_id_pais"><?php echo $ciudades->id_pais->FldCaption() ?></span></th>
+<?php } ?>
 <?php if ($ciudades->nombre->Visible) { // nombre ?>
 		<th class="<?php echo $ciudades->nombre->HeaderCellClass() ?>"><span id="elh_ciudades_nombre" class="ciudades_nombre"><?php echo $ciudades->nombre->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($ciudades->latitud->Visible) { // latitud ?>
+		<th class="<?php echo $ciudades->latitud->HeaderCellClass() ?>"><span id="elh_ciudades_latitud" class="ciudades_latitud"><?php echo $ciudades->latitud->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($ciudades->longitud->Visible) { // longitud ?>
+		<th class="<?php echo $ciudades->longitud->HeaderCellClass() ?>"><span id="elh_ciudades_longitud" class="ciudades_longitud"><?php echo $ciudades->longitud->FldCaption() ?></span></th>
 <?php } ?>
 <?php if ($ciudades->estado->Visible) { // estado ?>
 		<th class="<?php echo $ciudades->estado->HeaderCellClass() ?>"><span id="elh_ciudades_estado" class="ciudades_estado"><?php echo $ciudades->estado->FldCaption() ?></span></th>
@@ -845,11 +1003,35 @@ while (!$ciudades_delete->Recordset->EOF) {
 </span>
 </td>
 <?php } ?>
+<?php if ($ciudades->id_pais->Visible) { // id_pais ?>
+		<td<?php echo $ciudades->id_pais->CellAttributes() ?>>
+<span id="el<?php echo $ciudades_delete->RowCnt ?>_ciudades_id_pais" class="ciudades_id_pais">
+<span<?php echo $ciudades->id_pais->ViewAttributes() ?>>
+<?php echo $ciudades->id_pais->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
 <?php if ($ciudades->nombre->Visible) { // nombre ?>
 		<td<?php echo $ciudades->nombre->CellAttributes() ?>>
 <span id="el<?php echo $ciudades_delete->RowCnt ?>_ciudades_nombre" class="ciudades_nombre">
 <span<?php echo $ciudades->nombre->ViewAttributes() ?>>
 <?php echo $ciudades->nombre->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($ciudades->latitud->Visible) { // latitud ?>
+		<td<?php echo $ciudades->latitud->CellAttributes() ?>>
+<span id="el<?php echo $ciudades_delete->RowCnt ?>_ciudades_latitud" class="ciudades_latitud">
+<span<?php echo $ciudades->latitud->ViewAttributes() ?>>
+<?php echo $ciudades->latitud->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($ciudades->longitud->Visible) { // longitud ?>
+		<td<?php echo $ciudades->longitud->CellAttributes() ?>>
+<span id="el<?php echo $ciudades_delete->RowCnt ?>_ciudades_longitud" class="ciudades_longitud">
+<span<?php echo $ciudades->longitud->ViewAttributes() ?>>
+<?php echo $ciudades->longitud->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

@@ -64,6 +64,8 @@ fvehiculosgrid.Validate = function() {
 fvehiculosgrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
 	if (ew_ValueChanged(fobj, infix, "id_persona", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_fuente", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_gestion", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "marca", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "modelo", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "placa", false)) return false;
@@ -83,8 +85,12 @@ fvehiculosgrid.Form_CustomValidate =
 fvehiculosgrid.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fvehiculosgrid.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
+fvehiculosgrid.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_paterno","x_materno","x_nombres",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
 fvehiculosgrid.Lists["x_id_persona"].Data = "<?php echo $vehiculos_grid->id_persona->LookupFilterQuery(FALSE, "grid") ?>";
+fvehiculosgrid.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fvehiculosgrid.Lists["x_id_fuente"].Data = "<?php echo $vehiculos_grid->id_fuente->LookupFilterQuery(FALSE, "grid") ?>";
+fvehiculosgrid.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fvehiculosgrid.Lists["x_id_gestion"].Data = "<?php echo $vehiculos_grid->id_gestion->LookupFilterQuery(FALSE, "grid") ?>";
 
 // Form object for search
 </script>
@@ -181,6 +187,24 @@ $vehiculos_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="id_persona" class="<?php echo $vehiculos->id_persona->HeaderCellClass() ?>"><div><div id="elh_vehiculos_id_persona" class="vehiculos_id_persona">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->id_persona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->id_persona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->id_persona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($vehiculos->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($vehiculos->SortUrl($vehiculos->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $vehiculos->id_fuente->HeaderCellClass() ?>"><div id="elh_vehiculos_id_fuente" class="vehiculos_id_fuente"><div class="ewTableHeaderCaption"><?php echo $vehiculos->id_fuente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_fuente" class="<?php echo $vehiculos->id_fuente->HeaderCellClass() ?>"><div><div id="elh_vehiculos_id_fuente" class="vehiculos_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($vehiculos->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($vehiculos->SortUrl($vehiculos->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $vehiculos->id_gestion->HeaderCellClass() ?>"><div id="elh_vehiculos_id_gestion" class="vehiculos_id_gestion"><div class="ewTableHeaderCaption"><?php echo $vehiculos->id_gestion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_gestion" class="<?php echo $vehiculos->id_gestion->HeaderCellClass() ?>"><div><div id="elh_vehiculos_id_gestion" class="vehiculos_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -372,9 +396,11 @@ $vehiculos_grid->ListOptions->Render("body", "left", $vehiculos_grid->RowCnt);
 <input type="hidden" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_persona" class="form-group vehiculos_id_persona">
-<select data-table="vehiculos" data-field="x_id_persona" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
-<?php echo $vehiculos->id_persona->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_persona") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $vehiculos_grid->RowIndex ?>_id_persona"><?php echo (strval($vehiculos->id_persona->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $vehiculos->id_persona->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($vehiculos->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $vehiculos_grid->RowIndex ?>_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="vehiculos" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo $vehiculos->id_persona->CurrentValue ?>"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
 </span>
 <?php } ?>
 <input type="hidden" data-table="vehiculos" data-field="x_id_persona" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->OldValue) ?>">
@@ -393,9 +419,11 @@ $vehiculos_grid->ListOptions->Render("body", "left", $vehiculos_grid->RowCnt);
 <input type="hidden" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_persona" class="form-group vehiculos_id_persona">
-<select data-table="vehiculos" data-field="x_id_persona" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
-<?php echo $vehiculos->id_persona->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_persona") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $vehiculos_grid->RowIndex ?>_id_persona"><?php echo (strval($vehiculos->id_persona->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $vehiculos->id_persona->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($vehiculos->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $vehiculos_grid->RowIndex ?>_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="vehiculos" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo $vehiculos->id_persona->CurrentValue ?>"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php } ?>
@@ -415,6 +443,76 @@ $vehiculos_grid->ListOptions->Render("body", "left", $vehiculos_grid->RowCnt);
 <?php } else { ?>
 <input type="hidden" data-table="vehiculos" data-field="x_id_persona" name="fvehiculosgrid$x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="fvehiculosgrid$x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->FormValue) ?>">
 <input type="hidden" data-table="vehiculos" data-field="x_id_persona" name="fvehiculosgrid$o<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="fvehiculosgrid$o<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($vehiculos->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $vehiculos->id_fuente->CellAttributes() ?>>
+<?php if ($vehiculos->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_fuente" class="form-group vehiculos_id_fuente">
+<select data-table="vehiculos" data-field="x_id_fuente" data-value-separator="<?php echo $vehiculos->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente"<?php echo $vehiculos->id_fuente->EditAttributes() ?>>
+<?php echo $vehiculos->id_fuente->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente") ?>
+</select>
+</span>
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->OldValue) ?>">
+<?php } ?>
+<?php if ($vehiculos->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_fuente" class="form-group vehiculos_id_fuente">
+<select data-table="vehiculos" data-field="x_id_fuente" data-value-separator="<?php echo $vehiculos->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente"<?php echo $vehiculos->id_fuente->EditAttributes() ?>>
+<?php echo $vehiculos->id_fuente->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente") ?>
+</select>
+</span>
+<?php } ?>
+<?php if ($vehiculos->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_fuente" class="vehiculos_id_fuente">
+<span<?php echo $vehiculos->id_fuente->ViewAttributes() ?>>
+<?php echo $vehiculos->id_fuente->ListViewValue() ?></span>
+</span>
+<?php if ($vehiculos->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->FormValue) ?>">
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="fvehiculosgrid$x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="fvehiculosgrid$x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->FormValue) ?>">
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="fvehiculosgrid$o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="fvehiculosgrid$o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($vehiculos->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $vehiculos->id_gestion->CellAttributes() ?>>
+<?php if ($vehiculos->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_gestion" class="form-group vehiculos_id_gestion">
+<select data-table="vehiculos" data-field="x_id_gestion" data-value-separator="<?php echo $vehiculos->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion"<?php echo $vehiculos->id_gestion->EditAttributes() ?>>
+<?php echo $vehiculos->id_gestion->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$vehiculos->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $vehiculos->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $vehiculos->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->OldValue) ?>">
+<?php } ?>
+<?php if ($vehiculos->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_gestion" class="form-group vehiculos_id_gestion">
+<select data-table="vehiculos" data-field="x_id_gestion" data-value-separator="<?php echo $vehiculos->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion"<?php echo $vehiculos->id_gestion->EditAttributes() ?>>
+<?php echo $vehiculos->id_gestion->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$vehiculos->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $vehiculos->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $vehiculos->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<?php } ?>
+<?php if ($vehiculos->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $vehiculos_grid->RowCnt ?>_vehiculos_id_gestion" class="vehiculos_id_gestion">
+<span<?php echo $vehiculos->id_gestion->ViewAttributes() ?>>
+<?php echo $vehiculos->id_gestion->ListViewValue() ?></span>
+</span>
+<?php if ($vehiculos->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->FormValue) ?>">
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="fvehiculosgrid$x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="fvehiculosgrid$x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->FormValue) ?>">
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="fvehiculosgrid$o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="fvehiculosgrid$o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
@@ -602,9 +700,11 @@ $vehiculos_grid->ListOptions->Render("body", "left", $vehiculos_grid->RowIndex);
 <input type="hidden" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el$rowindex$_vehiculos_id_persona" class="form-group vehiculos_id_persona">
-<select data-table="vehiculos" data-field="x_id_persona" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
-<?php echo $vehiculos->id_persona->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_persona") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $vehiculos_grid->RowIndex ?>_id_persona"><?php echo (strval($vehiculos->id_persona->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $vehiculos->id_persona->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($vehiculos->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $vehiculos_grid->RowIndex ?>_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="vehiculos" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo $vehiculos->id_persona->CurrentValue ?>"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php } else { ?>
@@ -620,6 +720,45 @@ $vehiculos_grid->ListOptions->Render("body", "left", $vehiculos_grid->RowIndex);
 <input type="hidden" data-table="vehiculos" data-field="x_id_persona" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-table="vehiculos" data-field="x_id_persona" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_persona" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_persona" value="<?php echo ew_HtmlEncode($vehiculos->id_persona->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($vehiculos->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente">
+<?php if ($vehiculos->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_vehiculos_id_fuente" class="form-group vehiculos_id_fuente">
+<select data-table="vehiculos" data-field="x_id_fuente" data-value-separator="<?php echo $vehiculos->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente"<?php echo $vehiculos->id_fuente->EditAttributes() ?>>
+<?php echo $vehiculos->id_fuente->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente") ?>
+</select>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_vehiculos_id_fuente" class="form-group vehiculos_id_fuente">
+<span<?php echo $vehiculos->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $vehiculos->id_fuente->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="vehiculos" data-field="x_id_fuente" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($vehiculos->id_fuente->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($vehiculos->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion">
+<?php if ($vehiculos->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_vehiculos_id_gestion" class="form-group vehiculos_id_gestion">
+<select data-table="vehiculos" data-field="x_id_gestion" data-value-separator="<?php echo $vehiculos->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion"<?php echo $vehiculos->id_gestion->EditAttributes() ?>>
+<?php echo $vehiculos->id_gestion->SelectOptionListHtml("x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$vehiculos->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $vehiculos->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $vehiculos->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_vehiculos_id_gestion" class="form-group vehiculos_id_gestion">
+<span<?php echo $vehiculos->id_gestion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $vehiculos->id_gestion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="x<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="vehiculos" data-field="x_id_gestion" name="o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" id="o<?php echo $vehiculos_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($vehiculos->id_gestion->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($vehiculos->marca->Visible) { // marca ?>

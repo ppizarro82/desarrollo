@@ -75,6 +75,9 @@ fpersonasgrid.Validate = function() {
 // Check empty row
 fpersonasgrid.EmptyRow = function(infix) {
 	var fobj = this.Form;
+	if (ew_ValueChanged(fobj, infix, "id_fuente", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_gestion", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "id_ref", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "tipo_documento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "no_documento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "nombres", false)) return false;
@@ -82,6 +85,7 @@ fpersonasgrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "materno", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "fecha_nacimiento", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "fecha_registro", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "imagen", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "estado", false)) return false;
 	return true;
 }
@@ -98,6 +102,10 @@ fpersonasgrid.Form_CustomValidate =
 fpersonasgrid.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
+fpersonasgrid.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fpersonasgrid.Lists["x_id_fuente"].Data = "<?php echo $personas_grid->id_fuente->LookupFilterQuery(FALSE, "grid") ?>";
+fpersonasgrid.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fpersonasgrid.Lists["x_id_gestion"].Data = "<?php echo $personas_grid->id_gestion->LookupFilterQuery(FALSE, "grid") ?>";
 fpersonasgrid.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonasgrid.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_grid->tipo_documento->Options()) ?>;
 fpersonasgrid.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -192,6 +200,33 @@ $personas_grid->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($personas->SortUrl($personas->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $personas->id_fuente->HeaderCellClass() ?>"><div id="elh_personas_id_fuente" class="personas_id_fuente"><div class="ewTableHeaderCaption"><?php echo $personas->id_fuente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_fuente" class="<?php echo $personas->id_fuente->HeaderCellClass() ?>"><div><div id="elh_personas_id_fuente" class="personas_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($personas->SortUrl($personas->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $personas->id_gestion->HeaderCellClass() ?>"><div id="elh_personas_id_gestion" class="personas_id_gestion"><div class="ewTableHeaderCaption"><?php echo $personas->id_gestion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_gestion" class="<?php echo $personas->id_gestion->HeaderCellClass() ?>"><div><div id="elh_personas_id_gestion" class="personas_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($personas->id_ref->Visible) { // id_ref ?>
+	<?php if ($personas->SortUrl($personas->id_ref) == "") { ?>
+		<th data-name="id_ref" class="<?php echo $personas->id_ref->HeaderCellClass() ?>"><div id="elh_personas_id_ref" class="personas_id_ref"><div class="ewTableHeaderCaption"><?php echo $personas->id_ref->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_ref" class="<?php echo $personas->id_ref->HeaderCellClass() ?>"><div><div id="elh_personas_id_ref" class="personas_id_ref">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->id_ref->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->id_ref->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->id_ref->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
 <?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
 	<?php if ($personas->SortUrl($personas->tipo_documento) == "") { ?>
 		<th data-name="tipo_documento" class="<?php echo $personas->tipo_documento->HeaderCellClass() ?>"><div id="elh_personas_tipo_documento" class="personas_tipo_documento"><div class="ewTableHeaderCaption"><?php echo $personas->tipo_documento->FldCaption() ?></div></div></th>
@@ -252,6 +287,15 @@ $personas_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="fecha_registro" class="<?php echo $personas->fecha_registro->HeaderCellClass() ?>"><div><div id="elh_personas_fecha_registro" class="personas_fecha_registro">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $personas->fecha_registro->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->fecha_registro->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->fecha_registro->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($personas->imagen->Visible) { // imagen ?>
+	<?php if ($personas->SortUrl($personas->imagen) == "") { ?>
+		<th data-name="imagen" class="<?php echo $personas->imagen->HeaderCellClass() ?>"><div id="elh_personas_imagen" class="personas_imagen"><div class="ewTableHeaderCaption" style="white-space: nowrap;"><?php echo $personas->imagen->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="imagen" class="<?php echo $personas->imagen->HeaderCellClass() ?>"><div><div id="elh_personas_imagen" class="personas_imagen">
+			<div class="ewTableHeaderBtn" style="white-space: nowrap;"><span class="ewTableHeaderCaption"><?php echo $personas->imagen->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($personas->imagen->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($personas->imagen->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -396,6 +440,120 @@ $personas_grid->ListOptions->Render("body", "left", $personas_grid->RowCnt);
 <?php } else { ?>
 <input type="hidden" data-table="personas" data-field="x_Id" name="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_Id" id="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->FormValue) ?>">
 <input type="hidden" data-table="personas" data-field="x_Id" name="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_Id" id="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $personas->id_fuente->CellAttributes() ?>>
+<?php if ($personas->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<?php if ($personas->id_fuente->getSessionValue() <> "") { ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_fuente" class="form-group personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_fuente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_fuente" class="form-group personas_id_fuente">
+<select data-table="personas" data-field="x_id_fuente" data-value-separator="<?php echo $personas->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente"<?php echo $personas->id_fuente->EditAttributes() ?>>
+<?php echo $personas->id_fuente->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_fuente") ?>
+</select>
+</span>
+<?php } ?>
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="o<?php echo $personas_grid->RowIndex ?>_id_fuente" id="o<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->OldValue) ?>">
+<?php } ?>
+<?php if ($personas->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<?php if ($personas->id_fuente->getSessionValue() <> "") { ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_fuente" class="form-group personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_fuente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_fuente" class="form-group personas_id_fuente">
+<select data-table="personas" data-field="x_id_fuente" data-value-separator="<?php echo $personas->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente"<?php echo $personas->id_fuente->EditAttributes() ?>>
+<?php echo $personas->id_fuente->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_fuente") ?>
+</select>
+</span>
+<?php } ?>
+<?php } ?>
+<?php if ($personas->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_fuente" class="personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<?php echo $personas->id_fuente->ListViewValue() ?></span>
+</span>
+<?php if ($personas->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->FormValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="o<?php echo $personas_grid->RowIndex ?>_id_fuente" id="o<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_fuente" id="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->FormValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_fuente" id="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $personas->id_gestion->CellAttributes() ?>>
+<?php if ($personas->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_gestion" class="form-group personas_id_gestion">
+<select data-table="personas" data-field="x_id_gestion" data-value-separator="<?php echo $personas->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_gestion" name="x<?php echo $personas_grid->RowIndex ?>_id_gestion"<?php echo $personas->id_gestion->EditAttributes() ?>>
+<?php echo $personas->id_gestion->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$personas->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $personas->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $personas_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $personas_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $personas->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="o<?php echo $personas_grid->RowIndex ?>_id_gestion" id="o<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->OldValue) ?>">
+<?php } ?>
+<?php if ($personas->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_gestion" class="form-group personas_id_gestion">
+<select data-table="personas" data-field="x_id_gestion" data-value-separator="<?php echo $personas->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_gestion" name="x<?php echo $personas_grid->RowIndex ?>_id_gestion"<?php echo $personas->id_gestion->EditAttributes() ?>>
+<?php echo $personas->id_gestion->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$personas->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $personas->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $personas_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $personas_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $personas->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<?php } ?>
+<?php if ($personas->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_gestion" class="personas_id_gestion">
+<span<?php echo $personas->id_gestion->ViewAttributes() ?>>
+<?php echo $personas->id_gestion->ListViewValue() ?></span>
+</span>
+<?php if ($personas->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="x<?php echo $personas_grid->RowIndex ?>_id_gestion" id="x<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->FormValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="o<?php echo $personas_grid->RowIndex ?>_id_gestion" id="o<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_gestion" id="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->FormValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_gestion" id="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($personas->id_ref->Visible) { // id_ref ?>
+		<td data-name="id_ref"<?php echo $personas->id_ref->CellAttributes() ?>>
+<?php if ($personas->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_ref" class="form-group personas_id_ref">
+<input type="text" data-table="personas" data-field="x_id_ref" name="x<?php echo $personas_grid->RowIndex ?>_id_ref" id="x<?php echo $personas_grid->RowIndex ?>_id_ref" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->id_ref->getPlaceHolder()) ?>" value="<?php echo $personas->id_ref->EditValue ?>"<?php echo $personas->id_ref->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="o<?php echo $personas_grid->RowIndex ?>_id_ref" id="o<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->OldValue) ?>">
+<?php } ?>
+<?php if ($personas->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_ref" class="form-group personas_id_ref">
+<input type="text" data-table="personas" data-field="x_id_ref" name="x<?php echo $personas_grid->RowIndex ?>_id_ref" id="x<?php echo $personas_grid->RowIndex ?>_id_ref" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->id_ref->getPlaceHolder()) ?>" value="<?php echo $personas->id_ref->EditValue ?>"<?php echo $personas->id_ref->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($personas->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_id_ref" class="personas_id_ref">
+<span<?php echo $personas->id_ref->ViewAttributes() ?>>
+<?php echo $personas->id_ref->ListViewValue() ?></span>
+</span>
+<?php if ($personas->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="x<?php echo $personas_grid->RowIndex ?>_id_ref" id="x<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->FormValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="o<?php echo $personas_grid->RowIndex ?>_id_ref" id="o<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_ref" id="fpersonasgrid$x<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->FormValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_ref" id="fpersonasgrid$o<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
@@ -620,6 +778,52 @@ ew_CreateDateTimePicker("fpersonasgrid", "x<?php echo $personas_grid->RowIndex ?
 <?php } ?>
 </td>
 	<?php } ?>
+	<?php if ($personas->imagen->Visible) { // imagen ?>
+		<td data-name="imagen"<?php echo $personas->imagen->CellAttributes() ?>>
+<?php if ($personas_grid->RowAction == "insert") { // Add record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_imagen" class="form-group personas_imagen">
+<div id="fd_x<?php echo $personas_grid->RowIndex ?>_imagen">
+<span title="<?php echo $personas->imagen->FldTitle() ? $personas->imagen->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($personas->imagen->ReadOnly || $personas->imagen->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-table="personas" data-field="x_imagen" name="x<?php echo $personas_grid->RowIndex ?>_imagen" id="x<?php echo $personas_grid->RowIndex ?>_imagen"<?php echo $personas->imagen->EditAttributes() ?>>
+</span>
+<input type="hidden" name="fn_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fn_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fa_x<?php echo $personas_grid->RowIndex ?>_imagen" value="0">
+<input type="hidden" name="fs_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fs_x<?php echo $personas_grid->RowIndex ?>_imagen" value="-1">
+<input type="hidden" name="fx_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fx_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fm_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x<?php echo $personas_grid->RowIndex ?>_imagen" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<input type="hidden" data-table="personas" data-field="x_imagen" name="o<?php echo $personas_grid->RowIndex ?>_imagen" id="o<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo ew_HtmlEncode($personas->imagen->OldValue) ?>">
+<?php } elseif ($personas->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_imagen" class="personas_imagen">
+<span>
+<?php echo ew_GetFileViewTag($personas->imagen, $personas->imagen->ListViewValue()) ?>
+</span>
+</span>
+<?php } else  { // Edit record ?>
+<span id="el<?php echo $personas_grid->RowCnt ?>_personas_imagen" class="form-group personas_imagen">
+<div id="fd_x<?php echo $personas_grid->RowIndex ?>_imagen">
+<span title="<?php echo $personas->imagen->FldTitle() ? $personas->imagen->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($personas->imagen->ReadOnly || $personas->imagen->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-table="personas" data-field="x_imagen" name="x<?php echo $personas_grid->RowIndex ?>_imagen" id="x<?php echo $personas_grid->RowIndex ?>_imagen"<?php echo $personas->imagen->EditAttributes() ?>>
+</span>
+<input type="hidden" name="fn_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fn_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->Upload->FileName ?>">
+<?php if (@$_POST["fa_x<?php echo $personas_grid->RowIndex ?>_imagen"] == "0") { ?>
+<input type="hidden" name="fa_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fa_x<?php echo $personas_grid->RowIndex ?>_imagen" value="0">
+<?php } else { ?>
+<input type="hidden" name="fa_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fa_x<?php echo $personas_grid->RowIndex ?>_imagen" value="1">
+<?php } ?>
+<input type="hidden" name="fs_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fs_x<?php echo $personas_grid->RowIndex ?>_imagen" value="-1">
+<input type="hidden" name="fx_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fx_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fm_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x<?php echo $personas_grid->RowIndex ?>_imagen" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<?php } ?>
+</td>
+	<?php } ?>
 	<?php if ($personas->estado->Visible) { // estado ?>
 		<td data-name="estado"<?php echo $personas->estado->CellAttributes() ?>>
 <?php if ($personas->RowType == EW_ROWTYPE_ADD) { // Add record ?>
@@ -707,6 +911,69 @@ $personas_grid->ListOptions->Render("body", "left", $personas_grid->RowIndex);
 <input type="hidden" data-table="personas" data-field="x_Id" name="x<?php echo $personas_grid->RowIndex ?>_Id" id="x<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-table="personas" data-field="x_Id" name="o<?php echo $personas_grid->RowIndex ?>_Id" id="o<?php echo $personas_grid->RowIndex ?>_Id" value="<?php echo ew_HtmlEncode($personas->Id->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente">
+<?php if ($personas->CurrentAction <> "F") { ?>
+<?php if ($personas->id_fuente->getSessionValue() <> "") { ?>
+<span id="el$rowindex$_personas_id_fuente" class="form-group personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_fuente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el$rowindex$_personas_id_fuente" class="form-group personas_id_fuente">
+<select data-table="personas" data-field="x_id_fuente" data-value-separator="<?php echo $personas->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente"<?php echo $personas->id_fuente->EditAttributes() ?>>
+<?php echo $personas->id_fuente->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_fuente") ?>
+</select>
+</span>
+<?php } ?>
+<?php } else { ?>
+<span id="el$rowindex$_personas_id_fuente" class="form-group personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_fuente->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="x<?php echo $personas_grid->RowIndex ?>_id_fuente" id="x<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="personas" data-field="x_id_fuente" name="o<?php echo $personas_grid->RowIndex ?>_id_fuente" id="o<?php echo $personas_grid->RowIndex ?>_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion">
+<?php if ($personas->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_personas_id_gestion" class="form-group personas_id_gestion">
+<select data-table="personas" data-field="x_id_gestion" data-value-separator="<?php echo $personas->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $personas_grid->RowIndex ?>_id_gestion" name="x<?php echo $personas_grid->RowIndex ?>_id_gestion"<?php echo $personas->id_gestion->EditAttributes() ?>>
+<?php echo $personas->id_gestion->SelectOptionListHtml("x<?php echo $personas_grid->RowIndex ?>_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$personas->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $personas->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x<?php echo $personas_grid->RowIndex ?>_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x<?php echo $personas_grid->RowIndex ?>_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $personas->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_personas_id_gestion" class="form-group personas_id_gestion">
+<span<?php echo $personas->id_gestion->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_gestion->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="x<?php echo $personas_grid->RowIndex ?>_id_gestion" id="x<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="personas" data-field="x_id_gestion" name="o<?php echo $personas_grid->RowIndex ?>_id_gestion" id="o<?php echo $personas_grid->RowIndex ?>_id_gestion" value="<?php echo ew_HtmlEncode($personas->id_gestion->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($personas->id_ref->Visible) { // id_ref ?>
+		<td data-name="id_ref">
+<?php if ($personas->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_personas_id_ref" class="form-group personas_id_ref">
+<input type="text" data-table="personas" data-field="x_id_ref" name="x<?php echo $personas_grid->RowIndex ?>_id_ref" id="x<?php echo $personas_grid->RowIndex ?>_id_ref" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->id_ref->getPlaceHolder()) ?>" value="<?php echo $personas->id_ref->EditValue ?>"<?php echo $personas->id_ref->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_personas_id_ref" class="form-group personas_id_ref">
+<span<?php echo $personas->id_ref->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_ref->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="x<?php echo $personas_grid->RowIndex ?>_id_ref" id="x<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="personas" data-field="x_id_ref" name="o<?php echo $personas_grid->RowIndex ?>_id_ref" id="o<?php echo $personas_grid->RowIndex ?>_id_ref" value="<?php echo ew_HtmlEncode($personas->id_ref->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
@@ -831,6 +1098,25 @@ ew_CreateDateTimePicker("fpersonasgrid", "x<?php echo $personas_grid->RowIndex ?
 <input type="hidden" data-table="personas" data-field="x_fecha_registro" name="x<?php echo $personas_grid->RowIndex ?>_fecha_registro" id="x<?php echo $personas_grid->RowIndex ?>_fecha_registro" value="<?php echo ew_HtmlEncode($personas->fecha_registro->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-table="personas" data-field="x_fecha_registro" name="o<?php echo $personas_grid->RowIndex ?>_fecha_registro" id="o<?php echo $personas_grid->RowIndex ?>_fecha_registro" value="<?php echo ew_HtmlEncode($personas->fecha_registro->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($personas->imagen->Visible) { // imagen ?>
+		<td data-name="imagen">
+<span id="el$rowindex$_personas_imagen" class="form-group personas_imagen">
+<div id="fd_x<?php echo $personas_grid->RowIndex ?>_imagen">
+<span title="<?php echo $personas->imagen->FldTitle() ? $personas->imagen->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($personas->imagen->ReadOnly || $personas->imagen->Disabled) echo " hide"; ?>">
+	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
+	<input type="file" title=" " data-table="personas" data-field="x_imagen" name="x<?php echo $personas_grid->RowIndex ?>_imagen" id="x<?php echo $personas_grid->RowIndex ?>_imagen"<?php echo $personas->imagen->EditAttributes() ?>>
+</span>
+<input type="hidden" name="fn_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fn_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->Upload->FileName ?>">
+<input type="hidden" name="fa_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fa_x<?php echo $personas_grid->RowIndex ?>_imagen" value="0">
+<input type="hidden" name="fs_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fs_x<?php echo $personas_grid->RowIndex ?>_imagen" value="-1">
+<input type="hidden" name="fx_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fx_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->UploadAllowedFileExt ?>">
+<input type="hidden" name="fm_x<?php echo $personas_grid->RowIndex ?>_imagen" id= "fm_x<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo $personas->imagen->UploadMaxFileSize ?>">
+</div>
+<table id="ft_x<?php echo $personas_grid->RowIndex ?>_imagen" class="table table-condensed pull-left ewUploadTable"><tbody class="files"></tbody></table>
+</span>
+<input type="hidden" data-table="personas" data-field="x_imagen" name="o<?php echo $personas_grid->RowIndex ?>_imagen" id="o<?php echo $personas_grid->RowIndex ?>_imagen" value="<?php echo ew_HtmlEncode($personas->imagen->OldValue) ?>">
 </td>
 	<?php } ?>
 	<?php if ($personas->estado->Visible) { // estado ?>

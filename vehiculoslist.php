@@ -451,6 +451,8 @@ class cvehiculos_list extends cvehiculos {
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 		$this->id_persona->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
 		$this->marca->SetVisibility();
 		$this->modelo->SetVisibility();
 		$this->placa->SetVisibility();
@@ -644,13 +646,15 @@ class cvehiculos_list extends cvehiculos {
 			}
 
 			// Get default search criteria
-			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
+			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
 
-			// Get basic search values
-			$this->LoadBasicSearchValues();
+			// Get and validate search values for advanced search
+			$this->LoadSearchValues(); // Get search values
 
 			// Process filter list
 			$this->ProcessFilterList();
+			if (!$this->ValidateSearch())
+				$this->setFailureMessage($gsSearchError);
 
 			// Restore search parms from Session if not searching / reset / export
 			if (($this->Export <> "" || $this->Command <> "search" && $this->Command <> "reset" && $this->Command <> "resetall") && $this->Command <> "json" && $this->CheckSearchParms())
@@ -662,9 +666,9 @@ class cvehiculos_list extends cvehiculos {
 			// Set up sorting order
 			$this->SetupSortOrder();
 
-			// Get basic search criteria
+			// Get search criteria for advanced search
 			if ($gsSearchError == "")
-				$sSrchBasic = $this->BasicSearchWhere();
+				$sSrchAdvanced = $this->AdvancedSearchWhere();
 		}
 
 		// Restore display records
@@ -681,10 +685,10 @@ class cvehiculos_list extends cvehiculos {
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
 
-			// Load basic search from default
-			$this->BasicSearch->LoadDefault();
-			if ($this->BasicSearch->Keyword != "")
-				$sSrchBasic = $this->BasicSearchWhere();
+			// Load advanced search from default
+			if ($this->LoadAdvancedSearchDefault()) {
+				$sSrchAdvanced = $this->AdvancedSearchWhere();
+			}
 		}
 
 		// Build search criteria
@@ -713,6 +717,10 @@ class cvehiculos_list extends cvehiculos {
 		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+		if ($sFilter == "") {
+			$sFilter = "0=101";
+			$this->SearchWhere = $sFilter;
+		}
 
 		// Load master record
 		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "personas") {
@@ -814,14 +822,12 @@ class cvehiculos_list extends cvehiculos {
 		$sFilterList = "";
 		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
 		$sFilterList = ew_Concat($sFilterList, $this->id_persona->AdvancedSearch->ToJson(), ","); // Field id_persona
+		$sFilterList = ew_Concat($sFilterList, $this->id_fuente->AdvancedSearch->ToJson(), ","); // Field id_fuente
+		$sFilterList = ew_Concat($sFilterList, $this->id_gestion->AdvancedSearch->ToJson(), ","); // Field id_gestion
 		$sFilterList = ew_Concat($sFilterList, $this->marca->AdvancedSearch->ToJson(), ","); // Field marca
 		$sFilterList = ew_Concat($sFilterList, $this->modelo->AdvancedSearch->ToJson(), ","); // Field modelo
 		$sFilterList = ew_Concat($sFilterList, $this->placa->AdvancedSearch->ToJson(), ","); // Field placa
 		$sFilterList = ew_Concat($sFilterList, $this->anio->AdvancedSearch->ToJson(), ","); // Field anio
-		if ($this->BasicSearch->Keyword <> "") {
-			$sWrk = "\"" . EW_TABLE_BASIC_SEARCH . "\":\"" . ew_JsEncode2($this->BasicSearch->Keyword) . "\",\"" . EW_TABLE_BASIC_SEARCH_TYPE . "\":\"" . ew_JsEncode2($this->BasicSearch->Type) . "\"";
-			$sFilterList = ew_Concat($sFilterList, $sWrk, ",");
-		}
 		$sFilterList = preg_replace('/,$/', "", $sFilterList);
 
 		// Return filter list in json
@@ -878,6 +884,22 @@ class cvehiculos_list extends cvehiculos {
 		$this->id_persona->AdvancedSearch->SearchOperator2 = @$filter["w_id_persona"];
 		$this->id_persona->AdvancedSearch->Save();
 
+		// Field id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$filter["x_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$filter["z_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchCondition = @$filter["v_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchValue2 = @$filter["y_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator2 = @$filter["w_id_fuente"];
+		$this->id_fuente->AdvancedSearch->Save();
+
+		// Field id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$filter["x_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$filter["z_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchCondition = @$filter["v_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchValue2 = @$filter["y_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator2 = @$filter["w_id_gestion"];
+		$this->id_gestion->AdvancedSearch->Save();
+
 		// Field marca
 		$this->marca->AdvancedSearch->SearchValue = @$filter["x_marca"];
 		$this->marca->AdvancedSearch->SearchOperator = @$filter["z_marca"];
@@ -909,123 +931,100 @@ class cvehiculos_list extends cvehiculos {
 		$this->anio->AdvancedSearch->SearchValue2 = @$filter["y_anio"];
 		$this->anio->AdvancedSearch->SearchOperator2 = @$filter["w_anio"];
 		$this->anio->AdvancedSearch->Save();
-		$this->BasicSearch->setKeyword(@$filter[EW_TABLE_BASIC_SEARCH]);
-		$this->BasicSearch->setType(@$filter[EW_TABLE_BASIC_SEARCH_TYPE]);
 	}
 
-	// Return basic search SQL
-	function BasicSearchSQL($arKeywords, $type) {
+	// Advanced search WHERE clause based on QueryString
+	function AdvancedSearchWhere($Default = FALSE) {
+		global $Security;
 		$sWhere = "";
-		$this->BuildBasicSearchSQL($sWhere, $this->marca, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->modelo, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->placa, $arKeywords, $type);
-		$this->BuildBasicSearchSQL($sWhere, $this->anio, $arKeywords, $type);
+		if (!$Security->CanSearch()) return "";
+		$this->BuildSearchSql($sWhere, $this->Id, $Default, FALSE); // Id
+		$this->BuildSearchSql($sWhere, $this->id_persona, $Default, FALSE); // id_persona
+		$this->BuildSearchSql($sWhere, $this->id_fuente, $Default, FALSE); // id_fuente
+		$this->BuildSearchSql($sWhere, $this->id_gestion, $Default, FALSE); // id_gestion
+		$this->BuildSearchSql($sWhere, $this->marca, $Default, FALSE); // marca
+		$this->BuildSearchSql($sWhere, $this->modelo, $Default, FALSE); // modelo
+		$this->BuildSearchSql($sWhere, $this->placa, $Default, FALSE); // placa
+		$this->BuildSearchSql($sWhere, $this->anio, $Default, FALSE); // anio
+
+		// Set up search parm
+		if (!$Default && $sWhere <> "" && in_array($this->Command, array("", "reset", "resetall"))) {
+			$this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->Id->AdvancedSearch->Save(); // Id
+			$this->id_persona->AdvancedSearch->Save(); // id_persona
+			$this->id_fuente->AdvancedSearch->Save(); // id_fuente
+			$this->id_gestion->AdvancedSearch->Save(); // id_gestion
+			$this->marca->AdvancedSearch->Save(); // marca
+			$this->modelo->AdvancedSearch->Save(); // modelo
+			$this->placa->AdvancedSearch->Save(); // placa
+			$this->anio->AdvancedSearch->Save(); // anio
+		}
 		return $sWhere;
 	}
 
-	// Build basic search SQL
-	function BuildBasicSearchSQL(&$Where, &$Fld, $arKeywords, $type) {
-		global $EW_BASIC_SEARCH_IGNORE_PATTERN;
-		$sDefCond = ($type == "OR") ? "OR" : "AND";
-		$arSQL = array(); // Array for SQL parts
-		$arCond = array(); // Array for search conditions
-		$cnt = count($arKeywords);
-		$j = 0; // Number of SQL parts
-		for ($i = 0; $i < $cnt; $i++) {
-			$Keyword = $arKeywords[$i];
-			$Keyword = trim($Keyword);
-			if ($EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
-				$Keyword = preg_replace($EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
-				$ar = explode("\\", $Keyword);
-			} else {
-				$ar = array($Keyword);
-			}
-			foreach ($ar as $Keyword) {
-				if ($Keyword <> "") {
-					$sWrk = "";
-					if ($Keyword == "OR" && $type == "") {
-						if ($j > 0)
-							$arCond[$j-1] = "OR";
-					} elseif ($Keyword == EW_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NULL";
-					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
-						$sWrk = $Fld->FldExpression . " IS NOT NULL";
-					} elseif ($Fld->FldIsVirtual) {
-						$sWrk = $Fld->FldVirtualExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
-					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
-						$sWrk = $Fld->FldBasicSearchExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
-					}
-					if ($sWrk <> "") {
-						$arSQL[$j] = $sWrk;
-						$arCond[$j] = $sDefCond;
-						$j += 1;
-					}
-				}
-			}
+	// Build search SQL
+	function BuildSearchSql(&$Where, &$Fld, $Default, $MultiValue) {
+		$FldParm = $Fld->FldParm();
+		$FldVal = ($Default) ? $Fld->AdvancedSearch->SearchValueDefault : $Fld->AdvancedSearch->SearchValue; // @$_GET["x_$FldParm"]
+		$FldOpr = ($Default) ? $Fld->AdvancedSearch->SearchOperatorDefault : $Fld->AdvancedSearch->SearchOperator; // @$_GET["z_$FldParm"]
+		$FldCond = ($Default) ? $Fld->AdvancedSearch->SearchConditionDefault : $Fld->AdvancedSearch->SearchCondition; // @$_GET["v_$FldParm"]
+		$FldVal2 = ($Default) ? $Fld->AdvancedSearch->SearchValue2Default : $Fld->AdvancedSearch->SearchValue2; // @$_GET["y_$FldParm"]
+		$FldOpr2 = ($Default) ? $Fld->AdvancedSearch->SearchOperator2Default : $Fld->AdvancedSearch->SearchOperator2; // @$_GET["w_$FldParm"]
+		$sWrk = "";
+		if (is_array($FldVal)) $FldVal = implode(",", $FldVal);
+		if (is_array($FldVal2)) $FldVal2 = implode(",", $FldVal2);
+		$FldOpr = strtoupper(trim($FldOpr));
+		if ($FldOpr == "") $FldOpr = "=";
+		$FldOpr2 = strtoupper(trim($FldOpr2));
+		if ($FldOpr2 == "") $FldOpr2 = "=";
+		if (EW_SEARCH_MULTI_VALUE_OPTION == 1)
+			$MultiValue = FALSE;
+		if ($MultiValue) {
+			$sWrk1 = ($FldVal <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr, $FldVal, $this->DBID) : ""; // Field value 1
+			$sWrk2 = ($FldVal2 <> "") ? ew_GetMultiSearchSql($Fld, $FldOpr2, $FldVal2, $this->DBID) : ""; // Field value 2
+			$sWrk = $sWrk1; // Build final SQL
+			if ($sWrk2 <> "")
+				$sWrk = ($sWrk <> "") ? "($sWrk) $FldCond ($sWrk2)" : $sWrk2;
+		} else {
+			$FldVal = $this->ConvertSearchValue($Fld, $FldVal);
+			$FldVal2 = $this->ConvertSearchValue($Fld, $FldVal2);
+			$sWrk = ew_GetSearchSql($Fld, $FldVal, $FldOpr, $FldCond, $FldVal2, $FldOpr2, $this->DBID);
 		}
-		$cnt = count($arSQL);
-		$bQuoted = FALSE;
-		$sSql = "";
-		if ($cnt > 0) {
-			for ($i = 0; $i < $cnt-1; $i++) {
-				if ($arCond[$i] == "OR") {
-					if (!$bQuoted) $sSql .= "(";
-					$bQuoted = TRUE;
-				}
-				$sSql .= $arSQL[$i];
-				if ($bQuoted && $arCond[$i] <> "OR") {
-					$sSql .= ")";
-					$bQuoted = FALSE;
-				}
-				$sSql .= " " . $arCond[$i] . " ";
-			}
-			$sSql .= $arSQL[$cnt-1];
-			if ($bQuoted)
-				$sSql .= ")";
-		}
-		if ($sSql <> "") {
-			if ($Where <> "") $Where .= " OR ";
-			$Where .= "(" . $sSql . ")";
-		}
+		ew_AddFilter($Where, $sWrk);
 	}
 
-	// Return basic search WHERE clause based on search keyword and type
-	function BasicSearchWhere($Default = FALSE) {
-		global $Security;
-		$sSearchStr = "";
-		if (!$Security->CanSearch()) return "";
-		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
-		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
-
-		// Get search SQL
-		if ($sSearchKeyword <> "") {
-			$ar = $this->BasicSearch->KeywordList($Default);
-
-			// Search keyword in any fields
-			if (($sSearchType == "OR" || $sSearchType == "AND") && $this->BasicSearch->BasicSearchAnyFields) {
-				foreach ($ar as $sKeyword) {
-					if ($sKeyword <> "") {
-						if ($sSearchStr <> "") $sSearchStr .= " " . $sSearchType . " ";
-						$sSearchStr .= "(" . $this->BasicSearchSQL(array($sKeyword), $sSearchType) . ")";
-					}
-				}
-			} else {
-				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
-			}
-			if (!$Default && in_array($this->Command, array("", "reset", "resetall"))) $this->Command = "search";
+	// Convert search value
+	function ConvertSearchValue(&$Fld, $FldVal) {
+		if ($FldVal == EW_NULL_VALUE || $FldVal == EW_NOT_NULL_VALUE)
+			return $FldVal;
+		$Value = $FldVal;
+		if ($Fld->FldDataType == EW_DATATYPE_BOOLEAN) {
+			if ($FldVal <> "") $Value = ($FldVal == "1" || strtolower(strval($FldVal)) == "y" || strtolower(strval($FldVal)) == "t") ? $Fld->TrueValue : $Fld->FalseValue;
+		} elseif ($Fld->FldDataType == EW_DATATYPE_DATE || $Fld->FldDataType == EW_DATATYPE_TIME) {
+			if ($FldVal <> "") $Value = ew_UnFormatDateTime($FldVal, $Fld->FldDateTimeFormat);
 		}
-		if (!$Default && $this->Command == "search") {
-			$this->BasicSearch->setKeyword($sSearchKeyword);
-			$this->BasicSearch->setType($sSearchType);
-		}
-		return $sSearchStr;
+		return $Value;
 	}
 
 	// Check if search parm exists
 	function CheckSearchParms() {
-
-		// Check basic search
-		if ($this->BasicSearch->IssetSession())
+		if ($this->Id->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->id_persona->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->id_fuente->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->id_gestion->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->marca->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->modelo->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->placa->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->anio->AdvancedSearch->IssetSession())
 			return TRUE;
 		return FALSE;
 	}
@@ -1037,8 +1036,8 @@ class cvehiculos_list extends cvehiculos {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
-		// Clear basic search parameters
-		$this->ResetBasicSearchParms();
+		// Clear advanced search parameters
+		$this->ResetAdvancedSearchParms();
 	}
 
 	// Load advanced search default values
@@ -1046,17 +1045,31 @@ class cvehiculos_list extends cvehiculos {
 		return FALSE;
 	}
 
-	// Clear all basic search parameters
-	function ResetBasicSearchParms() {
-		$this->BasicSearch->UnsetSession();
+	// Clear all advanced search parameters
+	function ResetAdvancedSearchParms() {
+		$this->Id->AdvancedSearch->UnsetSession();
+		$this->id_persona->AdvancedSearch->UnsetSession();
+		$this->id_fuente->AdvancedSearch->UnsetSession();
+		$this->id_gestion->AdvancedSearch->UnsetSession();
+		$this->marca->AdvancedSearch->UnsetSession();
+		$this->modelo->AdvancedSearch->UnsetSession();
+		$this->placa->AdvancedSearch->UnsetSession();
+		$this->anio->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
-		// Restore basic search values
-		$this->BasicSearch->Load();
+		// Restore advanced search values
+		$this->Id->AdvancedSearch->Load();
+		$this->id_persona->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->marca->AdvancedSearch->Load();
+		$this->modelo->AdvancedSearch->Load();
+		$this->placa->AdvancedSearch->Load();
+		$this->anio->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -1068,6 +1081,8 @@ class cvehiculos_list extends cvehiculos {
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
 			$this->UpdateSort($this->id_persona); // id_persona
+			$this->UpdateSort($this->id_fuente); // id_fuente
+			$this->UpdateSort($this->id_gestion); // id_gestion
 			$this->UpdateSort($this->marca); // marca
 			$this->UpdateSort($this->modelo); // modelo
 			$this->UpdateSort($this->placa); // placa
@@ -1114,6 +1129,8 @@ class cvehiculos_list extends cvehiculos {
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
 				$this->id_persona->setSort("");
+				$this->id_fuente->setSort("");
+				$this->id_gestion->setSort("");
 				$this->marca->setSort("");
 				$this->modelo->setSort("");
 				$this->placa->setSort("");
@@ -1442,7 +1459,7 @@ class cvehiculos_list extends cvehiculos {
 
 		// Show all button
 		$item = &$this->SearchOptions->Add("showall");
-		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
+		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ResetSearch") . "\" data-caption=\"" . $Language->Phrase("ResetSearch") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ResetSearchBtn") . "</a>";
 		$item->Visible = ($this->SearchWhere <> $this->DefaultSearchWhere && $this->SearchWhere <> "0=101");
 
 		// Button group for search
@@ -1510,11 +1527,51 @@ class cvehiculos_list extends cvehiculos {
 		}
 	}
 
-	// Load basic search values
-	function LoadBasicSearchValues() {
-		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
-		if ($this->BasicSearch->Keyword <> "" && $this->Command == "") $this->Command = "search";
-		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	// Load search values for validation
+	function LoadSearchValues() {
+		global $objForm;
+
+		// Load search values
+		// Id
+
+		$this->Id->AdvancedSearch->SearchValue = @$_GET["x_Id"];
+		if ($this->Id->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->Id->AdvancedSearch->SearchOperator = @$_GET["z_Id"];
+
+		// id_persona
+		$this->id_persona->AdvancedSearch->SearchValue = @$_GET["x_id_persona"];
+		if ($this->id_persona->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_persona->AdvancedSearch->SearchOperator = @$_GET["z_id_persona"];
+
+		// id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$_GET["x_id_fuente"];
+		if ($this->id_fuente->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$_GET["z_id_fuente"];
+
+		// id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$_GET["x_id_gestion"];
+		if ($this->id_gestion->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$_GET["z_id_gestion"];
+
+		// marca
+		$this->marca->AdvancedSearch->SearchValue = @$_GET["x_marca"];
+		if ($this->marca->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->marca->AdvancedSearch->SearchOperator = @$_GET["z_marca"];
+
+		// modelo
+		$this->modelo->AdvancedSearch->SearchValue = @$_GET["x_modelo"];
+		if ($this->modelo->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->modelo->AdvancedSearch->SearchOperator = @$_GET["z_modelo"];
+
+		// placa
+		$this->placa->AdvancedSearch->SearchValue = @$_GET["x_placa"];
+		if ($this->placa->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->placa->AdvancedSearch->SearchOperator = @$_GET["z_placa"];
+
+		// anio
+		$this->anio->AdvancedSearch->SearchValue = @$_GET["x_anio"];
+		if ($this->anio->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->anio->AdvancedSearch->SearchOperator = @$_GET["z_anio"];
 	}
 
 	// Load recordset
@@ -1578,6 +1635,8 @@ class cvehiculos_list extends cvehiculos {
 			return;
 		$this->Id->setDbValue($row['Id']);
 		$this->id_persona->setDbValue($row['id_persona']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
 		$this->marca->setDbValue($row['marca']);
 		$this->modelo->setDbValue($row['modelo']);
 		$this->placa->setDbValue($row['placa']);
@@ -1589,6 +1648,8 @@ class cvehiculos_list extends cvehiculos {
 		$row = array();
 		$row['Id'] = NULL;
 		$row['id_persona'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
 		$row['marca'] = NULL;
 		$row['modelo'] = NULL;
 		$row['placa'] = NULL;
@@ -1603,6 +1664,8 @@ class cvehiculos_list extends cvehiculos {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
 		$this->id_persona->DbValue = $row['id_persona'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
 		$this->marca->DbValue = $row['marca'];
 		$this->modelo->DbValue = $row['modelo'];
 		$this->placa->DbValue = $row['placa'];
@@ -1649,6 +1712,8 @@ class cvehiculos_list extends cvehiculos {
 		// Common render codes for all row types
 		// Id
 		// id_persona
+		// id_fuente
+		// id_gestion
 		// marca
 		// modelo
 		// placa
@@ -1663,14 +1728,13 @@ class cvehiculos_list extends cvehiculos {
 		// id_persona
 		if (strval($this->id_persona->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, `paterno` AS `DispFld`, `materno` AS `Disp2Fld`, `nombres` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		$this->id_persona->LookupFilters = array("dx1" => '`paterno`', "dx2" => '`materno`', "dx3" => '`nombres`');
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `paterno`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
@@ -1686,6 +1750,56 @@ class cvehiculos_list extends cvehiculos {
 			$this->id_persona->ViewValue = NULL;
 		}
 		$this->id_persona->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
 
 		// marca
 		$this->marca->ViewValue = $this->marca->CurrentValue;
@@ -1719,6 +1833,16 @@ class cvehiculos_list extends cvehiculos {
 			}
 			$this->id_persona->TooltipValue = "";
 
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
 			// marca
 			$this->marca->LinkCustomAttributes = "";
 			$this->marca->HrefValue = "";
@@ -1738,11 +1862,115 @@ class cvehiculos_list extends cvehiculos {
 			$this->anio->LinkCustomAttributes = "";
 			$this->anio->HrefValue = "";
 			$this->anio->TooltipValue = "";
+		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
+
+			// Id
+			$this->Id->EditAttrs["class"] = "form-control";
+			$this->Id->EditCustomAttributes = "";
+			$this->Id->EditValue = ew_HtmlEncode($this->Id->AdvancedSearch->SearchValue);
+			$this->Id->PlaceHolder = ew_RemoveHtml($this->Id->FldCaption());
+
+			// id_persona
+			$this->id_persona->EditCustomAttributes = "";
+			if (trim(strval($this->id_persona->AdvancedSearch->SearchValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT DISTINCT `Id`, `paterno` AS `DispFld`, `materno` AS `Disp2Fld`, `nombres` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `personas`";
+			$sWhereWrk = "";
+			$this->id_persona->LookupFilters = array("dx1" => '`paterno`', "dx2" => '`materno`', "dx3" => '`nombres`');
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `paterno`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = ew_HtmlEncode($rswrk->fields('DispFld'));
+				$arwrk[2] = ew_HtmlEncode($rswrk->fields('Disp2Fld'));
+				$arwrk[3] = ew_HtmlEncode($rswrk->fields('Disp3Fld'));
+				$this->id_persona->AdvancedSearch->ViewValue = $this->id_persona->DisplayValue($arwrk);
+			} else {
+				$this->id_persona->AdvancedSearch->ViewValue = $Language->Phrase("PleaseSelect");
+			}
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_persona->EditValue = $arwrk;
+
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+
+			// marca
+			$this->marca->EditAttrs["class"] = "form-control";
+			$this->marca->EditCustomAttributes = "";
+			$this->marca->EditValue = ew_HtmlEncode($this->marca->AdvancedSearch->SearchValue);
+			$this->marca->PlaceHolder = ew_RemoveHtml($this->marca->FldCaption());
+
+			// modelo
+			$this->modelo->EditAttrs["class"] = "form-control";
+			$this->modelo->EditCustomAttributes = "";
+			$this->modelo->EditValue = ew_HtmlEncode($this->modelo->AdvancedSearch->SearchValue);
+			$this->modelo->PlaceHolder = ew_RemoveHtml($this->modelo->FldCaption());
+
+			// placa
+			$this->placa->EditAttrs["class"] = "form-control";
+			$this->placa->EditCustomAttributes = "";
+			$this->placa->EditValue = ew_HtmlEncode($this->placa->AdvancedSearch->SearchValue);
+			$this->placa->PlaceHolder = ew_RemoveHtml($this->placa->FldCaption());
+
+			// anio
+			$this->anio->EditAttrs["class"] = "form-control";
+			$this->anio->EditCustomAttributes = "";
+			$this->anio->EditValue = ew_HtmlEncode($this->anio->AdvancedSearch->SearchValue);
+			$this->anio->PlaceHolder = ew_RemoveHtml($this->anio->FldCaption());
 		}
+		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
+			$this->SetupFieldTitles();
 
 		// Call Row Rendered event
 		if ($this->RowType <> EW_ROWTYPE_AGGREGATEINIT)
 			$this->Row_Rendered();
+	}
+
+	// Validate search
+	function ValidateSearch() {
+		global $gsSearchError;
+
+		// Initialize
+		$gsSearchError = "";
+
+		// Check if validation required
+		if (!EW_SERVER_VALIDATE)
+			return TRUE;
+
+		// Return validate result
+		$ValidateSearch = ($gsSearchError == "");
+
+		// Call Form_CustomValidate event
+		$sFormCustomError = "";
+		$ValidateSearch = $ValidateSearch && $this->Form_CustomValidate($sFormCustomError);
+		if ($sFormCustomError <> "") {
+			ew_AddMessage($gsSearchError, $sFormCustomError);
+		}
+		return $ValidateSearch;
+	}
+
+	// Load advanced search
+	function LoadAdvancedSearch() {
+		$this->Id->AdvancedSearch->Load();
+		$this->id_persona->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->marca->AdvancedSearch->Load();
+		$this->modelo->AdvancedSearch->Load();
+		$this->placa->AdvancedSearch->Load();
+		$this->anio->AdvancedSearch->Load();
 	}
 
 	// Set up export options
@@ -2004,9 +2232,14 @@ class cvehiculos_list extends cvehiculos {
 		$sQry = "export=html";
 
 		// Build QueryString for search
-		if ($this->BasicSearch->getKeyword() <> "") {
-			$sQry .= "&" . EW_TABLE_BASIC_SEARCH . "=" . urlencode($this->BasicSearch->getKeyword()) . "&" . EW_TABLE_BASIC_SEARCH_TYPE . "=" . urlencode($this->BasicSearch->getType());
-		}
+		$this->AddSearchQueryString($sQry, $this->Id); // Id
+		$this->AddSearchQueryString($sQry, $this->id_persona); // id_persona
+		$this->AddSearchQueryString($sQry, $this->id_fuente); // id_fuente
+		$this->AddSearchQueryString($sQry, $this->id_gestion); // id_gestion
+		$this->AddSearchQueryString($sQry, $this->marca); // marca
+		$this->AddSearchQueryString($sQry, $this->modelo); // modelo
+		$this->AddSearchQueryString($sQry, $this->placa); // placa
+		$this->AddSearchQueryString($sQry, $this->anio); // anio
 
 		// Build QueryString for pager
 		$sQry .= "&" . EW_TABLE_REC_PER_PAGE . "=" . urlencode($this->getRecordsPerPage()) . "&" . EW_TABLE_START_REC . "=" . urlencode($this->getStartRecordNumber());
@@ -2108,7 +2341,25 @@ class cvehiculos_list extends cvehiculos {
 	function SetupLookupFilters($fld, $pageId = null) {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
-		switch ($fld->FldVar) {
+		if ($pageId == "list") {
+			switch ($fld->FldVar) {
+			}
+		} elseif ($pageId == "extbs") {
+			switch ($fld->FldVar) {
+		case "x_id_persona":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT DISTINCT `Id` AS `LinkFld`, `paterno` AS `DispFld`, `materno` AS `Disp2Fld`, `nombres` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+			$sWhereWrk = "{filter}";
+			$this->id_persona->LookupFilters = array("dx1" => '`paterno`', "dx2" => '`materno`', "dx3" => '`nombres`');
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "", "n" => 30);
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `paterno`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+			}
 		}
 	}
 
@@ -2116,7 +2367,12 @@ class cvehiculos_list extends cvehiculos {
 	function SetupAutoSuggestFilters($fld, $pageId = null) {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
-		switch ($fld->FldVar) {
+		if ($pageId == "list") {
+			switch ($fld->FldVar) {
+			}
+		} elseif ($pageId == "extbs") {
+			switch ($fld->FldVar) {
+			}
 		}
 	}
 
@@ -2288,14 +2544,43 @@ fvehiculoslist.Form_CustomValidate =
 fvehiculoslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fvehiculoslist.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
+fvehiculoslist.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_paterno","x_materno","x_nombres",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
 fvehiculoslist.Lists["x_id_persona"].Data = "<?php echo $vehiculos_list->id_persona->LookupFilterQuery(FALSE, "list") ?>";
+fvehiculoslist.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fvehiculoslist.Lists["x_id_fuente"].Data = "<?php echo $vehiculos_list->id_fuente->LookupFilterQuery(FALSE, "list") ?>";
+fvehiculoslist.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fvehiculoslist.Lists["x_id_gestion"].Data = "<?php echo $vehiculos_list->id_gestion->LookupFilterQuery(FALSE, "list") ?>";
 
 // Form object for search
 var CurrentSearchForm = fvehiculoslistsrch = new ew_Form("fvehiculoslistsrch");
 
-// Init search panel as collapsed
-if (fvehiculoslistsrch) fvehiculoslistsrch.InitSearchPanel = true;
+// Validate function for search
+fvehiculoslistsrch.Validate = function(fobj) {
+	if (!this.ValidateRequired)
+		return true; // Ignore validation
+	fobj = fobj || this.Form;
+	var infix = "";
+
+	// Fire Form_CustomValidate event
+	if (!this.Form_CustomValidate(fobj))
+		return false;
+	return true;
+}
+
+// Form_CustomValidate event
+fvehiculoslistsrch.Form_CustomValidate = 
+ function(fobj) { // DO NOT CHANGE THIS LINE!
+
+ 	// Your custom validation code here, return false if invalid.
+ 	return true;
+ }
+
+// Use JavaScript validation or not
+fvehiculoslistsrch.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
+
+// Dynamic selection lists
+fvehiculoslistsrch.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_paterno","x_materno","x_nombres",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
+fvehiculoslistsrch.Lists["x_id_persona"].Data = "<?php echo $vehiculos_list->id_persona->LookupFilterQuery(FALSE, "extbs") ?>";
 </script>
 <script type="text/javascript">
 
@@ -2363,21 +2648,56 @@ $vehiculos_list->RenderOtherOptions();
 <input type="hidden" name="cmd" value="search">
 <input type="hidden" name="t" value="vehiculos">
 	<div class="ewBasicSearch">
+<?php
+if ($gsSearchError == "")
+	$vehiculos_list->LoadAdvancedSearch(); // Load advanced search
+
+// Render for search
+$vehiculos->RowType = EW_ROWTYPE_SEARCH;
+
+// Render row
+$vehiculos->ResetAttrs();
+$vehiculos_list->RenderRow();
+?>
 <div id="xsr_1" class="ewRow">
-	<div class="ewQuickSearch input-group">
-	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($vehiculos_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
-	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($vehiculos_list->BasicSearch->getType()) ?>">
-	<div class="input-group-btn">
-		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $vehiculos_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
-		<ul class="dropdown-menu pull-right" role="menu">
-			<li<?php if ($vehiculos_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
-			<li<?php if ($vehiculos_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
-			<li<?php if ($vehiculos_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
-			<li<?php if ($vehiculos_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
-		</ul>
+<?php if ($vehiculos->id_persona->Visible) { // id_persona ?>
+	<div id="xsc_id_persona" class="ewCell form-group">
+		<label for="x_id_persona" class="ewSearchCaption ewLabel"><?php echo $vehiculos->id_persona->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_persona" id="z_id_persona" value="="></span>
+		<span class="ewSearchField">
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x_id_persona"><?php echo (strval($vehiculos->id_persona->AdvancedSearch->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $vehiculos->id_persona->AdvancedSearch->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($vehiculos->id_persona->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x_id_persona',m:0,n:30});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="vehiculos" data-field="x_id_persona" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $vehiculos->id_persona->DisplayValueSeparatorAttribute() ?>" name="x_id_persona" id="x_id_persona" value="<?php echo $vehiculos->id_persona->AdvancedSearch->SearchValue ?>"<?php echo $vehiculos->id_persona->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_2" class="ewRow">
+<?php if ($vehiculos->marca->Visible) { // marca ?>
+	<div id="xsc_marca" class="ewCell form-group">
+		<label for="x_marca" class="ewSearchCaption ewLabel"><?php echo $vehiculos->marca->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_marca" id="z_marca" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="vehiculos" data-field="x_marca" name="x_marca" id="x_marca" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($vehiculos->marca->getPlaceHolder()) ?>" value="<?php echo $vehiculos->marca->EditValue ?>"<?php echo $vehiculos->marca->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_3" class="ewRow">
+<?php if ($vehiculos->placa->Visible) { // placa ?>
+	<div id="xsc_placa" class="ewCell form-group">
+		<label for="x_placa" class="ewSearchCaption ewLabel"><?php echo $vehiculos->placa->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_placa" id="z_placa" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="vehiculos" data-field="x_placa" name="x_placa" id="x_placa" size="10" maxlength="255" placeholder="<?php echo ew_HtmlEncode($vehiculos->placa->getPlaceHolder()) ?>" value="<?php echo $vehiculos->placa->EditValue ?>"<?php echo $vehiculos->placa->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_4" class="ewRow">
 	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("SearchBtn") ?></button>
-	</div>
-	</div>
 </div>
 	</div>
 </div>
@@ -2491,12 +2811,30 @@ $vehiculos_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
+<?php if ($vehiculos->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($vehiculos->SortUrl($vehiculos->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $vehiculos->id_fuente->HeaderCellClass() ?>"><div id="elh_vehiculos_id_fuente" class="vehiculos_id_fuente"><div class="ewTableHeaderCaption"><?php echo $vehiculos->id_fuente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_fuente" class="<?php echo $vehiculos->id_fuente->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $vehiculos->SortUrl($vehiculos->id_fuente) ?>',1);"><div id="elh_vehiculos_id_fuente" class="vehiculos_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($vehiculos->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($vehiculos->SortUrl($vehiculos->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $vehiculos->id_gestion->HeaderCellClass() ?>"><div id="elh_vehiculos_id_gestion" class="vehiculos_id_gestion"><div class="ewTableHeaderCaption"><?php echo $vehiculos->id_gestion->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_gestion" class="<?php echo $vehiculos->id_gestion->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $vehiculos->SortUrl($vehiculos->id_gestion) ?>',1);"><div id="elh_vehiculos_id_gestion" class="vehiculos_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
 <?php if ($vehiculos->marca->Visible) { // marca ?>
 	<?php if ($vehiculos->SortUrl($vehiculos->marca) == "") { ?>
 		<th data-name="marca" class="<?php echo $vehiculos->marca->HeaderCellClass() ?>"><div id="elh_vehiculos_marca" class="vehiculos_marca"><div class="ewTableHeaderCaption"><?php echo $vehiculos->marca->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="marca" class="<?php echo $vehiculos->marca->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $vehiculos->SortUrl($vehiculos->marca) ?>',1);"><div id="elh_vehiculos_marca" class="vehiculos_marca">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->marca->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->marca->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->marca->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->marca->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->marca->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->marca->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2505,7 +2843,7 @@ $vehiculos_list->ListOptions->Render("header", "left");
 		<th data-name="modelo" class="<?php echo $vehiculos->modelo->HeaderCellClass() ?>"><div id="elh_vehiculos_modelo" class="vehiculos_modelo"><div class="ewTableHeaderCaption"><?php echo $vehiculos->modelo->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="modelo" class="<?php echo $vehiculos->modelo->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $vehiculos->SortUrl($vehiculos->modelo) ?>',1);"><div id="elh_vehiculos_modelo" class="vehiculos_modelo">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->modelo->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->modelo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->modelo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->modelo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->modelo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->modelo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2514,7 +2852,7 @@ $vehiculos_list->ListOptions->Render("header", "left");
 		<th data-name="placa" class="<?php echo $vehiculos->placa->HeaderCellClass() ?>"><div id="elh_vehiculos_placa" class="vehiculos_placa"><div class="ewTableHeaderCaption"><?php echo $vehiculos->placa->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="placa" class="<?php echo $vehiculos->placa->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $vehiculos->SortUrl($vehiculos->placa) ?>',1);"><div id="elh_vehiculos_placa" class="vehiculos_placa">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->placa->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->placa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->placa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->placa->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->placa->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->placa->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2523,7 +2861,7 @@ $vehiculos_list->ListOptions->Render("header", "left");
 		<th data-name="anio" class="<?php echo $vehiculos->anio->HeaderCellClass() ?>"><div id="elh_vehiculos_anio" class="vehiculos_anio"><div class="ewTableHeaderCaption"><?php echo $vehiculos->anio->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="anio" class="<?php echo $vehiculos->anio->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $vehiculos->SortUrl($vehiculos->anio) ?>',1);"><div id="elh_vehiculos_anio" class="vehiculos_anio">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->anio->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->anio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->anio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $vehiculos->anio->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($vehiculos->anio->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($vehiculos->anio->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2610,6 +2948,22 @@ $vehiculos_list->ListOptions->Render("body", "left", $vehiculos_list->RowCnt);
 <?php echo $vehiculos->id_persona->ListViewValue() ?>
 <?php } ?>
 </span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($vehiculos->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $vehiculos->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $vehiculos_list->RowCnt ?>_vehiculos_id_fuente" class="vehiculos_id_fuente">
+<span<?php echo $vehiculos->id_fuente->ViewAttributes() ?>>
+<?php echo $vehiculos->id_fuente->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($vehiculos->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $vehiculos->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $vehiculos_list->RowCnt ?>_vehiculos_id_gestion" class="vehiculos_id_gestion">
+<span<?php echo $vehiculos->id_gestion->ViewAttributes() ?>>
+<?php echo $vehiculos->id_gestion->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

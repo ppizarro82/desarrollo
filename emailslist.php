@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "emailsinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -315,9 +314,6 @@ class cemails_list extends cemails {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -450,8 +446,17 @@ class cemails_list extends cemails {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_persona->SetVisibility();
-		$this->_email->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->email1->SetVisibility();
+		$this->email2->SetVisibility();
+		$this->email3->SetVisibility();
+		$this->email4->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -482,9 +487,6 @@ class cemails_list extends cemails {
 
 		// Create Token
 		$this->CreateToken();
-
-		// Set up master detail parameters
-		$this->SetupMasterParms();
 
 		// Setup other options
 		$this->SetupOtherOptions();
@@ -641,7 +643,11 @@ class cemails_list extends cemails {
 			}
 
 			// Get default search criteria
+			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
 			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
+
+			// Get basic search values
+			$this->LoadBasicSearchValues();
 
 			// Get and validate search values for advanced search
 			$this->LoadSearchValues(); // Get search values
@@ -661,6 +667,10 @@ class cemails_list extends cemails {
 			// Set up sorting order
 			$this->SetupSortOrder();
 
+			// Get basic search criteria
+			if ($gsSearchError == "")
+				$sSrchBasic = $this->BasicSearchWhere();
+
 			// Get search criteria for advanced search
 			if ($gsSearchError == "")
 				$sSrchAdvanced = $this->AdvancedSearchWhere();
@@ -679,6 +689,11 @@ class cemails_list extends cemails {
 
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
+
+			// Load basic search from default
+			$this->BasicSearch->LoadDefault();
+			if ($this->BasicSearch->Keyword != "")
+				$sSrchBasic = $this->BasicSearchWhere();
 
 			// Load advanced search from default
 			if ($this->LoadAdvancedSearchDefault()) {
@@ -706,27 +721,11 @@ class cemails_list extends cemails {
 		$sFilter = "";
 		if (!$Security->CanList())
 			$sFilter = "(0=1)"; // Filter all records
-
-		// Restore master/detail filter
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
-
-		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "personas") {
-			global $personas;
-			$rsmaster = $personas->LoadRs($this->DbMasterFilter);
-			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
-			if (!$this->MasterRecordExists) {
-				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("personaslist.php"); // Return to master page
-			} else {
-				$personas->LoadListRowValues($rsmaster);
-				$personas->RowType = EW_ROWTYPE_MASTER; // Master row
-				$personas->RenderListRow();
-				$rsmaster->Close();
-			}
+		if ($sFilter == "") {
+			$sFilter = "0=101";
+			$this->SearchWhere = $sFilter;
 		}
 
 		// Set up filter
@@ -812,8 +811,21 @@ class cemails_list extends cemails {
 		// Initialize
 		$sFilterList = "";
 		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
-		$sFilterList = ew_Concat($sFilterList, $this->id_persona->AdvancedSearch->ToJson(), ","); // Field id_persona
-		$sFilterList = ew_Concat($sFilterList, $this->_email->AdvancedSearch->ToJson(), ","); // Field email
+		$sFilterList = ew_Concat($sFilterList, $this->id_fuente->AdvancedSearch->ToJson(), ","); // Field id_fuente
+		$sFilterList = ew_Concat($sFilterList, $this->id_gestion->AdvancedSearch->ToJson(), ","); // Field id_gestion
+		$sFilterList = ew_Concat($sFilterList, $this->tipo_documento->AdvancedSearch->ToJson(), ","); // Field tipo_documento
+		$sFilterList = ew_Concat($sFilterList, $this->no_documento->AdvancedSearch->ToJson(), ","); // Field no_documento
+		$sFilterList = ew_Concat($sFilterList, $this->nombres->AdvancedSearch->ToJson(), ","); // Field nombres
+		$sFilterList = ew_Concat($sFilterList, $this->paterno->AdvancedSearch->ToJson(), ","); // Field paterno
+		$sFilterList = ew_Concat($sFilterList, $this->materno->AdvancedSearch->ToJson(), ","); // Field materno
+		$sFilterList = ew_Concat($sFilterList, $this->email1->AdvancedSearch->ToJson(), ","); // Field email1
+		$sFilterList = ew_Concat($sFilterList, $this->email2->AdvancedSearch->ToJson(), ","); // Field email2
+		$sFilterList = ew_Concat($sFilterList, $this->email3->AdvancedSearch->ToJson(), ","); // Field email3
+		$sFilterList = ew_Concat($sFilterList, $this->email4->AdvancedSearch->ToJson(), ","); // Field email4
+		if ($this->BasicSearch->Keyword <> "") {
+			$sWrk = "\"" . EW_TABLE_BASIC_SEARCH . "\":\"" . ew_JsEncode2($this->BasicSearch->Keyword) . "\",\"" . EW_TABLE_BASIC_SEARCH_TYPE . "\":\"" . ew_JsEncode2($this->BasicSearch->Type) . "\"";
+			$sFilterList = ew_Concat($sFilterList, $sWrk, ",");
+		}
 		$sFilterList = preg_replace('/,$/', "", $sFilterList);
 
 		// Return filter list in json
@@ -862,21 +874,95 @@ class cemails_list extends cemails {
 		$this->Id->AdvancedSearch->SearchOperator2 = @$filter["w_Id"];
 		$this->Id->AdvancedSearch->Save();
 
-		// Field id_persona
-		$this->id_persona->AdvancedSearch->SearchValue = @$filter["x_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchOperator = @$filter["z_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchCondition = @$filter["v_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchValue2 = @$filter["y_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchOperator2 = @$filter["w_id_persona"];
-		$this->id_persona->AdvancedSearch->Save();
+		// Field id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$filter["x_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$filter["z_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchCondition = @$filter["v_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchValue2 = @$filter["y_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator2 = @$filter["w_id_fuente"];
+		$this->id_fuente->AdvancedSearch->Save();
 
-		// Field email
-		$this->_email->AdvancedSearch->SearchValue = @$filter["x__email"];
-		$this->_email->AdvancedSearch->SearchOperator = @$filter["z__email"];
-		$this->_email->AdvancedSearch->SearchCondition = @$filter["v__email"];
-		$this->_email->AdvancedSearch->SearchValue2 = @$filter["y__email"];
-		$this->_email->AdvancedSearch->SearchOperator2 = @$filter["w__email"];
-		$this->_email->AdvancedSearch->Save();
+		// Field id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$filter["x_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$filter["z_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchCondition = @$filter["v_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchValue2 = @$filter["y_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator2 = @$filter["w_id_gestion"];
+		$this->id_gestion->AdvancedSearch->Save();
+
+		// Field tipo_documento
+		$this->tipo_documento->AdvancedSearch->SearchValue = @$filter["x_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchOperator = @$filter["z_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchCondition = @$filter["v_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchValue2 = @$filter["y_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchOperator2 = @$filter["w_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->Save();
+
+		// Field no_documento
+		$this->no_documento->AdvancedSearch->SearchValue = @$filter["x_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchOperator = @$filter["z_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchCondition = @$filter["v_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchValue2 = @$filter["y_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchOperator2 = @$filter["w_no_documento"];
+		$this->no_documento->AdvancedSearch->Save();
+
+		// Field nombres
+		$this->nombres->AdvancedSearch->SearchValue = @$filter["x_nombres"];
+		$this->nombres->AdvancedSearch->SearchOperator = @$filter["z_nombres"];
+		$this->nombres->AdvancedSearch->SearchCondition = @$filter["v_nombres"];
+		$this->nombres->AdvancedSearch->SearchValue2 = @$filter["y_nombres"];
+		$this->nombres->AdvancedSearch->SearchOperator2 = @$filter["w_nombres"];
+		$this->nombres->AdvancedSearch->Save();
+
+		// Field paterno
+		$this->paterno->AdvancedSearch->SearchValue = @$filter["x_paterno"];
+		$this->paterno->AdvancedSearch->SearchOperator = @$filter["z_paterno"];
+		$this->paterno->AdvancedSearch->SearchCondition = @$filter["v_paterno"];
+		$this->paterno->AdvancedSearch->SearchValue2 = @$filter["y_paterno"];
+		$this->paterno->AdvancedSearch->SearchOperator2 = @$filter["w_paterno"];
+		$this->paterno->AdvancedSearch->Save();
+
+		// Field materno
+		$this->materno->AdvancedSearch->SearchValue = @$filter["x_materno"];
+		$this->materno->AdvancedSearch->SearchOperator = @$filter["z_materno"];
+		$this->materno->AdvancedSearch->SearchCondition = @$filter["v_materno"];
+		$this->materno->AdvancedSearch->SearchValue2 = @$filter["y_materno"];
+		$this->materno->AdvancedSearch->SearchOperator2 = @$filter["w_materno"];
+		$this->materno->AdvancedSearch->Save();
+
+		// Field email1
+		$this->email1->AdvancedSearch->SearchValue = @$filter["x_email1"];
+		$this->email1->AdvancedSearch->SearchOperator = @$filter["z_email1"];
+		$this->email1->AdvancedSearch->SearchCondition = @$filter["v_email1"];
+		$this->email1->AdvancedSearch->SearchValue2 = @$filter["y_email1"];
+		$this->email1->AdvancedSearch->SearchOperator2 = @$filter["w_email1"];
+		$this->email1->AdvancedSearch->Save();
+
+		// Field email2
+		$this->email2->AdvancedSearch->SearchValue = @$filter["x_email2"];
+		$this->email2->AdvancedSearch->SearchOperator = @$filter["z_email2"];
+		$this->email2->AdvancedSearch->SearchCondition = @$filter["v_email2"];
+		$this->email2->AdvancedSearch->SearchValue2 = @$filter["y_email2"];
+		$this->email2->AdvancedSearch->SearchOperator2 = @$filter["w_email2"];
+		$this->email2->AdvancedSearch->Save();
+
+		// Field email3
+		$this->email3->AdvancedSearch->SearchValue = @$filter["x_email3"];
+		$this->email3->AdvancedSearch->SearchOperator = @$filter["z_email3"];
+		$this->email3->AdvancedSearch->SearchCondition = @$filter["v_email3"];
+		$this->email3->AdvancedSearch->SearchValue2 = @$filter["y_email3"];
+		$this->email3->AdvancedSearch->SearchOperator2 = @$filter["w_email3"];
+		$this->email3->AdvancedSearch->Save();
+
+		// Field email4
+		$this->email4->AdvancedSearch->SearchValue = @$filter["x_email4"];
+		$this->email4->AdvancedSearch->SearchOperator = @$filter["z_email4"];
+		$this->email4->AdvancedSearch->SearchCondition = @$filter["v_email4"];
+		$this->email4->AdvancedSearch->SearchValue2 = @$filter["y_email4"];
+		$this->email4->AdvancedSearch->SearchOperator2 = @$filter["w_email4"];
+		$this->email4->AdvancedSearch->Save();
+		$this->BasicSearch->setKeyword(@$filter[EW_TABLE_BASIC_SEARCH]);
+		$this->BasicSearch->setType(@$filter[EW_TABLE_BASIC_SEARCH_TYPE]);
 	}
 
 	// Advanced search WHERE clause based on QueryString
@@ -885,8 +971,17 @@ class cemails_list extends cemails {
 		$sWhere = "";
 		if (!$Security->CanSearch()) return "";
 		$this->BuildSearchSql($sWhere, $this->Id, $Default, FALSE); // Id
-		$this->BuildSearchSql($sWhere, $this->id_persona, $Default, FALSE); // id_persona
-		$this->BuildSearchSql($sWhere, $this->_email, $Default, FALSE); // email
+		$this->BuildSearchSql($sWhere, $this->id_fuente, $Default, FALSE); // id_fuente
+		$this->BuildSearchSql($sWhere, $this->id_gestion, $Default, FALSE); // id_gestion
+		$this->BuildSearchSql($sWhere, $this->tipo_documento, $Default, FALSE); // tipo_documento
+		$this->BuildSearchSql($sWhere, $this->no_documento, $Default, FALSE); // no_documento
+		$this->BuildSearchSql($sWhere, $this->nombres, $Default, FALSE); // nombres
+		$this->BuildSearchSql($sWhere, $this->paterno, $Default, FALSE); // paterno
+		$this->BuildSearchSql($sWhere, $this->materno, $Default, FALSE); // materno
+		$this->BuildSearchSql($sWhere, $this->email1, $Default, FALSE); // email1
+		$this->BuildSearchSql($sWhere, $this->email2, $Default, FALSE); // email2
+		$this->BuildSearchSql($sWhere, $this->email3, $Default, FALSE); // email3
+		$this->BuildSearchSql($sWhere, $this->email4, $Default, FALSE); // email4
 
 		// Set up search parm
 		if (!$Default && $sWhere <> "" && in_array($this->Command, array("", "reset", "resetall"))) {
@@ -894,8 +989,17 @@ class cemails_list extends cemails {
 		}
 		if (!$Default && $this->Command == "search") {
 			$this->Id->AdvancedSearch->Save(); // Id
-			$this->id_persona->AdvancedSearch->Save(); // id_persona
-			$this->_email->AdvancedSearch->Save(); // email
+			$this->id_fuente->AdvancedSearch->Save(); // id_fuente
+			$this->id_gestion->AdvancedSearch->Save(); // id_gestion
+			$this->tipo_documento->AdvancedSearch->Save(); // tipo_documento
+			$this->no_documento->AdvancedSearch->Save(); // no_documento
+			$this->nombres->AdvancedSearch->Save(); // nombres
+			$this->paterno->AdvancedSearch->Save(); // paterno
+			$this->materno->AdvancedSearch->Save(); // materno
+			$this->email1->AdvancedSearch->Save(); // email1
+			$this->email2->AdvancedSearch->Save(); // email2
+			$this->email3->AdvancedSearch->Save(); // email3
+			$this->email4->AdvancedSearch->Save(); // email4
 		}
 		return $sWhere;
 	}
@@ -944,13 +1048,148 @@ class cemails_list extends cemails {
 		return $Value;
 	}
 
+	// Return basic search SQL
+	function BasicSearchSQL($arKeywords, $type) {
+		$sWhere = "";
+		$this->BuildBasicSearchSQL($sWhere, $this->tipo_documento, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->no_documento, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->nombres, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->paterno, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->materno, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->email1, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->email2, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->email3, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->email4, $arKeywords, $type);
+		return $sWhere;
+	}
+
+	// Build basic search SQL
+	function BuildBasicSearchSQL(&$Where, &$Fld, $arKeywords, $type) {
+		global $EW_BASIC_SEARCH_IGNORE_PATTERN;
+		$sDefCond = ($type == "OR") ? "OR" : "AND";
+		$arSQL = array(); // Array for SQL parts
+		$arCond = array(); // Array for search conditions
+		$cnt = count($arKeywords);
+		$j = 0; // Number of SQL parts
+		for ($i = 0; $i < $cnt; $i++) {
+			$Keyword = $arKeywords[$i];
+			$Keyword = trim($Keyword);
+			if ($EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
+				$Keyword = preg_replace($EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
+				$ar = explode("\\", $Keyword);
+			} else {
+				$ar = array($Keyword);
+			}
+			foreach ($ar as $Keyword) {
+				if ($Keyword <> "") {
+					$sWrk = "";
+					if ($Keyword == "OR" && $type == "") {
+						if ($j > 0)
+							$arCond[$j-1] = "OR";
+					} elseif ($Keyword == EW_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NULL";
+					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NOT NULL";
+					} elseif ($Fld->FldIsVirtual) {
+						$sWrk = $Fld->FldVirtualExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
+					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
+						$sWrk = $Fld->FldBasicSearchExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
+					}
+					if ($sWrk <> "") {
+						$arSQL[$j] = $sWrk;
+						$arCond[$j] = $sDefCond;
+						$j += 1;
+					}
+				}
+			}
+		}
+		$cnt = count($arSQL);
+		$bQuoted = FALSE;
+		$sSql = "";
+		if ($cnt > 0) {
+			for ($i = 0; $i < $cnt-1; $i++) {
+				if ($arCond[$i] == "OR") {
+					if (!$bQuoted) $sSql .= "(";
+					$bQuoted = TRUE;
+				}
+				$sSql .= $arSQL[$i];
+				if ($bQuoted && $arCond[$i] <> "OR") {
+					$sSql .= ")";
+					$bQuoted = FALSE;
+				}
+				$sSql .= " " . $arCond[$i] . " ";
+			}
+			$sSql .= $arSQL[$cnt-1];
+			if ($bQuoted)
+				$sSql .= ")";
+		}
+		if ($sSql <> "") {
+			if ($Where <> "") $Where .= " OR ";
+			$Where .= "(" . $sSql . ")";
+		}
+	}
+
+	// Return basic search WHERE clause based on search keyword and type
+	function BasicSearchWhere($Default = FALSE) {
+		global $Security;
+		$sSearchStr = "";
+		if (!$Security->CanSearch()) return "";
+		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
+		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
+
+		// Get search SQL
+		if ($sSearchKeyword <> "") {
+			$ar = $this->BasicSearch->KeywordList($Default);
+
+			// Search keyword in any fields
+			if (($sSearchType == "OR" || $sSearchType == "AND") && $this->BasicSearch->BasicSearchAnyFields) {
+				foreach ($ar as $sKeyword) {
+					if ($sKeyword <> "") {
+						if ($sSearchStr <> "") $sSearchStr .= " " . $sSearchType . " ";
+						$sSearchStr .= "(" . $this->BasicSearchSQL(array($sKeyword), $sSearchType) . ")";
+					}
+				}
+			} else {
+				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
+			}
+			if (!$Default && in_array($this->Command, array("", "reset", "resetall"))) $this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->BasicSearch->setKeyword($sSearchKeyword);
+			$this->BasicSearch->setType($sSearchType);
+		}
+		return $sSearchStr;
+	}
+
 	// Check if search parm exists
 	function CheckSearchParms() {
+
+		// Check basic search
+		if ($this->BasicSearch->IssetSession())
+			return TRUE;
 		if ($this->Id->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->id_persona->AdvancedSearch->IssetSession())
+		if ($this->id_fuente->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->_email->AdvancedSearch->IssetSession())
+		if ($this->id_gestion->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->tipo_documento->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->no_documento->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->nombres->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->paterno->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->materno->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->email1->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->email2->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->email3->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->email4->AdvancedSearch->IssetSession())
 			return TRUE;
 		return FALSE;
 	}
@@ -962,6 +1201,9 @@ class cemails_list extends cemails {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
+		// Clear basic search parameters
+		$this->ResetBasicSearchParms();
+
 		// Clear advanced search parameters
 		$this->ResetAdvancedSearchParms();
 	}
@@ -971,21 +1213,47 @@ class cemails_list extends cemails {
 		return FALSE;
 	}
 
+	// Clear all basic search parameters
+	function ResetBasicSearchParms() {
+		$this->BasicSearch->UnsetSession();
+	}
+
 	// Clear all advanced search parameters
 	function ResetAdvancedSearchParms() {
 		$this->Id->AdvancedSearch->UnsetSession();
-		$this->id_persona->AdvancedSearch->UnsetSession();
-		$this->_email->AdvancedSearch->UnsetSession();
+		$this->id_fuente->AdvancedSearch->UnsetSession();
+		$this->id_gestion->AdvancedSearch->UnsetSession();
+		$this->tipo_documento->AdvancedSearch->UnsetSession();
+		$this->no_documento->AdvancedSearch->UnsetSession();
+		$this->nombres->AdvancedSearch->UnsetSession();
+		$this->paterno->AdvancedSearch->UnsetSession();
+		$this->materno->AdvancedSearch->UnsetSession();
+		$this->email1->AdvancedSearch->UnsetSession();
+		$this->email2->AdvancedSearch->UnsetSession();
+		$this->email3->AdvancedSearch->UnsetSession();
+		$this->email4->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
+		// Restore basic search values
+		$this->BasicSearch->Load();
+
 		// Restore advanced search values
 		$this->Id->AdvancedSearch->Load();
-		$this->id_persona->AdvancedSearch->Load();
-		$this->_email->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->tipo_documento->AdvancedSearch->Load();
+		$this->no_documento->AdvancedSearch->Load();
+		$this->nombres->AdvancedSearch->Load();
+		$this->paterno->AdvancedSearch->Load();
+		$this->materno->AdvancedSearch->Load();
+		$this->email1->AdvancedSearch->Load();
+		$this->email2->AdvancedSearch->Load();
+		$this->email3->AdvancedSearch->Load();
+		$this->email4->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -996,8 +1264,17 @@ class cemails_list extends cemails {
 			$this->CurrentOrder = @$_GET["order"];
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
-			$this->UpdateSort($this->id_persona); // id_persona
-			$this->UpdateSort($this->_email); // email
+			$this->UpdateSort($this->id_fuente); // id_fuente
+			$this->UpdateSort($this->id_gestion); // id_gestion
+			$this->UpdateSort($this->tipo_documento); // tipo_documento
+			$this->UpdateSort($this->no_documento); // no_documento
+			$this->UpdateSort($this->nombres); // nombres
+			$this->UpdateSort($this->paterno); // paterno
+			$this->UpdateSort($this->materno); // materno
+			$this->UpdateSort($this->email1); // email1
+			$this->UpdateSort($this->email2); // email2
+			$this->UpdateSort($this->email3); // email3
+			$this->UpdateSort($this->email4); // email4
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -1026,21 +1303,22 @@ class cemails_list extends cemails {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
-			// Reset master/detail keys
-			if ($this->Command == "resetall") {
-				$this->setCurrentMasterTable(""); // Clear master table
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-				$this->id_persona->setSessionValue("");
-			}
-
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
-				$this->id_persona->setSort("");
-				$this->_email->setSort("");
+				$this->id_fuente->setSort("");
+				$this->id_gestion->setSort("");
+				$this->tipo_documento->setSort("");
+				$this->no_documento->setSort("");
+				$this->nombres->setSort("");
+				$this->paterno->setSort("");
+				$this->materno->setSort("");
+				$this->email1->setSort("");
+				$this->email2->setSort("");
+				$this->email3->setSort("");
+				$this->email4->setSort("");
 			}
 
 			// Reset start position
@@ -1365,7 +1643,7 @@ class cemails_list extends cemails {
 
 		// Show all button
 		$item = &$this->SearchOptions->Add("showall");
-		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
+		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ResetSearch") . "\" data-caption=\"" . $Language->Phrase("ResetSearch") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ResetSearchBtn") . "</a>";
 		$item->Visible = ($this->SearchWhere <> $this->DefaultSearchWhere && $this->SearchWhere <> "0=101");
 
 		// Button group for search
@@ -1433,6 +1711,13 @@ class cemails_list extends cemails {
 		}
 	}
 
+	// Load basic search values
+	function LoadBasicSearchValues() {
+		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
+		if ($this->BasicSearch->Keyword <> "" && $this->Command == "") $this->Command = "search";
+		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	}
+
 	// Load search values for validation
 	function LoadSearchValues() {
 		global $objForm;
@@ -1444,15 +1729,60 @@ class cemails_list extends cemails {
 		if ($this->Id->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
 		$this->Id->AdvancedSearch->SearchOperator = @$_GET["z_Id"];
 
-		// id_persona
-		$this->id_persona->AdvancedSearch->SearchValue = @$_GET["x_id_persona"];
-		if ($this->id_persona->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->id_persona->AdvancedSearch->SearchOperator = @$_GET["z_id_persona"];
+		// id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$_GET["x_id_fuente"];
+		if ($this->id_fuente->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$_GET["z_id_fuente"];
 
-		// email
-		$this->_email->AdvancedSearch->SearchValue = @$_GET["x__email"];
-		if ($this->_email->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->_email->AdvancedSearch->SearchOperator = @$_GET["z__email"];
+		// id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$_GET["x_id_gestion"];
+		if ($this->id_gestion->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$_GET["z_id_gestion"];
+
+		// tipo_documento
+		$this->tipo_documento->AdvancedSearch->SearchValue = @$_GET["x_tipo_documento"];
+		if ($this->tipo_documento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->tipo_documento->AdvancedSearch->SearchOperator = @$_GET["z_tipo_documento"];
+
+		// no_documento
+		$this->no_documento->AdvancedSearch->SearchValue = @$_GET["x_no_documento"];
+		if ($this->no_documento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->no_documento->AdvancedSearch->SearchOperator = @$_GET["z_no_documento"];
+
+		// nombres
+		$this->nombres->AdvancedSearch->SearchValue = @$_GET["x_nombres"];
+		if ($this->nombres->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->nombres->AdvancedSearch->SearchOperator = @$_GET["z_nombres"];
+
+		// paterno
+		$this->paterno->AdvancedSearch->SearchValue = @$_GET["x_paterno"];
+		if ($this->paterno->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->paterno->AdvancedSearch->SearchOperator = @$_GET["z_paterno"];
+
+		// materno
+		$this->materno->AdvancedSearch->SearchValue = @$_GET["x_materno"];
+		if ($this->materno->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->materno->AdvancedSearch->SearchOperator = @$_GET["z_materno"];
+
+		// email1
+		$this->email1->AdvancedSearch->SearchValue = @$_GET["x_email1"];
+		if ($this->email1->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->email1->AdvancedSearch->SearchOperator = @$_GET["z_email1"];
+
+		// email2
+		$this->email2->AdvancedSearch->SearchValue = @$_GET["x_email2"];
+		if ($this->email2->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->email2->AdvancedSearch->SearchOperator = @$_GET["z_email2"];
+
+		// email3
+		$this->email3->AdvancedSearch->SearchValue = @$_GET["x_email3"];
+		if ($this->email3->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->email3->AdvancedSearch->SearchOperator = @$_GET["z_email3"];
+
+		// email4
+		$this->email4->AdvancedSearch->SearchValue = @$_GET["x_email4"];
+		if ($this->email4->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->email4->AdvancedSearch->SearchOperator = @$_GET["z_email4"];
 	}
 
 	// Load recordset
@@ -1515,16 +1845,34 @@ class cemails_list extends cemails {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->_email->setDbValue($row['email']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->email1->setDbValue($row['email1']);
+		$this->email2->setDbValue($row['email2']);
+		$this->email3->setDbValue($row['email3']);
+		$this->email4->setDbValue($row['email4']);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_persona'] = NULL;
-		$row['email'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['tipo_documento'] = NULL;
+		$row['no_documento'] = NULL;
+		$row['nombres'] = NULL;
+		$row['paterno'] = NULL;
+		$row['materno'] = NULL;
+		$row['email1'] = NULL;
+		$row['email2'] = NULL;
+		$row['email3'] = NULL;
+		$row['email4'] = NULL;
 		return $row;
 	}
 
@@ -1534,8 +1882,17 @@ class cemails_list extends cemails {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->_email->DbValue = $row['email'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->email1->DbValue = $row['email1'];
+		$this->email2->DbValue = $row['email2'];
+		$this->email3->DbValue = $row['email3'];
+		$this->email4->DbValue = $row['email4'];
 	}
 
 	// Load old record
@@ -1577,8 +1934,17 @@ class cemails_list extends cemails {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// email
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// email1
+		// email2
+		// email3
+		// email4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1586,57 +1952,151 @@ class cemails_list extends cemails {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// email
-		$this->_email->ViewValue = $this->_email->CurrentValue;
-		$this->_email->ViewCustomAttributes = "";
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
+
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// email1
+		$this->email1->ViewValue = $this->email1->CurrentValue;
+		$this->email1->ViewCustomAttributes = "";
+
+		// email2
+		$this->email2->ViewValue = $this->email2->CurrentValue;
+		$this->email2->ViewCustomAttributes = "";
+
+		// email3
+		$this->email3->ViewValue = $this->email3->CurrentValue;
+		$this->email3->ViewCustomAttributes = "";
+
+		// email4
+		$this->email4->ViewValue = $this->email4->CurrentValue;
+		$this->email4->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
-			$this->id_persona->TooltipValue = "";
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
 
-			// email
-			$this->_email->LinkCustomAttributes = "";
-			$this->_email->HrefValue = "";
-			$this->_email->TooltipValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
+
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// email1
+			$this->email1->LinkCustomAttributes = "";
+			$this->email1->HrefValue = "";
+			$this->email1->TooltipValue = "";
+
+			// email2
+			$this->email2->LinkCustomAttributes = "";
+			$this->email2->HrefValue = "";
+			$this->email2->TooltipValue = "";
+
+			// email3
+			$this->email3->LinkCustomAttributes = "";
+			$this->email3->HrefValue = "";
+			$this->email3->TooltipValue = "";
+
+			// email4
+			$this->email4->LinkCustomAttributes = "";
+			$this->email4->HrefValue = "";
+			$this->email4->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
 			// Id
@@ -1645,32 +2105,101 @@ class cemails_list extends cemails {
 			$this->Id->EditValue = ew_HtmlEncode($this->Id->AdvancedSearch->SearchValue);
 			$this->Id->PlaceHolder = ew_RemoveHtml($this->Id->FldCaption());
 
-			// id_persona
-			$this->id_persona->EditAttrs["class"] = "form-control";
-			$this->id_persona->EditCustomAttributes = "";
-			if (trim(strval($this->id_persona->AdvancedSearch->SearchValue)) == "") {
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if (trim(strval($this->id_fuente->AdvancedSearch->SearchValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
 			}
-			$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `personas`";
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
-			$this->id_persona->EditValue = $arwrk;
+			$this->id_fuente->EditValue = $arwrk;
 
-			// email
-			$this->_email->EditAttrs["class"] = "form-control";
-			$this->_email->EditCustomAttributes = "";
-			$this->_email->EditValue = ew_HtmlEncode($this->_email->AdvancedSearch->SearchValue);
-			$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->AdvancedSearch->SearchValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
+
+			// tipo_documento
+			$this->tipo_documento->EditAttrs["class"] = "form-control";
+			$this->tipo_documento->EditCustomAttributes = "";
+			$this->tipo_documento->EditValue = ew_HtmlEncode($this->tipo_documento->AdvancedSearch->SearchValue);
+			$this->tipo_documento->PlaceHolder = ew_RemoveHtml($this->tipo_documento->FldCaption());
+
+			// no_documento
+			$this->no_documento->EditAttrs["class"] = "form-control";
+			$this->no_documento->EditCustomAttributes = "";
+			$this->no_documento->EditValue = ew_HtmlEncode($this->no_documento->AdvancedSearch->SearchValue);
+			$this->no_documento->PlaceHolder = ew_RemoveHtml($this->no_documento->FldCaption());
+
+			// nombres
+			$this->nombres->EditAttrs["class"] = "form-control";
+			$this->nombres->EditCustomAttributes = "";
+			$this->nombres->EditValue = ew_HtmlEncode($this->nombres->AdvancedSearch->SearchValue);
+			$this->nombres->PlaceHolder = ew_RemoveHtml($this->nombres->FldCaption());
+
+			// paterno
+			$this->paterno->EditAttrs["class"] = "form-control";
+			$this->paterno->EditCustomAttributes = "";
+			$this->paterno->EditValue = ew_HtmlEncode($this->paterno->AdvancedSearch->SearchValue);
+			$this->paterno->PlaceHolder = ew_RemoveHtml($this->paterno->FldCaption());
+
+			// materno
+			$this->materno->EditAttrs["class"] = "form-control";
+			$this->materno->EditCustomAttributes = "";
+			$this->materno->EditValue = ew_HtmlEncode($this->materno->AdvancedSearch->SearchValue);
+			$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+			// email1
+			$this->email1->EditAttrs["class"] = "form-control";
+			$this->email1->EditCustomAttributes = "";
+			$this->email1->EditValue = ew_HtmlEncode($this->email1->AdvancedSearch->SearchValue);
+			$this->email1->PlaceHolder = ew_RemoveHtml($this->email1->FldCaption());
+
+			// email2
+			$this->email2->EditAttrs["class"] = "form-control";
+			$this->email2->EditCustomAttributes = "";
+			$this->email2->EditValue = ew_HtmlEncode($this->email2->AdvancedSearch->SearchValue);
+			$this->email2->PlaceHolder = ew_RemoveHtml($this->email2->FldCaption());
+
+			// email3
+			$this->email3->EditAttrs["class"] = "form-control";
+			$this->email3->EditCustomAttributes = "";
+			$this->email3->EditValue = ew_HtmlEncode($this->email3->AdvancedSearch->SearchValue);
+			$this->email3->PlaceHolder = ew_RemoveHtml($this->email3->FldCaption());
+
+			// email4
+			$this->email4->EditAttrs["class"] = "form-control";
+			$this->email4->EditCustomAttributes = "";
+			$this->email4->EditValue = ew_HtmlEncode($this->email4->AdvancedSearch->SearchValue);
+			$this->email4->PlaceHolder = ew_RemoveHtml($this->email4->FldCaption());
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->SetupFieldTitles();
@@ -1706,8 +2235,17 @@ class cemails_list extends cemails {
 	// Load advanced search
 	function LoadAdvancedSearch() {
 		$this->Id->AdvancedSearch->Load();
-		$this->id_persona->AdvancedSearch->Load();
-		$this->_email->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->tipo_documento->AdvancedSearch->Load();
+		$this->no_documento->AdvancedSearch->Load();
+		$this->nombres->AdvancedSearch->Load();
+		$this->paterno->AdvancedSearch->Load();
+		$this->materno->AdvancedSearch->Load();
+		$this->email1->AdvancedSearch->Load();
+		$this->email2->AdvancedSearch->Load();
+		$this->email3->AdvancedSearch->Load();
+		$this->email4->AdvancedSearch->Load();
 	}
 
 	// Set up export options
@@ -1824,25 +2362,6 @@ class cemails_list extends cemails {
 		// Call Page Exporting server event
 		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
 		$ParentTable = "";
-
-		// Export master record
-		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "personas") {
-			global $personas;
-			if (!isset($personas)) $personas = new cpersonas;
-			$rsmaster = $personas->LoadRs($this->DbMasterFilter); // Load master record
-			if ($rsmaster && !$rsmaster->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("v"); // Change to vertical
-				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
-					$Doc->Table = &$personas;
-					$personas->ExportDocument($Doc, $rsmaster, 1, 1);
-					$Doc->ExportEmptyRow();
-					$Doc->Table = &$this;
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsmaster->Close();
-			}
-		}
 		$sHeader = $this->PageHeader;
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
@@ -1969,9 +2488,21 @@ class cemails_list extends cemails {
 		$sQry = "export=html";
 
 		// Build QueryString for search
+		if ($this->BasicSearch->getKeyword() <> "") {
+			$sQry .= "&" . EW_TABLE_BASIC_SEARCH . "=" . urlencode($this->BasicSearch->getKeyword()) . "&" . EW_TABLE_BASIC_SEARCH_TYPE . "=" . urlencode($this->BasicSearch->getType());
+		}
 		$this->AddSearchQueryString($sQry, $this->Id); // Id
-		$this->AddSearchQueryString($sQry, $this->id_persona); // id_persona
-		$this->AddSearchQueryString($sQry, $this->_email); // email
+		$this->AddSearchQueryString($sQry, $this->id_fuente); // id_fuente
+		$this->AddSearchQueryString($sQry, $this->id_gestion); // id_gestion
+		$this->AddSearchQueryString($sQry, $this->tipo_documento); // tipo_documento
+		$this->AddSearchQueryString($sQry, $this->no_documento); // no_documento
+		$this->AddSearchQueryString($sQry, $this->nombres); // nombres
+		$this->AddSearchQueryString($sQry, $this->paterno); // paterno
+		$this->AddSearchQueryString($sQry, $this->materno); // materno
+		$this->AddSearchQueryString($sQry, $this->email1); // email1
+		$this->AddSearchQueryString($sQry, $this->email2); // email2
+		$this->AddSearchQueryString($sQry, $this->email3); // email3
+		$this->AddSearchQueryString($sQry, $this->email4); // email4
 
 		// Build QueryString for pager
 		$sQry .= "&" . EW_TABLE_REC_PER_PAGE . "=" . urlencode($this->getRecordsPerPage()) . "&" . EW_TABLE_START_REC . "=" . urlencode($this->getStartRecordNumber());
@@ -1994,72 +2525,6 @@ class cemails_list extends cemails {
 		}
 	}
 
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Update URL
-			$this->AddUrl = $this->AddMasterUrl($this->AddUrl);
-			$this->InlineAddUrl = $this->AddMasterUrl($this->InlineAddUrl);
-			$this->GridAddUrl = $this->AddMasterUrl($this->GridAddUrl);
-			$this->GridEditUrl = $this->AddMasterUrl($this->GridEditUrl);
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -2078,17 +2543,31 @@ class cemails_list extends cemails {
 			}
 		} elseif ($pageId == "extbs") {
 			switch ($fld->FldVar) {
-		case "x_id_persona":
+		case "x_id_fuente":
 			$sSqlWrk = "";
-			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
 			$sSqlWrk = "";
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			if ($sSqlWrk <> "")
 				$fld->LookupFilters["s"] .= $sSqlWrk;
 			break;
@@ -2113,6 +2592,8 @@ class cemails_list extends cemails {
 	function Page_Load() {
 
 		//echo "Page Load";
+	if (!isset($_GET["cmd"]) && !isset($_GET["export"]))
+						$this->ResetSearchParms();
 	}
 
 	// Page Unload event
@@ -2277,8 +2758,10 @@ femailslist.Form_CustomValidate =
 femailslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-femailslist.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-femailslist.Lists["x_id_persona"].Data = "<?php echo $emails_list->id_persona->LookupFilterQuery(FALSE, "list") ?>";
+femailslist.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+femailslist.Lists["x_id_fuente"].Data = "<?php echo $emails_list->id_fuente->LookupFilterQuery(FALSE, "list") ?>";
+femailslist.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+femailslist.Lists["x_id_gestion"].Data = "<?php echo $emails_list->id_gestion->LookupFilterQuery(FALSE, "list") ?>";
 
 // Form object for search
 var CurrentSearchForm = femailslistsrch = new ew_Form("femailslistsrch");
@@ -2308,11 +2791,10 @@ femailslistsrch.Form_CustomValidate =
 femailslistsrch.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-femailslistsrch.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-femailslistsrch.Lists["x_id_persona"].Data = "<?php echo $emails_list->id_persona->LookupFilterQuery(FALSE, "extbs") ?>";
-
-// Init search panel as collapsed
-if (femailslistsrch) femailslistsrch.InitSearchPanel = true;
+femailslistsrch.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+femailslistsrch.Lists["x_id_fuente"].Data = "<?php echo $emails_list->id_fuente->LookupFilterQuery(FALSE, "extbs") ?>";
+femailslistsrch.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+femailslistsrch.Lists["x_id_gestion"].Data = "<?php echo $emails_list->id_gestion->LookupFilterQuery(FALSE, "extbs") ?>";
 </script>
 <script type="text/javascript">
 
@@ -2332,17 +2814,6 @@ if (femailslistsrch) femailslistsrch.InitSearchPanel = true;
 <?php } ?>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
-<?php if (($emails->Export == "") || (EW_EXPORT_MASTER_RECORD && $emails->Export == "print")) { ?>
-<?php
-if ($emails_list->DbMasterFilter <> "" && $emails->getCurrentMasterTable() == "personas") {
-	if ($emails_list->MasterRecordExists) {
-?>
-<?php include_once "personasmaster.php" ?>
-<?php
-	}
-}
-?>
 <?php } ?>
 <?php
 	$bSelectLimit = $emails_list->UseSelectLimit;
@@ -2392,31 +2863,124 @@ $emails->ResetAttrs();
 $emails_list->RenderRow();
 ?>
 <div id="xsr_1" class="ewRow">
-<?php if ($emails->id_persona->Visible) { // id_persona ?>
-	<div id="xsc_id_persona" class="ewCell form-group">
-		<label for="x_id_persona" class="ewSearchCaption ewLabel"><?php echo $emails->id_persona->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_persona" id="z_id_persona" value="="></span>
+<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+	<div id="xsc_id_fuente" class="ewCell form-group">
+		<label for="x_id_fuente" class="ewSearchCaption ewLabel"><?php echo $emails->id_fuente->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_fuente" id="z_id_fuente" value="="></span>
 		<span class="ewSearchField">
-<select data-table="emails" data-field="x_id_persona" data-value-separator="<?php echo $emails->id_persona->DisplayValueSeparatorAttribute() ?>" id="x_id_persona" name="x_id_persona"<?php echo $emails->id_persona->EditAttributes() ?>>
-<?php echo $emails->id_persona->SelectOptionListHtml("x_id_persona") ?>
+<select data-table="emails" data-field="x_id_fuente" data-value-separator="<?php echo $emails->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x_id_fuente" name="x_id_fuente"<?php echo $emails->id_fuente->EditAttributes() ?>>
+<?php echo $emails->id_fuente->SelectOptionListHtml("x_id_fuente") ?>
+</select>
+</span>
+	</div>
+<?php } ?>
+<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+	<div id="xsc_id_gestion" class="ewCell form-group">
+		<label for="x_id_gestion" class="ewSearchCaption ewLabel"><?php echo $emails->id_gestion->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_gestion" id="z_id_gestion" value="="></span>
+		<span class="ewSearchField">
+<select data-table="emails" data-field="x_id_gestion" data-value-separator="<?php echo $emails->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x_id_gestion" name="x_id_gestion"<?php echo $emails->id_gestion->EditAttributes() ?>>
+<?php echo $emails->id_gestion->SelectOptionListHtml("x_id_gestion") ?>
 </select>
 </span>
 	</div>
 <?php } ?>
 </div>
 <div id="xsr_2" class="ewRow">
-<?php if ($emails->_email->Visible) { // email ?>
-	<div id="xsc__email" class="ewCell form-group">
-		<label for="x__email" class="ewSearchCaption ewLabel"><?php echo $emails->_email->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z__email" id="z__email" value="LIKE"></span>
+<?php if ($emails->no_documento->Visible) { // no_documento ?>
+	<div id="xsc_no_documento" class="ewCell form-group">
+		<label for="x_no_documento" class="ewSearchCaption ewLabel"><?php echo $emails->no_documento->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_no_documento" id="z_no_documento" value="LIKE"></span>
 		<span class="ewSearchField">
-<input type="text" data-table="emails" data-field="x__email" name="x__email" id="x__email" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->_email->getPlaceHolder()) ?>" value="<?php echo $emails->_email->EditValue ?>"<?php echo $emails->_email->EditAttributes() ?>>
+<input type="text" data-table="emails" data-field="x_no_documento" name="x_no_documento" id="x_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($emails->no_documento->getPlaceHolder()) ?>" value="<?php echo $emails->no_documento->EditValue ?>"<?php echo $emails->no_documento->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($emails->nombres->Visible) { // nombres ?>
+	<div id="xsc_nombres" class="ewCell form-group">
+		<label for="x_nombres" class="ewSearchCaption ewLabel"><?php echo $emails->nombres->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_nombres" id="z_nombres" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_nombres" name="x_nombres" id="x_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->nombres->getPlaceHolder()) ?>" value="<?php echo $emails->nombres->EditValue ?>"<?php echo $emails->nombres->EditAttributes() ?>>
 </span>
 	</div>
 <?php } ?>
 </div>
 <div id="xsr_3" class="ewRow">
+<?php if ($emails->paterno->Visible) { // paterno ?>
+	<div id="xsc_paterno" class="ewCell form-group">
+		<label for="x_paterno" class="ewSearchCaption ewLabel"><?php echo $emails->paterno->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_paterno" id="z_paterno" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_paterno" name="x_paterno" id="x_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->paterno->getPlaceHolder()) ?>" value="<?php echo $emails->paterno->EditValue ?>"<?php echo $emails->paterno->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($emails->materno->Visible) { // materno ?>
+	<div id="xsc_materno" class="ewCell form-group">
+		<label for="x_materno" class="ewSearchCaption ewLabel"><?php echo $emails->materno->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_materno" id="z_materno" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_materno" name="x_materno" id="x_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->materno->getPlaceHolder()) ?>" value="<?php echo $emails->materno->EditValue ?>"<?php echo $emails->materno->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_4" class="ewRow">
+<?php if ($emails->email1->Visible) { // email1 ?>
+	<div id="xsc_email1" class="ewCell form-group">
+		<label for="x_email1" class="ewSearchCaption ewLabel"><?php echo $emails->email1->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_email1" id="z_email1" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_email1" name="x_email1" id="x_email1" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email1->getPlaceHolder()) ?>" value="<?php echo $emails->email1->EditValue ?>"<?php echo $emails->email1->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($emails->email2->Visible) { // email2 ?>
+	<div id="xsc_email2" class="ewCell form-group">
+		<label for="x_email2" class="ewSearchCaption ewLabel"><?php echo $emails->email2->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_email2" id="z_email2" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_email2" name="x_email2" id="x_email2" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email2->getPlaceHolder()) ?>" value="<?php echo $emails->email2->EditValue ?>"<?php echo $emails->email2->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_5" class="ewRow">
+<?php if ($emails->email3->Visible) { // email3 ?>
+	<div id="xsc_email3" class="ewCell form-group">
+		<label for="x_email3" class="ewSearchCaption ewLabel"><?php echo $emails->email3->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_email3" id="z_email3" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_email3" name="x_email3" id="x_email3" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email3->getPlaceHolder()) ?>" value="<?php echo $emails->email3->EditValue ?>"<?php echo $emails->email3->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($emails->email4->Visible) { // email4 ?>
+	<div id="xsc_email4" class="ewCell form-group">
+		<label for="x_email4" class="ewSearchCaption ewLabel"><?php echo $emails->email4->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_email4" id="z_email4" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="emails" data-field="x_email4" name="x_email4" id="x_email4" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($emails->email4->getPlaceHolder()) ?>" value="<?php echo $emails->email4->EditValue ?>"<?php echo $emails->email4->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_6" class="ewRow">
+	<div class="ewQuickSearch input-group">
+	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($emails_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
+	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($emails_list->BasicSearch->getType()) ?>">
+	<div class="input-group-btn">
+		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $emails_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
+		<ul class="dropdown-menu pull-right" role="menu">
+			<li<?php if ($emails_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
+			<li<?php if ($emails_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
+			<li<?php if ($emails_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
+			<li<?php if ($emails_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
+		</ul>
 	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("SearchBtn") ?></button>
+	</div>
+	</div>
 </div>
 	</div>
 </div>
@@ -2492,10 +3056,6 @@ $emails_list->ShowMessage();
 <input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $emails_list->Token ?>">
 <?php } ?>
 <input type="hidden" name="t" value="emails">
-<?php if ($emails->getCurrentMasterTable() == "personas" && $emails->CurrentAction <> "") { ?>
-<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="personas">
-<input type="hidden" name="fk_Id" value="<?php echo $emails->id_persona->getSessionValue() ?>">
-<?php } ?>
 <div id="gmp_emails" class="<?php if (ew_IsResponsiveLayout()) { ?>table-responsive <?php } ?>ewGridMiddlePanel">
 <?php if ($emails_list->TotalRecs > 0 || $emails->CurrentAction == "gridedit") { ?>
 <table id="tbl_emailslist" class="table ewTable">
@@ -2521,21 +3081,102 @@ $emails_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($emails->id_persona->Visible) { // id_persona ?>
-	<?php if ($emails->SortUrl($emails->id_persona) == "") { ?>
-		<th data-name="id_persona" class="<?php echo $emails->id_persona->HeaderCellClass() ?>"><div id="elh_emails_id_persona" class="emails_id_persona"><div class="ewTableHeaderCaption"><?php echo $emails->id_persona->FldCaption() ?></div></div></th>
+<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($emails->SortUrl($emails->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $emails->id_fuente->HeaderCellClass() ?>"><div id="elh_emails_id_fuente" class="emails_id_fuente"><div class="ewTableHeaderCaption"><?php echo $emails->id_fuente->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="id_persona" class="<?php echo $emails->id_persona->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->id_persona) ?>',1);"><div id="elh_emails_id_persona" class="emails_id_persona">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->id_persona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($emails->id_persona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->id_persona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_fuente" class="<?php echo $emails->id_fuente->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->id_fuente) ?>',1);"><div id="elh_emails_id_fuente" class="emails_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($emails->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($emails->_email->Visible) { // email ?>
-	<?php if ($emails->SortUrl($emails->_email) == "") { ?>
-		<th data-name="_email" class="<?php echo $emails->_email->HeaderCellClass() ?>"><div id="elh_emails__email" class="emails__email"><div class="ewTableHeaderCaption"><?php echo $emails->_email->FldCaption() ?></div></div></th>
+<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($emails->SortUrl($emails->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $emails->id_gestion->HeaderCellClass() ?>"><div id="elh_emails_id_gestion" class="emails_id_gestion"><div class="ewTableHeaderCaption"><?php echo $emails->id_gestion->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="_email" class="<?php echo $emails->_email->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->_email) ?>',1);"><div id="elh_emails__email" class="emails__email">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->_email->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($emails->_email->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->_email->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_gestion" class="<?php echo $emails->id_gestion->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->id_gestion) ?>',1);"><div id="elh_emails_id_gestion" class="emails_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($emails->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->tipo_documento->Visible) { // tipo_documento ?>
+	<?php if ($emails->SortUrl($emails->tipo_documento) == "") { ?>
+		<th data-name="tipo_documento" class="<?php echo $emails->tipo_documento->HeaderCellClass() ?>"><div id="elh_emails_tipo_documento" class="emails_tipo_documento"><div class="ewTableHeaderCaption"><?php echo $emails->tipo_documento->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="tipo_documento" class="<?php echo $emails->tipo_documento->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->tipo_documento) ?>',1);"><div id="elh_emails_tipo_documento" class="emails_tipo_documento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->tipo_documento->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->tipo_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->tipo_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->no_documento->Visible) { // no_documento ?>
+	<?php if ($emails->SortUrl($emails->no_documento) == "") { ?>
+		<th data-name="no_documento" class="<?php echo $emails->no_documento->HeaderCellClass() ?>"><div id="elh_emails_no_documento" class="emails_no_documento"><div class="ewTableHeaderCaption"><?php echo $emails->no_documento->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="no_documento" class="<?php echo $emails->no_documento->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->no_documento) ?>',1);"><div id="elh_emails_no_documento" class="emails_no_documento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->no_documento->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->no_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->no_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->nombres->Visible) { // nombres ?>
+	<?php if ($emails->SortUrl($emails->nombres) == "") { ?>
+		<th data-name="nombres" class="<?php echo $emails->nombres->HeaderCellClass() ?>"><div id="elh_emails_nombres" class="emails_nombres"><div class="ewTableHeaderCaption"><?php echo $emails->nombres->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="nombres" class="<?php echo $emails->nombres->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->nombres) ?>',1);"><div id="elh_emails_nombres" class="emails_nombres">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->nombres->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->nombres->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->nombres->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->paterno->Visible) { // paterno ?>
+	<?php if ($emails->SortUrl($emails->paterno) == "") { ?>
+		<th data-name="paterno" class="<?php echo $emails->paterno->HeaderCellClass() ?>"><div id="elh_emails_paterno" class="emails_paterno"><div class="ewTableHeaderCaption"><?php echo $emails->paterno->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="paterno" class="<?php echo $emails->paterno->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->paterno) ?>',1);"><div id="elh_emails_paterno" class="emails_paterno">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->paterno->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->paterno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->paterno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->materno->Visible) { // materno ?>
+	<?php if ($emails->SortUrl($emails->materno) == "") { ?>
+		<th data-name="materno" class="<?php echo $emails->materno->HeaderCellClass() ?>"><div id="elh_emails_materno" class="emails_materno"><div class="ewTableHeaderCaption"><?php echo $emails->materno->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="materno" class="<?php echo $emails->materno->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->materno) ?>',1);"><div id="elh_emails_materno" class="emails_materno">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->materno->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->materno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->materno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->email1->Visible) { // email1 ?>
+	<?php if ($emails->SortUrl($emails->email1) == "") { ?>
+		<th data-name="email1" class="<?php echo $emails->email1->HeaderCellClass() ?>"><div id="elh_emails_email1" class="emails_email1"><div class="ewTableHeaderCaption"><?php echo $emails->email1->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="email1" class="<?php echo $emails->email1->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->email1) ?>',1);"><div id="elh_emails_email1" class="emails_email1">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->email1->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->email1->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->email1->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->email2->Visible) { // email2 ?>
+	<?php if ($emails->SortUrl($emails->email2) == "") { ?>
+		<th data-name="email2" class="<?php echo $emails->email2->HeaderCellClass() ?>"><div id="elh_emails_email2" class="emails_email2"><div class="ewTableHeaderCaption"><?php echo $emails->email2->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="email2" class="<?php echo $emails->email2->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->email2) ?>',1);"><div id="elh_emails_email2" class="emails_email2">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->email2->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->email2->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->email2->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->email3->Visible) { // email3 ?>
+	<?php if ($emails->SortUrl($emails->email3) == "") { ?>
+		<th data-name="email3" class="<?php echo $emails->email3->HeaderCellClass() ?>"><div id="elh_emails_email3" class="emails_email3"><div class="ewTableHeaderCaption"><?php echo $emails->email3->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="email3" class="<?php echo $emails->email3->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->email3) ?>',1);"><div id="elh_emails_email3" class="emails_email3">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->email3->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->email3->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->email3->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($emails->email4->Visible) { // email4 ?>
+	<?php if ($emails->SortUrl($emails->email4) == "") { ?>
+		<th data-name="email4" class="<?php echo $emails->email4->HeaderCellClass() ?>"><div id="elh_emails_email4" class="emails_email4"><div class="ewTableHeaderCaption"><?php echo $emails->email4->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="email4" class="<?php echo $emails->email4->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $emails->SortUrl($emails->email4) ?>',1);"><div id="elh_emails_email4" class="emails_email4">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $emails->email4->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($emails->email4->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($emails->email4->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2612,24 +3253,91 @@ $emails_list->ListOptions->Render("body", "left", $emails_list->RowCnt);
 </span>
 </td>
 	<?php } ?>
-	<?php if ($emails->id_persona->Visible) { // id_persona ?>
-		<td data-name="id_persona"<?php echo $emails->id_persona->CellAttributes() ?>>
-<span id="el<?php echo $emails_list->RowCnt ?>_emails_id_persona" class="emails_id_persona">
-<span<?php echo $emails->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($emails->id_persona->ListViewValue())) && $emails->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $emails->id_persona->LinkAttributes() ?>><?php echo $emails->id_persona->ListViewValue() ?></a>
-<?php } else { ?>
-<?php echo $emails->id_persona->ListViewValue() ?>
-<?php } ?>
-</span>
+	<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $emails->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_id_fuente" class="emails_id_fuente">
+<span<?php echo $emails->id_fuente->ViewAttributes() ?>>
+<?php echo $emails->id_fuente->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>
-	<?php if ($emails->_email->Visible) { // email ?>
-		<td data-name="_email"<?php echo $emails->_email->CellAttributes() ?>>
-<span id="el<?php echo $emails_list->RowCnt ?>_emails__email" class="emails__email">
-<span<?php echo $emails->_email->ViewAttributes() ?>>
-<?php echo $emails->_email->ListViewValue() ?></span>
+	<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $emails->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_id_gestion" class="emails_id_gestion">
+<span<?php echo $emails->id_gestion->ViewAttributes() ?>>
+<?php echo $emails->id_gestion->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->tipo_documento->Visible) { // tipo_documento ?>
+		<td data-name="tipo_documento"<?php echo $emails->tipo_documento->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_tipo_documento" class="emails_tipo_documento">
+<span<?php echo $emails->tipo_documento->ViewAttributes() ?>>
+<?php echo $emails->tipo_documento->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->no_documento->Visible) { // no_documento ?>
+		<td data-name="no_documento"<?php echo $emails->no_documento->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_no_documento" class="emails_no_documento">
+<span<?php echo $emails->no_documento->ViewAttributes() ?>>
+<?php echo $emails->no_documento->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->nombres->Visible) { // nombres ?>
+		<td data-name="nombres"<?php echo $emails->nombres->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_nombres" class="emails_nombres">
+<span<?php echo $emails->nombres->ViewAttributes() ?>>
+<?php echo $emails->nombres->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->paterno->Visible) { // paterno ?>
+		<td data-name="paterno"<?php echo $emails->paterno->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_paterno" class="emails_paterno">
+<span<?php echo $emails->paterno->ViewAttributes() ?>>
+<?php echo $emails->paterno->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->materno->Visible) { // materno ?>
+		<td data-name="materno"<?php echo $emails->materno->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_materno" class="emails_materno">
+<span<?php echo $emails->materno->ViewAttributes() ?>>
+<?php echo $emails->materno->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->email1->Visible) { // email1 ?>
+		<td data-name="email1"<?php echo $emails->email1->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_email1" class="emails_email1">
+<span<?php echo $emails->email1->ViewAttributes() ?>>
+<?php echo $emails->email1->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->email2->Visible) { // email2 ?>
+		<td data-name="email2"<?php echo $emails->email2->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_email2" class="emails_email2">
+<span<?php echo $emails->email2->ViewAttributes() ?>>
+<?php echo $emails->email2->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->email3->Visible) { // email3 ?>
+		<td data-name="email3"<?php echo $emails->email3->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_email3" class="emails_email3">
+<span<?php echo $emails->email3->ViewAttributes() ?>>
+<?php echo $emails->email3->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($emails->email4->Visible) { // email4 ?>
+		<td data-name="email4"<?php echo $emails->email4->CellAttributes() ?>>
+<span id="el<?php echo $emails_list->RowCnt ?>_emails_email4" class="emails_email4">
+<span<?php echo $emails->email4->ViewAttributes() ?>>
+<?php echo $emails->email4->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "emailsinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -304,9 +303,6 @@ class cemails_view extends cemails {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'view', TRUE);
@@ -426,8 +422,20 @@ class cemails_view extends cemails {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_persona->SetVisibility();
-		$this->_email->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->email1->SetVisibility();
+		$this->email2->SetVisibility();
+		$this->email3->SetVisibility();
+		$this->email4->SetVisibility();
+
+		// Set up multi page object
+		$this->SetupMultiPages();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -517,6 +525,7 @@ class cemails_view extends cemails {
 	var $RecKey = array();
 	var $IsModal = FALSE;
 	var $Recordset;
+	var $MultiPages; // Multi pages object
 
 	//
 	// Page main
@@ -532,9 +541,6 @@ class cemails_view extends cemails {
 		$bLoadCurrentRecord = FALSE;
 		$sReturnUrl = "";
 		$bMatchRecord = FALSE;
-
-		// Set up master/detail parameters
-		$this->SetupMasterParms();
 		if ($this->IsPageRequest()) { // Validate request
 			if (@$_GET["Id"] <> "") {
 				$this->Id->setQueryStringValue($_GET["Id"]);
@@ -724,16 +730,34 @@ class cemails_view extends cemails {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->_email->setDbValue($row['email']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->email1->setDbValue($row['email1']);
+		$this->email2->setDbValue($row['email2']);
+		$this->email3->setDbValue($row['email3']);
+		$this->email4->setDbValue($row['email4']);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_persona'] = NULL;
-		$row['email'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['tipo_documento'] = NULL;
+		$row['no_documento'] = NULL;
+		$row['nombres'] = NULL;
+		$row['paterno'] = NULL;
+		$row['materno'] = NULL;
+		$row['email1'] = NULL;
+		$row['email2'] = NULL;
+		$row['email3'] = NULL;
+		$row['email4'] = NULL;
 		return $row;
 	}
 
@@ -743,8 +767,17 @@ class cemails_view extends cemails {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->_email->DbValue = $row['email'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->email1->DbValue = $row['email1'];
+		$this->email2->DbValue = $row['email2'];
+		$this->email3->DbValue = $row['email3'];
+		$this->email4->DbValue = $row['email4'];
 	}
 
 	// Render row values based on field settings
@@ -764,8 +797,17 @@ class cemails_view extends cemails {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// email
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// email1
+		// email2
+		// email3
+		// email4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -773,57 +815,151 @@ class cemails_view extends cemails {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// email
-		$this->_email->ViewValue = $this->_email->CurrentValue;
-		$this->_email->ViewCustomAttributes = "";
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
+
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// email1
+		$this->email1->ViewValue = $this->email1->CurrentValue;
+		$this->email1->ViewCustomAttributes = "";
+
+		// email2
+		$this->email2->ViewValue = $this->email2->CurrentValue;
+		$this->email2->ViewCustomAttributes = "";
+
+		// email3
+		$this->email3->ViewValue = $this->email3->CurrentValue;
+		$this->email3->ViewCustomAttributes = "";
+
+		// email4
+		$this->email4->ViewValue = $this->email4->CurrentValue;
+		$this->email4->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
-			$this->id_persona->TooltipValue = "";
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
 
-			// email
-			$this->_email->LinkCustomAttributes = "";
-			$this->_email->HrefValue = "";
-			$this->_email->TooltipValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
+
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// email1
+			$this->email1->LinkCustomAttributes = "";
+			$this->email1->HrefValue = "";
+			$this->email1->TooltipValue = "";
+
+			// email2
+			$this->email2->LinkCustomAttributes = "";
+			$this->email2->HrefValue = "";
+			$this->email2->TooltipValue = "";
+
+			// email3
+			$this->email3->LinkCustomAttributes = "";
+			$this->email3->HrefValue = "";
+			$this->email3->TooltipValue = "";
+
+			// email4
+			$this->email4->LinkCustomAttributes = "";
+			$this->email4->HrefValue = "";
+			$this->email4->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1069,67 +1205,6 @@ class cemails_view extends cemails {
 		return $sQry;
 	}
 
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-			$this->setSessionWhere($this->GetDetailFilter());
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -1138,6 +1213,17 @@ class cemails_view extends cemails {
 		$Breadcrumb->Add("list", $this->TableVar, $this->AddMasterUrl("emailslist.php"), "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, $url);
+	}
+
+	// Set up multi pages
+	function SetupMultiPages() {
+		$pages = new cSubPages();
+		$pages->Style = "tabs";
+		$pages->Add(0);
+		$pages->Add(1);
+		$pages->Add(2);
+		$pages->Add(3);
+		$this->MultiPages = $pages;
 	}
 
 	// Setup lookup filters of a field
@@ -1280,9 +1366,14 @@ femailsview.Form_CustomValidate =
 // Use JavaScript validation or not
 femailsview.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
+// Multi-Page
+femailsview.MultiPage = new ew_MultiPage("femailsview");
+
 // Dynamic selection lists
-femailsview.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-femailsview.Lists["x_id_persona"].Data = "<?php echo $emails_view->id_persona->LookupFilterQuery(FALSE, "view") ?>";
+femailsview.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+femailsview.Lists["x_id_fuente"].Data = "<?php echo $emails_view->id_fuente->LookupFilterQuery(FALSE, "view") ?>";
+femailsview.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+femailsview.Lists["x_id_gestion"].Data = "<?php echo $emails_view->id_gestion->LookupFilterQuery(FALSE, "view") ?>";
 
 // Form object for search
 </script>
@@ -1311,46 +1402,177 @@ $emails_view->ShowMessage();
 <?php } ?>
 <input type="hidden" name="t" value="emails">
 <input type="hidden" name="modal" value="<?php echo intval($emails_view->IsModal) ?>">
+<?php if ($emails->Export == "") { ?>
+<div class="ewMultiPage">
+<div class="nav-tabs-custom" id="emails_view">
+	<ul class="nav<?php echo $emails_view->MultiPages->NavStyle() ?>">
+		<li<?php echo $emails_view->MultiPages->TabStyle("1") ?>><a href="#tab_emails1" data-toggle="tab"><?php echo $emails->PageCaption(1) ?></a></li>
+		<li<?php echo $emails_view->MultiPages->TabStyle("2") ?>><a href="#tab_emails2" data-toggle="tab"><?php echo $emails->PageCaption(2) ?></a></li>
+		<li<?php echo $emails_view->MultiPages->TabStyle("3") ?>><a href="#tab_emails3" data-toggle="tab"><?php echo $emails->PageCaption(3) ?></a></li>
+	</ul>
+	<div class="tab-content">
+<?php } ?>
+<?php if ($emails->Export == "") { ?>
+		<div class="tab-pane<?php echo $emails_view->MultiPages->PageStyle("1") ?>" id="tab_emails1">
+<?php } ?>
 <table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
 <?php if ($emails->Id->Visible) { // Id ?>
 	<tr id="r_Id">
 		<td class="col-sm-2"><span id="elh_emails_Id"><?php echo $emails->Id->FldCaption() ?></span></td>
 		<td data-name="Id"<?php echo $emails->Id->CellAttributes() ?>>
-<span id="el_emails_Id">
+<span id="el_emails_Id" data-page="1">
 <span<?php echo $emails->Id->ViewAttributes() ?>>
 <?php echo $emails->Id->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($emails->id_persona->Visible) { // id_persona ?>
-	<tr id="r_id_persona">
-		<td class="col-sm-2"><span id="elh_emails_id_persona"><?php echo $emails->id_persona->FldCaption() ?></span></td>
-		<td data-name="id_persona"<?php echo $emails->id_persona->CellAttributes() ?>>
-<span id="el_emails_id_persona">
-<span<?php echo $emails->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($emails->id_persona->ViewValue)) && $emails->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $emails->id_persona->LinkAttributes() ?>><?php echo $emails->id_persona->ViewValue ?></a>
-<?php } else { ?>
-<?php echo $emails->id_persona->ViewValue ?>
-<?php } ?>
-</span>
+<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+	<tr id="r_id_fuente">
+		<td class="col-sm-2"><span id="elh_emails_id_fuente"><?php echo $emails->id_fuente->FldCaption() ?></span></td>
+		<td data-name="id_fuente"<?php echo $emails->id_fuente->CellAttributes() ?>>
+<span id="el_emails_id_fuente" data-page="1">
+<span<?php echo $emails->id_fuente->ViewAttributes() ?>>
+<?php echo $emails->id_fuente->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
-<?php if ($emails->_email->Visible) { // email ?>
-	<tr id="r__email">
-		<td class="col-sm-2"><span id="elh_emails__email"><?php echo $emails->_email->FldCaption() ?></span></td>
-		<td data-name="_email"<?php echo $emails->_email->CellAttributes() ?>>
-<span id="el_emails__email">
-<span<?php echo $emails->_email->ViewAttributes() ?>>
-<?php echo $emails->_email->ViewValue ?></span>
+<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+	<tr id="r_id_gestion">
+		<td class="col-sm-2"><span id="elh_emails_id_gestion"><?php echo $emails->id_gestion->FldCaption() ?></span></td>
+		<td data-name="id_gestion"<?php echo $emails->id_gestion->CellAttributes() ?>>
+<span id="el_emails_id_gestion" data-page="1">
+<span<?php echo $emails->id_gestion->ViewAttributes() ?>>
+<?php echo $emails->id_gestion->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
+<?php if ($emails->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($emails->Export == "") { ?>
+		<div class="tab-pane<?php echo $emails_view->MultiPages->PageStyle("2") ?>" id="tab_emails2">
+<?php } ?>
+<table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
+<?php if ($emails->tipo_documento->Visible) { // tipo_documento ?>
+	<tr id="r_tipo_documento">
+		<td class="col-sm-2"><span id="elh_emails_tipo_documento"><?php echo $emails->tipo_documento->FldCaption() ?></span></td>
+		<td data-name="tipo_documento"<?php echo $emails->tipo_documento->CellAttributes() ?>>
+<span id="el_emails_tipo_documento" data-page="2">
+<span<?php echo $emails->tipo_documento->ViewAttributes() ?>>
+<?php echo $emails->tipo_documento->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->no_documento->Visible) { // no_documento ?>
+	<tr id="r_no_documento">
+		<td class="col-sm-2"><span id="elh_emails_no_documento"><?php echo $emails->no_documento->FldCaption() ?></span></td>
+		<td data-name="no_documento"<?php echo $emails->no_documento->CellAttributes() ?>>
+<span id="el_emails_no_documento" data-page="2">
+<span<?php echo $emails->no_documento->ViewAttributes() ?>>
+<?php echo $emails->no_documento->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->nombres->Visible) { // nombres ?>
+	<tr id="r_nombres">
+		<td class="col-sm-2"><span id="elh_emails_nombres"><?php echo $emails->nombres->FldCaption() ?></span></td>
+		<td data-name="nombres"<?php echo $emails->nombres->CellAttributes() ?>>
+<span id="el_emails_nombres" data-page="2">
+<span<?php echo $emails->nombres->ViewAttributes() ?>>
+<?php echo $emails->nombres->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->paterno->Visible) { // paterno ?>
+	<tr id="r_paterno">
+		<td class="col-sm-2"><span id="elh_emails_paterno"><?php echo $emails->paterno->FldCaption() ?></span></td>
+		<td data-name="paterno"<?php echo $emails->paterno->CellAttributes() ?>>
+<span id="el_emails_paterno" data-page="2">
+<span<?php echo $emails->paterno->ViewAttributes() ?>>
+<?php echo $emails->paterno->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->materno->Visible) { // materno ?>
+	<tr id="r_materno">
+		<td class="col-sm-2"><span id="elh_emails_materno"><?php echo $emails->materno->FldCaption() ?></span></td>
+		<td data-name="materno"<?php echo $emails->materno->CellAttributes() ?>>
+<span id="el_emails_materno" data-page="2">
+<span<?php echo $emails->materno->ViewAttributes() ?>>
+<?php echo $emails->materno->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+</table>
+<?php if ($emails->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($emails->Export == "") { ?>
+		<div class="tab-pane<?php echo $emails_view->MultiPages->PageStyle("3") ?>" id="tab_emails3">
+<?php } ?>
+<table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
+<?php if ($emails->email1->Visible) { // email1 ?>
+	<tr id="r_email1">
+		<td class="col-sm-2"><span id="elh_emails_email1"><?php echo $emails->email1->FldCaption() ?></span></td>
+		<td data-name="email1"<?php echo $emails->email1->CellAttributes() ?>>
+<span id="el_emails_email1" data-page="3">
+<span<?php echo $emails->email1->ViewAttributes() ?>>
+<?php echo $emails->email1->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->email2->Visible) { // email2 ?>
+	<tr id="r_email2">
+		<td class="col-sm-2"><span id="elh_emails_email2"><?php echo $emails->email2->FldCaption() ?></span></td>
+		<td data-name="email2"<?php echo $emails->email2->CellAttributes() ?>>
+<span id="el_emails_email2" data-page="3">
+<span<?php echo $emails->email2->ViewAttributes() ?>>
+<?php echo $emails->email2->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->email3->Visible) { // email3 ?>
+	<tr id="r_email3">
+		<td class="col-sm-2"><span id="elh_emails_email3"><?php echo $emails->email3->FldCaption() ?></span></td>
+		<td data-name="email3"<?php echo $emails->email3->CellAttributes() ?>>
+<span id="el_emails_email3" data-page="3">
+<span<?php echo $emails->email3->ViewAttributes() ?>>
+<?php echo $emails->email3->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($emails->email4->Visible) { // email4 ?>
+	<tr id="r_email4">
+		<td class="col-sm-2"><span id="elh_emails_email4"><?php echo $emails->email4->FldCaption() ?></span></td>
+		<td data-name="email4"<?php echo $emails->email4->CellAttributes() ?>>
+<span id="el_emails_email4" data-page="3">
+<span<?php echo $emails->email4->ViewAttributes() ?>>
+<?php echo $emails->email4->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+</table>
+<?php if ($emails->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($emails->Export == "") { ?>
+	</div>
+</div>
+</div>
+<?php } ?>
 </form>
 <?php if ($emails->Export == "") { ?>
 <script type="text/javascript">

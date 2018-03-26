@@ -48,10 +48,8 @@ class CanvasFactory
             else {
                 if ($backend === "gd") {
                     $class = "Dompdf\\Adapter\\GD";
-                } elseif ($backend === "cpdf") { //***
+                } else {
                     $class = "Dompdf\\Adapter\\CPDF";
-                } elseif ($backend === "tcpdf") { //***
-                    $class = "Dompdf\\Adapter\\TCPDF";
                 }
             }
         }

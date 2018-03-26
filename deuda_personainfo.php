@@ -10,6 +10,7 @@ class cdeuda_persona extends cTable {
 	var $id_persona;
 	var $id_deuda;
 	var $id_tipopersona;
+	var $mig_codigo_cliente;
 
 	//
 	// Table class constructor
@@ -43,7 +44,7 @@ class cdeuda_persona extends cTable {
 		$this->BasicSearch = new cBasicSearch($this->TableVar);
 
 		// id_persona
-		$this->id_persona = new cField('deuda_persona', 'deuda_persona', 'x_id_persona', 'id_persona', '`id_persona`', '`id_persona`', 3, -1, FALSE, '`id_persona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_persona = new cField('deuda_persona', 'deuda_persona', 'x_id_persona', 'id_persona', '`id_persona`', '`id_persona`', 3, -1, FALSE, '`EV__id_persona`', TRUE, TRUE, TRUE, 'FORMATTED TEXT', 'SELECT');
 		$this->id_persona->Sortable = TRUE; // Allow sort
 		$this->id_persona->UsePleaseSelect = TRUE; // Use PleaseSelect by default
 		$this->id_persona->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
@@ -51,7 +52,7 @@ class cdeuda_persona extends cTable {
 		$this->fields['id_persona'] = &$this->id_persona;
 
 		// id_deuda
-		$this->id_deuda = new cField('deuda_persona', 'deuda_persona', 'x_id_deuda', 'id_deuda', '`id_deuda`', '`id_deuda`', 3, -1, FALSE, '`id_deuda`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_deuda = new cField('deuda_persona', 'deuda_persona', 'x_id_deuda', 'id_deuda', '`id_deuda`', '`id_deuda`', 3, -1, FALSE, '`EV__id_deuda`', TRUE, TRUE, TRUE, 'FORMATTED TEXT', 'SELECT');
 		$this->id_deuda->Sortable = TRUE; // Allow sort
 		$this->id_deuda->UsePleaseSelect = TRUE; // Use PleaseSelect by default
 		$this->id_deuda->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
@@ -64,6 +65,11 @@ class cdeuda_persona extends cTable {
 		$this->id_tipopersona->UsePleaseSelect = TRUE; // Use PleaseSelect by default
 		$this->id_tipopersona->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
 		$this->fields['id_tipopersona'] = &$this->id_tipopersona;
+
+		// mig_codigo_cliente
+		$this->mig_codigo_cliente = new cField('deuda_persona', 'deuda_persona', 'x_mig_codigo_cliente', 'mig_codigo_cliente', '`mig_codigo_cliente`', '`mig_codigo_cliente`', 200, -1, FALSE, '`mig_codigo_cliente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->mig_codigo_cliente->Sortable = TRUE; // Allow sort
+		$this->fields['mig_codigo_cliente'] = &$this->mig_codigo_cliente;
 	}
 
 	// Set Field Visibility
@@ -98,9 +104,20 @@ class cdeuda_persona extends cTable {
 			}
 			$ofld->setSort($sThisSort);
 			$this->setSessionOrderBy($sSortField . " " . $sThisSort); // Save to Session
+			$sSortFieldList = ($ofld->FldVirtualExpression <> "") ? $ofld->FldVirtualExpression : $sSortField;
+			$this->setSessionOrderByList($sSortFieldList . " " . $sThisSort); // Save to Session
 		} else {
 			$ofld->setSort("");
 		}
+	}
+
+	// Session ORDER BY for List page
+	function getSessionOrderByList() {
+		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_ORDER_BY_LIST];
+	}
+
+	function setSessionOrderByList($v) {
+		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_ORDER_BY_LIST] = $v;
 	}
 
 	// Current master table name
@@ -117,15 +134,15 @@ class cdeuda_persona extends cTable {
 
 		// Master filter
 		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "personas") {
-			if ($this->id_persona->getSessionValue() <> "")
-				$sMasterFilter .= "`Id`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
 		if ($this->getCurrentMasterTable() == "deudas") {
 			if ($this->id_deuda->getSessionValue() <> "")
 				$sMasterFilter .= "`Id`=" . ew_QuotedValue($this->id_deuda->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
+			else
+				return "";
+		}
+		if ($this->getCurrentMasterTable() == "personas") {
+			if ($this->id_persona->getSessionValue() <> "")
+				$sMasterFilter .= "`Id`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
 			else
 				return "";
 		}
@@ -137,29 +154,19 @@ class cdeuda_persona extends cTable {
 
 		// Detail filter
 		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "personas") {
-			if ($this->id_persona->getSessionValue() <> "")
-				$sDetailFilter .= "`id_persona`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
 		if ($this->getCurrentMasterTable() == "deudas") {
 			if ($this->id_deuda->getSessionValue() <> "")
 				$sDetailFilter .= "`id_deuda`=" . ew_QuotedValue($this->id_deuda->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
 			else
 				return "";
 		}
+		if ($this->getCurrentMasterTable() == "personas") {
+			if ($this->id_persona->getSessionValue() <> "")
+				$sDetailFilter .= "`id_persona`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
+			else
+				return "";
+		}
 		return $sDetailFilter;
-	}
-
-	// Master filter
-	function SqlMasterFilter_personas() {
-		return "`Id`=@Id@";
-	}
-
-	// Detail filter
-	function SqlDetailFilter_personas() {
-		return "`id_persona`=@id_persona@";
 	}
 
 	// Master filter
@@ -170,6 +177,16 @@ class cdeuda_persona extends cTable {
 	// Detail filter
 	function SqlDetailFilter_deudas() {
 		return "`id_deuda`=@id_deuda@";
+	}
+
+	// Master filter
+	function SqlMasterFilter_personas() {
+		return "`Id`=@Id@";
+	}
+
+	// Detail filter
+	function SqlDetailFilter_personas() {
+		return "`id_persona`=@id_persona@";
 	}
 
 	// Table level SQL
@@ -198,6 +215,23 @@ class cdeuda_persona extends cTable {
 
 	function setSqlSelect($v) {
 		$this->_SqlSelect = $v;
+	}
+	var $_SqlSelectList = "";
+
+	function getSqlSelectList() { // Select for List page
+		$select = "";
+		$select = "SELECT * FROM (" .
+			"SELECT *, (SELECT DISTINCT CONCAT(`nombres`,'" . ew_ValueSeparator(1, $this->id_persona) . "',`paterno`,'" . ew_ValueSeparator(2, $this->id_persona) . "',`materno`) FROM `personas` `EW_TMP_LOOKUPTABLE` WHERE `EW_TMP_LOOKUPTABLE`.`Id` = `deuda_persona`.`id_persona` LIMIT 1) AS `EV__id_persona`, (SELECT DISTINCT `cuenta` FROM `deudas` `EW_TMP_LOOKUPTABLE` WHERE `EW_TMP_LOOKUPTABLE`.`Id` = `deuda_persona`.`id_deuda` LIMIT 1) AS `EV__id_deuda` FROM `deuda_persona`" .
+			") `EW_TMP_TABLE`";
+		return ($this->_SqlSelectList <> "") ? $this->_SqlSelectList : $select;
+	}
+
+	function SqlSelectList() { // For backward compatibility
+		return $this->getSqlSelectList();
+	}
+
+	function setSqlSelectList($v) {
+		$this->_SqlSelectList = $v;
 	}
 	var $_SqlWhere = "";
 
@@ -312,16 +346,44 @@ class cdeuda_persona extends cTable {
 		ew_AddFilter($sFilter, $this->CurrentFilter);
 		$sFilter = $this->ApplyUserIDFilters($sFilter);
 		$this->Recordset_Selecting($sFilter);
-		$sSelect = $this->getSqlSelect();
-		$sSort = $this->UseSessionForListSQL ? $this->getSessionOrderBy() : "";
+		if ($this->UseVirtualFields()) {
+			$sSelect = $this->getSqlSelectList();
+			$sSort = $this->UseSessionForListSQL ? $this->getSessionOrderByList() : "";
+		} else {
+			$sSelect = $this->getSqlSelect();
+			$sSort = $this->UseSessionForListSQL ? $this->getSessionOrderBy() : "";
+		}
 		return ew_BuildSelectSql($sSelect, $this->getSqlWhere(), $this->getSqlGroupBy(),
 			$this->getSqlHaving(), $this->getSqlOrderBy(), $sFilter, $sSort);
 	}
 
 	// Get ORDER BY clause
 	function GetOrderBy() {
-		$sSort = $this->getSessionOrderBy();
+		$sSort = ($this->UseVirtualFields()) ? $this->getSessionOrderByList() : $this->getSessionOrderBy();
 		return ew_BuildSelectSql("", "", "", "", $this->getSqlOrderBy(), "", $sSort);
+	}
+
+	// Check if virtual fields is used in SQL
+	function UseVirtualFields() {
+		$sWhere = $this->UseSessionForListSQL ? $this->getSessionWhere() : $this->CurrentFilter;
+		$sOrderBy = $this->UseSessionForListSQL ? $this->getSessionOrderByList() : "";
+		if ($sWhere <> "")
+			$sWhere = " " . str_replace(array("(",")"), array("",""), $sWhere) . " ";
+		if ($sOrderBy <> "")
+			$sOrderBy = " " . str_replace(array("(",")"), array("",""), $sOrderBy) . " ";
+		if ($this->id_persona->AdvancedSearch->SearchValue <> "" ||
+			$this->id_persona->AdvancedSearch->SearchValue2 <> "" ||
+			strpos($sWhere, " " . $this->id_persona->FldVirtualExpression . " ") !== FALSE)
+			return TRUE;
+		if (strpos($sOrderBy, " " . $this->id_persona->FldVirtualExpression . " ") !== FALSE)
+			return TRUE;
+		if ($this->id_deuda->AdvancedSearch->SearchValue <> "" ||
+			$this->id_deuda->AdvancedSearch->SearchValue2 <> "" ||
+			strpos($sWhere, " " . $this->id_deuda->FldVirtualExpression . " ") !== FALSE)
+			return TRUE;
+		if (strpos($sOrderBy, " " . $this->id_deuda->FldVirtualExpression . " ") !== FALSE)
+			return TRUE;
+		return FALSE;
 	}
 
 	// Try to get record count
@@ -567,13 +629,13 @@ class cdeuda_persona extends cTable {
 
 	// Add master url
 	function AddMasterUrl($url) {
-		if ($this->getCurrentMasterTable() == "personas" && strpos($url, EW_TABLE_SHOW_MASTER . "=") === FALSE) {
-			$url .= (strpos($url, "?") !== FALSE ? "&" : "?") . EW_TABLE_SHOW_MASTER . "=" . $this->getCurrentMasterTable();
-			$url .= "&fk_Id=" . urlencode($this->id_persona->CurrentValue);
-		}
 		if ($this->getCurrentMasterTable() == "deudas" && strpos($url, EW_TABLE_SHOW_MASTER . "=") === FALSE) {
 			$url .= (strpos($url, "?") !== FALSE ? "&" : "?") . EW_TABLE_SHOW_MASTER . "=" . $this->getCurrentMasterTable();
 			$url .= "&fk_Id=" . urlencode($this->id_deuda->CurrentValue);
+		}
+		if ($this->getCurrentMasterTable() == "personas" && strpos($url, EW_TABLE_SHOW_MASTER . "=") === FALSE) {
+			$url .= (strpos($url, "?") !== FALSE ? "&" : "?") . EW_TABLE_SHOW_MASTER . "=" . $this->getCurrentMasterTable();
+			$url .= "&fk_Id=" . urlencode($this->id_persona->CurrentValue);
 		}
 		return $url;
 	}
@@ -696,6 +758,7 @@ class cdeuda_persona extends cTable {
 		$this->id_persona->setDbValue($rs->fields('id_persona'));
 		$this->id_deuda->setDbValue($rs->fields('id_deuda'));
 		$this->id_tipopersona->setDbValue($rs->fields('id_tipopersona'));
+		$this->mig_codigo_cliente->setDbValue($rs->fields('mig_codigo_cliente'));
 	}
 
 	// Render list row values
@@ -709,15 +772,17 @@ class cdeuda_persona extends cTable {
 		// id_persona
 		// id_deuda
 		// id_tipopersona
+		// mig_codigo_cliente
 		// id_persona
 
+		if ($this->id_persona->VirtualValue <> "") {
+			$this->id_persona->ViewValue = $this->id_persona->VirtualValue;
+		} else {
 		if (strval($this->id_persona->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
 		$sWhereWrk = "";
 		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
@@ -736,14 +801,18 @@ class cdeuda_persona extends cTable {
 		} else {
 			$this->id_persona->ViewValue = NULL;
 		}
+		}
 		$this->id_persona->ViewCustomAttributes = "";
 
 		// id_deuda
+		if ($this->id_deuda->VirtualValue <> "") {
+			$this->id_deuda->ViewValue = $this->id_deuda->VirtualValue;
+		} else {
 		if (strval($this->id_deuda->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_deuda->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, (SELECT CONCAT(c.codigo,' - ',deudas.codigo) FROM cuentas c WHERE c.Id=id_cliente) AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `deudas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, (SELECT CONCAT(c.codigo,' - ',deudas.mig_codigo_deuda) FROM cuentas c WHERE c.Id=id_cliente) AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `deudas`";
 		$sWhereWrk = "";
-		$this->id_deuda->LookupFilters = array();
+		$this->id_deuda->LookupFilters = array("dx1" => '(SELECT CONCAT(c.codigo,\' - \',deudas.mig_codigo_deuda) FROM cuentas c WHERE c.Id=id_cliente)');
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_deuda, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
@@ -758,6 +827,7 @@ class cdeuda_persona extends cTable {
 			}
 		} else {
 			$this->id_deuda->ViewValue = NULL;
+		}
 		}
 		$this->id_deuda->ViewCustomAttributes = "";
 
@@ -787,6 +857,10 @@ class cdeuda_persona extends cTable {
 		}
 		$this->id_tipopersona->ViewCustomAttributes = "";
 
+		// mig_codigo_cliente
+		$this->mig_codigo_cliente->ViewValue = $this->mig_codigo_cliente->CurrentValue;
+		$this->mig_codigo_cliente->ViewCustomAttributes = "";
+
 		// id_persona
 		$this->id_persona->LinkCustomAttributes = "";
 		if (!ew_Empty($this->id_persona->CurrentValue)) {
@@ -814,6 +888,11 @@ class cdeuda_persona extends cTable {
 		$this->id_tipopersona->HrefValue = "";
 		$this->id_tipopersona->TooltipValue = "";
 
+		// mig_codigo_cliente
+		$this->mig_codigo_cliente->LinkCustomAttributes = "";
+		$this->mig_codigo_cliente->HrefValue = "";
+		$this->mig_codigo_cliente->TooltipValue = "";
+
 		// Call Row Rendered event
 		$this->Row_Rendered();
 
@@ -831,13 +910,14 @@ class cdeuda_persona extends cTable {
 		// id_persona
 		$this->id_persona->EditAttrs["class"] = "form-control";
 		$this->id_persona->EditCustomAttributes = "";
+		if ($this->id_persona->VirtualValue <> "") {
+			$this->id_persona->EditValue = $this->id_persona->VirtualValue;
+		} else {
 		if (strval($this->id_persona->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
 		$sWhereWrk = "";
 		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
@@ -856,16 +936,20 @@ class cdeuda_persona extends cTable {
 		} else {
 			$this->id_persona->EditValue = NULL;
 		}
+		}
 		$this->id_persona->ViewCustomAttributes = "";
 
 		// id_deuda
 		$this->id_deuda->EditAttrs["class"] = "form-control";
 		$this->id_deuda->EditCustomAttributes = "";
+		if ($this->id_deuda->VirtualValue <> "") {
+			$this->id_deuda->EditValue = $this->id_deuda->VirtualValue;
+		} else {
 		if (strval($this->id_deuda->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_deuda->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, (SELECT CONCAT(c.codigo,' - ',deudas.codigo) FROM cuentas c WHERE c.Id=id_cliente) AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `deudas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, (SELECT CONCAT(c.codigo,' - ',deudas.mig_codigo_deuda) FROM cuentas c WHERE c.Id=id_cliente) AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `deudas`";
 		$sWhereWrk = "";
-		$this->id_deuda->LookupFilters = array();
+		$this->id_deuda->LookupFilters = array("dx1" => '(SELECT CONCAT(c.codigo,\' - \',deudas.mig_codigo_deuda) FROM cuentas c WHERE c.Id=id_cliente)');
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_deuda, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
@@ -881,11 +965,18 @@ class cdeuda_persona extends cTable {
 		} else {
 			$this->id_deuda->EditValue = NULL;
 		}
+		}
 		$this->id_deuda->ViewCustomAttributes = "";
 
 		// id_tipopersona
 		$this->id_tipopersona->EditAttrs["class"] = "form-control";
 		$this->id_tipopersona->EditCustomAttributes = "";
+
+		// mig_codigo_cliente
+		$this->mig_codigo_cliente->EditAttrs["class"] = "form-control";
+		$this->mig_codigo_cliente->EditCustomAttributes = "";
+		$this->mig_codigo_cliente->EditValue = $this->mig_codigo_cliente->CurrentValue;
+		$this->mig_codigo_cliente->PlaceHolder = ew_RemoveHtml($this->mig_codigo_cliente->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -917,10 +1008,12 @@ class cdeuda_persona extends cTable {
 					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
 					if ($this->id_deuda->Exportable) $Doc->ExportCaption($this->id_deuda);
 					if ($this->id_tipopersona->Exportable) $Doc->ExportCaption($this->id_tipopersona);
+					if ($this->mig_codigo_cliente->Exportable) $Doc->ExportCaption($this->mig_codigo_cliente);
 				} else {
 					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
 					if ($this->id_deuda->Exportable) $Doc->ExportCaption($this->id_deuda);
 					if ($this->id_tipopersona->Exportable) $Doc->ExportCaption($this->id_tipopersona);
+					if ($this->mig_codigo_cliente->Exportable) $Doc->ExportCaption($this->mig_codigo_cliente);
 				}
 				$Doc->EndExportRow();
 			}
@@ -955,10 +1048,12 @@ class cdeuda_persona extends cTable {
 						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
 						if ($this->id_deuda->Exportable) $Doc->ExportField($this->id_deuda);
 						if ($this->id_tipopersona->Exportable) $Doc->ExportField($this->id_tipopersona);
+						if ($this->mig_codigo_cliente->Exportable) $Doc->ExportField($this->mig_codigo_cliente);
 					} else {
 						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
 						if ($this->id_deuda->Exportable) $Doc->ExportField($this->id_deuda);
 						if ($this->id_tipopersona->Exportable) $Doc->ExportField($this->id_tipopersona);
+						if ($this->mig_codigo_cliente->Exportable) $Doc->ExportField($this->mig_codigo_cliente);
 					}
 					$Doc->EndExportRow($RowCnt);
 				}

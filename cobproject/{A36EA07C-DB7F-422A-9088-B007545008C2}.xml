@@ -1,23 +1,35 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<configuration date="2018/02/16" author="e.World Technology Ltd.">
-  <project id="{A36EA07C-DB7F-422A-9088-B007545008C2}" file="C:\xampp\htdocs\cobranzas\cobproject.pmp" name="cobproject" product="PHPMaker" version="14.0" datetime="2018/02/16 18:14:21" languagefolder="phplang" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0">
+<configuration date="2018/03/26" author="e.World Technology Ltd.">
+  <project id="{A36EA07C-DB7F-422A-9088-B007545008C2}" file="C:\xampp\htdocs\cobranzas\cobproject.pmp" name="cobproject" product="PHPMaker" version="14.0" datetime="2018/03/26 18:15:29" languagefolder="phplang" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0">
     <table id="userlevelpermissions" name="userlevelpermissions" caption="Permisos" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="userlevels" name="userlevels" caption="Niveles de Usuario" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="users" name="users" caption="Usuarios" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="audittrail" name="audittrail" caption="Auditoría" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
-    <table id="tipo_gestion" name="tipo_gestion" caption="Tipo de gestión" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
-    <table id="tipo_persona" name="tipo_persona" caption="Tipo de persona" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="tipo_gestion" name="tipo_gestion" caption="Tipo de Seguimiento" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="tipo_persona" name="tipo_persona" caption="Tipo de Persona" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="estado_deuda" name="estado_deuda" caption="Estados de Deuda" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="cuentas" name="cuentas" caption="Cuentas" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
-    <table id="ciudades" name="ciudades" caption="Ciudades" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="ciudades" name="ciudades" caption="Departamento" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="personas" name="personas" caption="Personas" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="telefonos" name="telefonos" caption="Teléfonos" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="direcciones" name="direcciones" caption="Direcciones" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
-    <table id="emails" name="emails" caption="Correos" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
-    <table id="vehiculos" name="vehiculos" caption="Vehículos" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="emails" name="emails" caption="Correos / Web" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="bienes" name="bienes" caption="Bienes" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="direccionesadd_php" name="direccionesadd.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="direccionesedit_php" name="direccionesedit.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="deuda_persona" name="deuda_persona" caption="Datos Deudas" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
     <table id="deudas" name="deudas" caption="Deudas" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="fuentes" name="fuentes" caption="Fuente de Datos" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="gestiones" name="gestiones" caption="Gestiones" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="paises" name="paises" caption="Paises" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="coordenadas_ciudad_php" name="coordenadas_ciudad.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="provincias" name="provincias" caption="Provincias" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="tipo_bien" name="tipo_bien" caption="Tipo de Bien" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="tipo_direccion" name="tipo_direccion" caption="Tipo de Dirección" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,111;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="analisis_php" name="analisis.php" caption="Análisis de Datos" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="analisis_direccioneslist_php" name="analisis_direccioneslist.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="analisis_telefonoslist_php" name="analisis_telefonoslist.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="analisis_emailslist_php" name="analisis_emailslist.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
+    <table id="analisis_bieneslist_php" name="analisis_bieneslist.php" caption="" userlevel="-2,&quot;Anonymous&quot;,0;0,&quot;Default&quot;,0;1,&quot;Directores&quot;,8;2,&quot;Agentes&quot;,0" priv="1" />
   </project>
 </configuration>

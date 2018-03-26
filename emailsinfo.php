@@ -8,8 +8,17 @@ $emails = NULL;
 //
 class cemails extends cTable {
 	var $Id;
-	var $id_persona;
-	var $_email;
+	var $id_fuente;
+	var $id_gestion;
+	var $tipo_documento;
+	var $no_documento;
+	var $nombres;
+	var $paterno;
+	var $materno;
+	var $email1;
+	var $email2;
+	var $email3;
+	var $email4;
 
 	//
 	// Table class constructor
@@ -48,19 +57,67 @@ class cemails extends cTable {
 		$this->Id->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['Id'] = &$this->Id;
 
-		// id_persona
-		$this->id_persona = new cField('emails', 'emails', 'x_id_persona', 'id_persona', '`id_persona`', '`id_persona`', 3, -1, FALSE, '`id_persona`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
-		$this->id_persona->Sortable = TRUE; // Allow sort
-		$this->id_persona->UsePleaseSelect = TRUE; // Use PleaseSelect by default
-		$this->id_persona->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
-		$this->id_persona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
-		$this->fields['id_persona'] = &$this->id_persona;
+		// id_fuente
+		$this->id_fuente = new cField('emails', 'emails', 'x_id_fuente', 'id_fuente', '`id_fuente`', '`id_fuente`', 3, -1, FALSE, '`id_fuente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_fuente->Sortable = TRUE; // Allow sort
+		$this->id_fuente->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_fuente->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_fuente->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_fuente'] = &$this->id_fuente;
 
-		// email
-		$this->_email = new cField('emails', 'emails', 'x__email', 'email', '`email`', '`email`', 200, -1, FALSE, '`email`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
-		$this->_email->Sortable = TRUE; // Allow sort
-		$this->_email->FldDefaultErrMsg = $Language->Phrase("IncorrectEmail");
-		$this->fields['email'] = &$this->_email;
+		// id_gestion
+		$this->id_gestion = new cField('emails', 'emails', 'x_id_gestion', 'id_gestion', '`id_gestion`', '`id_gestion`', 3, -1, FALSE, '`id_gestion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_gestion->Sortable = TRUE; // Allow sort
+		$this->id_gestion->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_gestion->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_gestion->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_gestion'] = &$this->id_gestion;
+
+		// tipo_documento
+		$this->tipo_documento = new cField('emails', 'emails', 'x_tipo_documento', 'tipo_documento', '`tipo_documento`', '`tipo_documento`', 200, -1, FALSE, '`tipo_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->tipo_documento->Sortable = TRUE; // Allow sort
+		$this->fields['tipo_documento'] = &$this->tipo_documento;
+
+		// no_documento
+		$this->no_documento = new cField('emails', 'emails', 'x_no_documento', 'no_documento', '`no_documento`', '`no_documento`', 200, -1, FALSE, '`no_documento`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->no_documento->Sortable = TRUE; // Allow sort
+		$this->fields['no_documento'] = &$this->no_documento;
+
+		// nombres
+		$this->nombres = new cField('emails', 'emails', 'x_nombres', 'nombres', '`nombres`', '`nombres`', 200, -1, FALSE, '`nombres`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->nombres->Sortable = TRUE; // Allow sort
+		$this->fields['nombres'] = &$this->nombres;
+
+		// paterno
+		$this->paterno = new cField('emails', 'emails', 'x_paterno', 'paterno', '`paterno`', '`paterno`', 200, -1, FALSE, '`paterno`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->paterno->Sortable = TRUE; // Allow sort
+		$this->fields['paterno'] = &$this->paterno;
+
+		// materno
+		$this->materno = new cField('emails', 'emails', 'x_materno', 'materno', '`materno`', '`materno`', 200, -1, FALSE, '`materno`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->materno->Sortable = TRUE; // Allow sort
+		$this->fields['materno'] = &$this->materno;
+
+		// email1
+		$this->email1 = new cField('emails', 'emails', 'x_email1', 'email1', '`email1`', '`email1`', 200, -1, FALSE, '`email1`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->email1->Sortable = TRUE; // Allow sort
+		$this->email1->FldDefaultErrMsg = $Language->Phrase("IncorrectEmail");
+		$this->fields['email1'] = &$this->email1;
+
+		// email2
+		$this->email2 = new cField('emails', 'emails', 'x_email2', 'email2', '`email2`', '`email2`', 200, -1, FALSE, '`email2`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->email2->Sortable = TRUE; // Allow sort
+		$this->fields['email2'] = &$this->email2;
+
+		// email3
+		$this->email3 = new cField('emails', 'emails', 'x_email3', 'email3', '`email3`', '`email3`', 200, -1, FALSE, '`email3`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->email3->Sortable = TRUE; // Allow sort
+		$this->fields['email3'] = &$this->email3;
+
+		// email4
+		$this->email4 = new cField('emails', 'emails', 'x_email4', 'email4', '`email4`', '`email4`', 200, -1, FALSE, '`email4`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
+		$this->email4->Sortable = TRUE; // Allow sort
+		$this->fields['email4'] = &$this->email4;
 	}
 
 	// Set Field Visibility
@@ -98,53 +155,6 @@ class cemails extends cTable {
 		} else {
 			$ofld->setSort("");
 		}
-	}
-
-	// Current master table name
-	function getCurrentMasterTable() {
-		return @$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE];
-	}
-
-	function setCurrentMasterTable($v) {
-		$_SESSION[EW_PROJECT_NAME . "_" . $this->TableVar . "_" . EW_TABLE_MASTER_TABLE] = $v;
-	}
-
-	// Session master WHERE clause
-	function GetMasterFilter() {
-
-		// Master filter
-		$sMasterFilter = "";
-		if ($this->getCurrentMasterTable() == "personas") {
-			if ($this->id_persona->getSessionValue() <> "")
-				$sMasterFilter .= "`Id`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
-		return $sMasterFilter;
-	}
-
-	// Session detail WHERE clause
-	function GetDetailFilter() {
-
-		// Detail filter
-		$sDetailFilter = "";
-		if ($this->getCurrentMasterTable() == "personas") {
-			if ($this->id_persona->getSessionValue() <> "")
-				$sDetailFilter .= "`id_persona`=" . ew_QuotedValue($this->id_persona->getSessionValue(), EW_DATATYPE_NUMBER, "DB");
-			else
-				return "";
-		}
-		return $sDetailFilter;
-	}
-
-	// Master filter
-	function SqlMasterFilter_personas() {
-		return "`Id`=@Id@";
-	}
-
-	// Detail filter
-	function SqlDetailFilter_personas() {
-		return "`id_persona`=@id_persona@";
 	}
 
 	// Table level SQL
@@ -538,10 +548,6 @@ class cemails extends cTable {
 
 	// Add master url
 	function AddMasterUrl($url) {
-		if ($this->getCurrentMasterTable() == "personas" && strpos($url, EW_TABLE_SHOW_MASTER . "=") === FALSE) {
-			$url .= (strpos($url, "?") !== FALSE ? "&" : "?") . EW_TABLE_SHOW_MASTER . "=" . $this->getCurrentMasterTable();
-			$url .= "&fk_Id=" . urlencode($this->id_persona->CurrentValue);
-		}
 		return $url;
 	}
 
@@ -639,8 +645,17 @@ class cemails extends cTable {
 	// Load row values from recordset
 	function LoadListRowValues(&$rs) {
 		$this->Id->setDbValue($rs->fields('Id'));
-		$this->id_persona->setDbValue($rs->fields('id_persona'));
-		$this->_email->setDbValue($rs->fields('email'));
+		$this->id_fuente->setDbValue($rs->fields('id_fuente'));
+		$this->id_gestion->setDbValue($rs->fields('id_gestion'));
+		$this->tipo_documento->setDbValue($rs->fields('tipo_documento'));
+		$this->no_documento->setDbValue($rs->fields('no_documento'));
+		$this->nombres->setDbValue($rs->fields('nombres'));
+		$this->paterno->setDbValue($rs->fields('paterno'));
+		$this->materno->setDbValue($rs->fields('materno'));
+		$this->email1->setDbValue($rs->fields('email1'));
+		$this->email2->setDbValue($rs->fields('email2'));
+		$this->email3->setDbValue($rs->fields('email3'));
+		$this->email4->setDbValue($rs->fields('email4'));
 	}
 
 	// Render list row values
@@ -652,64 +667,167 @@ class cemails extends cTable {
 
 	// Common render codes
 		// Id
-		// id_persona
-		// email
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// email1
+		// email2
+		// email3
+		// email4
 		// Id
 
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// email
-		$this->_email->ViewValue = $this->_email->CurrentValue;
-		$this->_email->ViewCustomAttributes = "";
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
+
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// email1
+		$this->email1->ViewValue = $this->email1->CurrentValue;
+		$this->email1->ViewCustomAttributes = "";
+
+		// email2
+		$this->email2->ViewValue = $this->email2->CurrentValue;
+		$this->email2->ViewCustomAttributes = "";
+
+		// email3
+		$this->email3->ViewValue = $this->email3->CurrentValue;
+		$this->email3->ViewCustomAttributes = "";
+
+		// email4
+		$this->email4->ViewValue = $this->email4->CurrentValue;
+		$this->email4->ViewCustomAttributes = "";
 
 		// Id
 		$this->Id->LinkCustomAttributes = "";
 		$this->Id->HrefValue = "";
 		$this->Id->TooltipValue = "";
 
-		// id_persona
-		$this->id_persona->LinkCustomAttributes = "";
-		if (!ew_Empty($this->id_persona->CurrentValue)) {
-			$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-			$this->id_persona->LinkAttrs["target"] = ""; // Add target
-			if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-		} else {
-			$this->id_persona->HrefValue = "";
-		}
-		$this->id_persona->TooltipValue = "";
+		// id_fuente
+		$this->id_fuente->LinkCustomAttributes = "";
+		$this->id_fuente->HrefValue = "";
+		$this->id_fuente->TooltipValue = "";
 
-		// email
-		$this->_email->LinkCustomAttributes = "";
-		$this->_email->HrefValue = "";
-		$this->_email->TooltipValue = "";
+		// id_gestion
+		$this->id_gestion->LinkCustomAttributes = "";
+		$this->id_gestion->HrefValue = "";
+		$this->id_gestion->TooltipValue = "";
+
+		// tipo_documento
+		$this->tipo_documento->LinkCustomAttributes = "";
+		$this->tipo_documento->HrefValue = "";
+		$this->tipo_documento->TooltipValue = "";
+
+		// no_documento
+		$this->no_documento->LinkCustomAttributes = "";
+		$this->no_documento->HrefValue = "";
+		$this->no_documento->TooltipValue = "";
+
+		// nombres
+		$this->nombres->LinkCustomAttributes = "";
+		$this->nombres->HrefValue = "";
+		$this->nombres->TooltipValue = "";
+
+		// paterno
+		$this->paterno->LinkCustomAttributes = "";
+		$this->paterno->HrefValue = "";
+		$this->paterno->TooltipValue = "";
+
+		// materno
+		$this->materno->LinkCustomAttributes = "";
+		$this->materno->HrefValue = "";
+		$this->materno->TooltipValue = "";
+
+		// email1
+		$this->email1->LinkCustomAttributes = "";
+		$this->email1->HrefValue = "";
+		$this->email1->TooltipValue = "";
+
+		// email2
+		$this->email2->LinkCustomAttributes = "";
+		$this->email2->HrefValue = "";
+		$this->email2->TooltipValue = "";
+
+		// email3
+		$this->email3->LinkCustomAttributes = "";
+		$this->email3->HrefValue = "";
+		$this->email3->TooltipValue = "";
+
+		// email4
+		$this->email4->LinkCustomAttributes = "";
+		$this->email4->HrefValue = "";
+		$this->email4->TooltipValue = "";
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -731,44 +849,67 @@ class cemails extends cTable {
 		$this->Id->EditValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		$this->id_persona->EditAttrs["class"] = "form-control";
-		$this->id_persona->EditCustomAttributes = "";
-		if ($this->id_persona->getSessionValue() <> "") {
-			$this->id_persona->CurrentValue = $this->id_persona->getSessionValue();
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
-		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
-		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
-		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-			$rswrk = Conn()->Execute($sSqlWrk);
-			if ($rswrk && !$rswrk->EOF) { // Lookup values found
-				$arwrk = array();
-				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
-				$rswrk->Close();
-			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
-			}
-		} else {
-			$this->id_persona->ViewValue = NULL;
-		}
-		$this->id_persona->ViewCustomAttributes = "";
-		} else {
-		}
+		// id_fuente
+		$this->id_fuente->EditAttrs["class"] = "form-control";
+		$this->id_fuente->EditCustomAttributes = "";
 
-		// email
-		$this->_email->EditAttrs["class"] = "form-control";
-		$this->_email->EditCustomAttributes = "";
-		$this->_email->EditValue = $this->_email->CurrentValue;
-		$this->_email->PlaceHolder = ew_RemoveHtml($this->_email->FldCaption());
+		// id_gestion
+		$this->id_gestion->EditAttrs["class"] = "form-control";
+		$this->id_gestion->EditCustomAttributes = "";
+
+		// tipo_documento
+		$this->tipo_documento->EditAttrs["class"] = "form-control";
+		$this->tipo_documento->EditCustomAttributes = "";
+		$this->tipo_documento->EditValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->PlaceHolder = ew_RemoveHtml($this->tipo_documento->FldCaption());
+
+		// no_documento
+		$this->no_documento->EditAttrs["class"] = "form-control";
+		$this->no_documento->EditCustomAttributes = "";
+		$this->no_documento->EditValue = $this->no_documento->CurrentValue;
+		$this->no_documento->PlaceHolder = ew_RemoveHtml($this->no_documento->FldCaption());
+
+		// nombres
+		$this->nombres->EditAttrs["class"] = "form-control";
+		$this->nombres->EditCustomAttributes = "";
+		$this->nombres->EditValue = $this->nombres->CurrentValue;
+		$this->nombres->PlaceHolder = ew_RemoveHtml($this->nombres->FldCaption());
+
+		// paterno
+		$this->paterno->EditAttrs["class"] = "form-control";
+		$this->paterno->EditCustomAttributes = "";
+		$this->paterno->EditValue = $this->paterno->CurrentValue;
+		$this->paterno->PlaceHolder = ew_RemoveHtml($this->paterno->FldCaption());
+
+		// materno
+		$this->materno->EditAttrs["class"] = "form-control";
+		$this->materno->EditCustomAttributes = "";
+		$this->materno->EditValue = $this->materno->CurrentValue;
+		$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+		// email1
+		$this->email1->EditAttrs["class"] = "form-control";
+		$this->email1->EditCustomAttributes = "";
+		$this->email1->EditValue = $this->email1->CurrentValue;
+		$this->email1->PlaceHolder = ew_RemoveHtml($this->email1->FldCaption());
+
+		// email2
+		$this->email2->EditAttrs["class"] = "form-control";
+		$this->email2->EditCustomAttributes = "";
+		$this->email2->EditValue = $this->email2->CurrentValue;
+		$this->email2->PlaceHolder = ew_RemoveHtml($this->email2->FldCaption());
+
+		// email3
+		$this->email3->EditAttrs["class"] = "form-control";
+		$this->email3->EditCustomAttributes = "";
+		$this->email3->EditValue = $this->email3->CurrentValue;
+		$this->email3->PlaceHolder = ew_RemoveHtml($this->email3->FldCaption());
+
+		// email4
+		$this->email4->EditAttrs["class"] = "form-control";
+		$this->email4->EditCustomAttributes = "";
+		$this->email4->EditValue = $this->email4->CurrentValue;
+		$this->email4->PlaceHolder = ew_RemoveHtml($this->email4->FldCaption());
 
 		// Call Row Rendered event
 		$this->Row_Rendered();
@@ -798,12 +939,30 @@ class cemails extends cTable {
 				$Doc->BeginExportRow();
 				if ($ExportPageType == "view") {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
-					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
-					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
+					if ($this->id_fuente->Exportable) $Doc->ExportCaption($this->id_fuente);
+					if ($this->id_gestion->Exportable) $Doc->ExportCaption($this->id_gestion);
+					if ($this->tipo_documento->Exportable) $Doc->ExportCaption($this->tipo_documento);
+					if ($this->no_documento->Exportable) $Doc->ExportCaption($this->no_documento);
+					if ($this->nombres->Exportable) $Doc->ExportCaption($this->nombres);
+					if ($this->paterno->Exportable) $Doc->ExportCaption($this->paterno);
+					if ($this->materno->Exportable) $Doc->ExportCaption($this->materno);
+					if ($this->email1->Exportable) $Doc->ExportCaption($this->email1);
+					if ($this->email2->Exportable) $Doc->ExportCaption($this->email2);
+					if ($this->email3->Exportable) $Doc->ExportCaption($this->email3);
+					if ($this->email4->Exportable) $Doc->ExportCaption($this->email4);
 				} else {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
-					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
-					if ($this->_email->Exportable) $Doc->ExportCaption($this->_email);
+					if ($this->id_fuente->Exportable) $Doc->ExportCaption($this->id_fuente);
+					if ($this->id_gestion->Exportable) $Doc->ExportCaption($this->id_gestion);
+					if ($this->tipo_documento->Exportable) $Doc->ExportCaption($this->tipo_documento);
+					if ($this->no_documento->Exportable) $Doc->ExportCaption($this->no_documento);
+					if ($this->nombres->Exportable) $Doc->ExportCaption($this->nombres);
+					if ($this->paterno->Exportable) $Doc->ExportCaption($this->paterno);
+					if ($this->materno->Exportable) $Doc->ExportCaption($this->materno);
+					if ($this->email1->Exportable) $Doc->ExportCaption($this->email1);
+					if ($this->email2->Exportable) $Doc->ExportCaption($this->email2);
+					if ($this->email3->Exportable) $Doc->ExportCaption($this->email3);
+					if ($this->email4->Exportable) $Doc->ExportCaption($this->email4);
 				}
 				$Doc->EndExportRow();
 			}
@@ -836,12 +995,30 @@ class cemails extends cTable {
 					$Doc->BeginExportRow($RowCnt); // Allow CSS styles if enabled
 					if ($ExportPageType == "view") {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
-						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
-						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
+						if ($this->id_fuente->Exportable) $Doc->ExportField($this->id_fuente);
+						if ($this->id_gestion->Exportable) $Doc->ExportField($this->id_gestion);
+						if ($this->tipo_documento->Exportable) $Doc->ExportField($this->tipo_documento);
+						if ($this->no_documento->Exportable) $Doc->ExportField($this->no_documento);
+						if ($this->nombres->Exportable) $Doc->ExportField($this->nombres);
+						if ($this->paterno->Exportable) $Doc->ExportField($this->paterno);
+						if ($this->materno->Exportable) $Doc->ExportField($this->materno);
+						if ($this->email1->Exportable) $Doc->ExportField($this->email1);
+						if ($this->email2->Exportable) $Doc->ExportField($this->email2);
+						if ($this->email3->Exportable) $Doc->ExportField($this->email3);
+						if ($this->email4->Exportable) $Doc->ExportField($this->email4);
 					} else {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
-						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
-						if ($this->_email->Exportable) $Doc->ExportField($this->_email);
+						if ($this->id_fuente->Exportable) $Doc->ExportField($this->id_fuente);
+						if ($this->id_gestion->Exportable) $Doc->ExportField($this->id_gestion);
+						if ($this->tipo_documento->Exportable) $Doc->ExportField($this->tipo_documento);
+						if ($this->no_documento->Exportable) $Doc->ExportField($this->no_documento);
+						if ($this->nombres->Exportable) $Doc->ExportField($this->nombres);
+						if ($this->paterno->Exportable) $Doc->ExportField($this->paterno);
+						if ($this->materno->Exportable) $Doc->ExportField($this->materno);
+						if ($this->email1->Exportable) $Doc->ExportField($this->email1);
+						if ($this->email2->Exportable) $Doc->ExportField($this->email2);
+						if ($this->email3->Exportable) $Doc->ExportField($this->email3);
+						if ($this->email4->Exportable) $Doc->ExportField($this->email4);
 					}
 					$Doc->EndExportRow($RowCnt);
 				}

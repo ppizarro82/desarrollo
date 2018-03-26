@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "telefonosinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -315,9 +314,6 @@ class ctelefonos_list extends ctelefonos {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'list', TRUE);
@@ -450,10 +446,17 @@ class ctelefonos_list extends ctelefonos {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_persona->SetVisibility();
-		$this->tipo->SetVisibility();
-		$this->numero->SetVisibility();
-		$this->ult_fecha_activo->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->telefono1->SetVisibility();
+		$this->telefono2->SetVisibility();
+		$this->telefono3->SetVisibility();
+		$this->telefono4->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -484,9 +487,6 @@ class ctelefonos_list extends ctelefonos {
 
 		// Create Token
 		$this->CreateToken();
-
-		// Set up master detail parameters
-		$this->SetupMasterParms();
 
 		// Setup other options
 		$this->SetupOtherOptions();
@@ -643,7 +643,11 @@ class ctelefonos_list extends ctelefonos {
 			}
 
 			// Get default search criteria
+			ew_AddFilter($this->DefaultSearchWhere, $this->BasicSearchWhere(TRUE));
 			ew_AddFilter($this->DefaultSearchWhere, $this->AdvancedSearchWhere(TRUE));
+
+			// Get basic search values
+			$this->LoadBasicSearchValues();
 
 			// Get and validate search values for advanced search
 			$this->LoadSearchValues(); // Get search values
@@ -663,6 +667,10 @@ class ctelefonos_list extends ctelefonos {
 			// Set up sorting order
 			$this->SetupSortOrder();
 
+			// Get basic search criteria
+			if ($gsSearchError == "")
+				$sSrchBasic = $this->BasicSearchWhere();
+
 			// Get search criteria for advanced search
 			if ($gsSearchError == "")
 				$sSrchAdvanced = $this->AdvancedSearchWhere();
@@ -681,6 +689,11 @@ class ctelefonos_list extends ctelefonos {
 
 		// Load search default if no existing search criteria
 		if (!$this->CheckSearchParms()) {
+
+			// Load basic search from default
+			$this->BasicSearch->LoadDefault();
+			if ($this->BasicSearch->Keyword != "")
+				$sSrchBasic = $this->BasicSearchWhere();
 
 			// Load advanced search from default
 			if ($this->LoadAdvancedSearchDefault()) {
@@ -708,27 +721,11 @@ class ctelefonos_list extends ctelefonos {
 		$sFilter = "";
 		if (!$Security->CanList())
 			$sFilter = "(0=1)"; // Filter all records
-
-		// Restore master/detail filter
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
-
-		// Load master record
-		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "personas") {
-			global $personas;
-			$rsmaster = $personas->LoadRs($this->DbMasterFilter);
-			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
-			if (!$this->MasterRecordExists) {
-				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
-				$this->Page_Terminate("personaslist.php"); // Return to master page
-			} else {
-				$personas->LoadListRowValues($rsmaster);
-				$personas->RowType = EW_ROWTYPE_MASTER; // Master row
-				$personas->RenderListRow();
-				$rsmaster->Close();
-			}
+		if ($sFilter == "") {
+			$sFilter = "0=101";
+			$this->SearchWhere = $sFilter;
 		}
 
 		// Set up filter
@@ -814,10 +811,21 @@ class ctelefonos_list extends ctelefonos {
 		// Initialize
 		$sFilterList = "";
 		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
-		$sFilterList = ew_Concat($sFilterList, $this->id_persona->AdvancedSearch->ToJson(), ","); // Field id_persona
-		$sFilterList = ew_Concat($sFilterList, $this->tipo->AdvancedSearch->ToJson(), ","); // Field tipo
-		$sFilterList = ew_Concat($sFilterList, $this->numero->AdvancedSearch->ToJson(), ","); // Field numero
-		$sFilterList = ew_Concat($sFilterList, $this->ult_fecha_activo->AdvancedSearch->ToJson(), ","); // Field ult_fecha_activo
+		$sFilterList = ew_Concat($sFilterList, $this->id_fuente->AdvancedSearch->ToJson(), ","); // Field id_fuente
+		$sFilterList = ew_Concat($sFilterList, $this->id_gestion->AdvancedSearch->ToJson(), ","); // Field id_gestion
+		$sFilterList = ew_Concat($sFilterList, $this->tipo_documento->AdvancedSearch->ToJson(), ","); // Field tipo_documento
+		$sFilterList = ew_Concat($sFilterList, $this->no_documento->AdvancedSearch->ToJson(), ","); // Field no_documento
+		$sFilterList = ew_Concat($sFilterList, $this->nombres->AdvancedSearch->ToJson(), ","); // Field nombres
+		$sFilterList = ew_Concat($sFilterList, $this->paterno->AdvancedSearch->ToJson(), ","); // Field paterno
+		$sFilterList = ew_Concat($sFilterList, $this->materno->AdvancedSearch->ToJson(), ","); // Field materno
+		$sFilterList = ew_Concat($sFilterList, $this->telefono1->AdvancedSearch->ToJson(), ","); // Field telefono1
+		$sFilterList = ew_Concat($sFilterList, $this->telefono2->AdvancedSearch->ToJson(), ","); // Field telefono2
+		$sFilterList = ew_Concat($sFilterList, $this->telefono3->AdvancedSearch->ToJson(), ","); // Field telefono3
+		$sFilterList = ew_Concat($sFilterList, $this->telefono4->AdvancedSearch->ToJson(), ","); // Field telefono4
+		if ($this->BasicSearch->Keyword <> "") {
+			$sWrk = "\"" . EW_TABLE_BASIC_SEARCH . "\":\"" . ew_JsEncode2($this->BasicSearch->Keyword) . "\",\"" . EW_TABLE_BASIC_SEARCH_TYPE . "\":\"" . ew_JsEncode2($this->BasicSearch->Type) . "\"";
+			$sFilterList = ew_Concat($sFilterList, $sWrk, ",");
+		}
 		$sFilterList = preg_replace('/,$/', "", $sFilterList);
 
 		// Return filter list in json
@@ -866,37 +874,95 @@ class ctelefonos_list extends ctelefonos {
 		$this->Id->AdvancedSearch->SearchOperator2 = @$filter["w_Id"];
 		$this->Id->AdvancedSearch->Save();
 
-		// Field id_persona
-		$this->id_persona->AdvancedSearch->SearchValue = @$filter["x_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchOperator = @$filter["z_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchCondition = @$filter["v_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchValue2 = @$filter["y_id_persona"];
-		$this->id_persona->AdvancedSearch->SearchOperator2 = @$filter["w_id_persona"];
-		$this->id_persona->AdvancedSearch->Save();
+		// Field id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$filter["x_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$filter["z_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchCondition = @$filter["v_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchValue2 = @$filter["y_id_fuente"];
+		$this->id_fuente->AdvancedSearch->SearchOperator2 = @$filter["w_id_fuente"];
+		$this->id_fuente->AdvancedSearch->Save();
 
-		// Field tipo
-		$this->tipo->AdvancedSearch->SearchValue = @$filter["x_tipo"];
-		$this->tipo->AdvancedSearch->SearchOperator = @$filter["z_tipo"];
-		$this->tipo->AdvancedSearch->SearchCondition = @$filter["v_tipo"];
-		$this->tipo->AdvancedSearch->SearchValue2 = @$filter["y_tipo"];
-		$this->tipo->AdvancedSearch->SearchOperator2 = @$filter["w_tipo"];
-		$this->tipo->AdvancedSearch->Save();
+		// Field id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$filter["x_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$filter["z_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchCondition = @$filter["v_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchValue2 = @$filter["y_id_gestion"];
+		$this->id_gestion->AdvancedSearch->SearchOperator2 = @$filter["w_id_gestion"];
+		$this->id_gestion->AdvancedSearch->Save();
 
-		// Field numero
-		$this->numero->AdvancedSearch->SearchValue = @$filter["x_numero"];
-		$this->numero->AdvancedSearch->SearchOperator = @$filter["z_numero"];
-		$this->numero->AdvancedSearch->SearchCondition = @$filter["v_numero"];
-		$this->numero->AdvancedSearch->SearchValue2 = @$filter["y_numero"];
-		$this->numero->AdvancedSearch->SearchOperator2 = @$filter["w_numero"];
-		$this->numero->AdvancedSearch->Save();
+		// Field tipo_documento
+		$this->tipo_documento->AdvancedSearch->SearchValue = @$filter["x_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchOperator = @$filter["z_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchCondition = @$filter["v_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchValue2 = @$filter["y_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->SearchOperator2 = @$filter["w_tipo_documento"];
+		$this->tipo_documento->AdvancedSearch->Save();
 
-		// Field ult_fecha_activo
-		$this->ult_fecha_activo->AdvancedSearch->SearchValue = @$filter["x_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->SearchOperator = @$filter["z_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->SearchCondition = @$filter["v_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->SearchValue2 = @$filter["y_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->SearchOperator2 = @$filter["w_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->Save();
+		// Field no_documento
+		$this->no_documento->AdvancedSearch->SearchValue = @$filter["x_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchOperator = @$filter["z_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchCondition = @$filter["v_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchValue2 = @$filter["y_no_documento"];
+		$this->no_documento->AdvancedSearch->SearchOperator2 = @$filter["w_no_documento"];
+		$this->no_documento->AdvancedSearch->Save();
+
+		// Field nombres
+		$this->nombres->AdvancedSearch->SearchValue = @$filter["x_nombres"];
+		$this->nombres->AdvancedSearch->SearchOperator = @$filter["z_nombres"];
+		$this->nombres->AdvancedSearch->SearchCondition = @$filter["v_nombres"];
+		$this->nombres->AdvancedSearch->SearchValue2 = @$filter["y_nombres"];
+		$this->nombres->AdvancedSearch->SearchOperator2 = @$filter["w_nombres"];
+		$this->nombres->AdvancedSearch->Save();
+
+		// Field paterno
+		$this->paterno->AdvancedSearch->SearchValue = @$filter["x_paterno"];
+		$this->paterno->AdvancedSearch->SearchOperator = @$filter["z_paterno"];
+		$this->paterno->AdvancedSearch->SearchCondition = @$filter["v_paterno"];
+		$this->paterno->AdvancedSearch->SearchValue2 = @$filter["y_paterno"];
+		$this->paterno->AdvancedSearch->SearchOperator2 = @$filter["w_paterno"];
+		$this->paterno->AdvancedSearch->Save();
+
+		// Field materno
+		$this->materno->AdvancedSearch->SearchValue = @$filter["x_materno"];
+		$this->materno->AdvancedSearch->SearchOperator = @$filter["z_materno"];
+		$this->materno->AdvancedSearch->SearchCondition = @$filter["v_materno"];
+		$this->materno->AdvancedSearch->SearchValue2 = @$filter["y_materno"];
+		$this->materno->AdvancedSearch->SearchOperator2 = @$filter["w_materno"];
+		$this->materno->AdvancedSearch->Save();
+
+		// Field telefono1
+		$this->telefono1->AdvancedSearch->SearchValue = @$filter["x_telefono1"];
+		$this->telefono1->AdvancedSearch->SearchOperator = @$filter["z_telefono1"];
+		$this->telefono1->AdvancedSearch->SearchCondition = @$filter["v_telefono1"];
+		$this->telefono1->AdvancedSearch->SearchValue2 = @$filter["y_telefono1"];
+		$this->telefono1->AdvancedSearch->SearchOperator2 = @$filter["w_telefono1"];
+		$this->telefono1->AdvancedSearch->Save();
+
+		// Field telefono2
+		$this->telefono2->AdvancedSearch->SearchValue = @$filter["x_telefono2"];
+		$this->telefono2->AdvancedSearch->SearchOperator = @$filter["z_telefono2"];
+		$this->telefono2->AdvancedSearch->SearchCondition = @$filter["v_telefono2"];
+		$this->telefono2->AdvancedSearch->SearchValue2 = @$filter["y_telefono2"];
+		$this->telefono2->AdvancedSearch->SearchOperator2 = @$filter["w_telefono2"];
+		$this->telefono2->AdvancedSearch->Save();
+
+		// Field telefono3
+		$this->telefono3->AdvancedSearch->SearchValue = @$filter["x_telefono3"];
+		$this->telefono3->AdvancedSearch->SearchOperator = @$filter["z_telefono3"];
+		$this->telefono3->AdvancedSearch->SearchCondition = @$filter["v_telefono3"];
+		$this->telefono3->AdvancedSearch->SearchValue2 = @$filter["y_telefono3"];
+		$this->telefono3->AdvancedSearch->SearchOperator2 = @$filter["w_telefono3"];
+		$this->telefono3->AdvancedSearch->Save();
+
+		// Field telefono4
+		$this->telefono4->AdvancedSearch->SearchValue = @$filter["x_telefono4"];
+		$this->telefono4->AdvancedSearch->SearchOperator = @$filter["z_telefono4"];
+		$this->telefono4->AdvancedSearch->SearchCondition = @$filter["v_telefono4"];
+		$this->telefono4->AdvancedSearch->SearchValue2 = @$filter["y_telefono4"];
+		$this->telefono4->AdvancedSearch->SearchOperator2 = @$filter["w_telefono4"];
+		$this->telefono4->AdvancedSearch->Save();
+		$this->BasicSearch->setKeyword(@$filter[EW_TABLE_BASIC_SEARCH]);
+		$this->BasicSearch->setType(@$filter[EW_TABLE_BASIC_SEARCH_TYPE]);
 	}
 
 	// Advanced search WHERE clause based on QueryString
@@ -905,10 +971,17 @@ class ctelefonos_list extends ctelefonos {
 		$sWhere = "";
 		if (!$Security->CanSearch()) return "";
 		$this->BuildSearchSql($sWhere, $this->Id, $Default, FALSE); // Id
-		$this->BuildSearchSql($sWhere, $this->id_persona, $Default, FALSE); // id_persona
-		$this->BuildSearchSql($sWhere, $this->tipo, $Default, FALSE); // tipo
-		$this->BuildSearchSql($sWhere, $this->numero, $Default, FALSE); // numero
-		$this->BuildSearchSql($sWhere, $this->ult_fecha_activo, $Default, FALSE); // ult_fecha_activo
+		$this->BuildSearchSql($sWhere, $this->id_fuente, $Default, FALSE); // id_fuente
+		$this->BuildSearchSql($sWhere, $this->id_gestion, $Default, FALSE); // id_gestion
+		$this->BuildSearchSql($sWhere, $this->tipo_documento, $Default, FALSE); // tipo_documento
+		$this->BuildSearchSql($sWhere, $this->no_documento, $Default, FALSE); // no_documento
+		$this->BuildSearchSql($sWhere, $this->nombres, $Default, FALSE); // nombres
+		$this->BuildSearchSql($sWhere, $this->paterno, $Default, FALSE); // paterno
+		$this->BuildSearchSql($sWhere, $this->materno, $Default, FALSE); // materno
+		$this->BuildSearchSql($sWhere, $this->telefono1, $Default, FALSE); // telefono1
+		$this->BuildSearchSql($sWhere, $this->telefono2, $Default, FALSE); // telefono2
+		$this->BuildSearchSql($sWhere, $this->telefono3, $Default, FALSE); // telefono3
+		$this->BuildSearchSql($sWhere, $this->telefono4, $Default, FALSE); // telefono4
 
 		// Set up search parm
 		if (!$Default && $sWhere <> "" && in_array($this->Command, array("", "reset", "resetall"))) {
@@ -916,10 +989,17 @@ class ctelefonos_list extends ctelefonos {
 		}
 		if (!$Default && $this->Command == "search") {
 			$this->Id->AdvancedSearch->Save(); // Id
-			$this->id_persona->AdvancedSearch->Save(); // id_persona
-			$this->tipo->AdvancedSearch->Save(); // tipo
-			$this->numero->AdvancedSearch->Save(); // numero
-			$this->ult_fecha_activo->AdvancedSearch->Save(); // ult_fecha_activo
+			$this->id_fuente->AdvancedSearch->Save(); // id_fuente
+			$this->id_gestion->AdvancedSearch->Save(); // id_gestion
+			$this->tipo_documento->AdvancedSearch->Save(); // tipo_documento
+			$this->no_documento->AdvancedSearch->Save(); // no_documento
+			$this->nombres->AdvancedSearch->Save(); // nombres
+			$this->paterno->AdvancedSearch->Save(); // paterno
+			$this->materno->AdvancedSearch->Save(); // materno
+			$this->telefono1->AdvancedSearch->Save(); // telefono1
+			$this->telefono2->AdvancedSearch->Save(); // telefono2
+			$this->telefono3->AdvancedSearch->Save(); // telefono3
+			$this->telefono4->AdvancedSearch->Save(); // telefono4
 		}
 		return $sWhere;
 	}
@@ -968,17 +1048,148 @@ class ctelefonos_list extends ctelefonos {
 		return $Value;
 	}
 
+	// Return basic search SQL
+	function BasicSearchSQL($arKeywords, $type) {
+		$sWhere = "";
+		$this->BuildBasicSearchSQL($sWhere, $this->tipo_documento, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->no_documento, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->nombres, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->paterno, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->materno, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->telefono1, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->telefono2, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->telefono3, $arKeywords, $type);
+		$this->BuildBasicSearchSQL($sWhere, $this->telefono4, $arKeywords, $type);
+		return $sWhere;
+	}
+
+	// Build basic search SQL
+	function BuildBasicSearchSQL(&$Where, &$Fld, $arKeywords, $type) {
+		global $EW_BASIC_SEARCH_IGNORE_PATTERN;
+		$sDefCond = ($type == "OR") ? "OR" : "AND";
+		$arSQL = array(); // Array for SQL parts
+		$arCond = array(); // Array for search conditions
+		$cnt = count($arKeywords);
+		$j = 0; // Number of SQL parts
+		for ($i = 0; $i < $cnt; $i++) {
+			$Keyword = $arKeywords[$i];
+			$Keyword = trim($Keyword);
+			if ($EW_BASIC_SEARCH_IGNORE_PATTERN <> "") {
+				$Keyword = preg_replace($EW_BASIC_SEARCH_IGNORE_PATTERN, "\\", $Keyword);
+				$ar = explode("\\", $Keyword);
+			} else {
+				$ar = array($Keyword);
+			}
+			foreach ($ar as $Keyword) {
+				if ($Keyword <> "") {
+					$sWrk = "";
+					if ($Keyword == "OR" && $type == "") {
+						if ($j > 0)
+							$arCond[$j-1] = "OR";
+					} elseif ($Keyword == EW_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NULL";
+					} elseif ($Keyword == EW_NOT_NULL_VALUE) {
+						$sWrk = $Fld->FldExpression . " IS NOT NULL";
+					} elseif ($Fld->FldIsVirtual) {
+						$sWrk = $Fld->FldVirtualExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
+					} elseif ($Fld->FldDataType != EW_DATATYPE_NUMBER || is_numeric($Keyword)) {
+						$sWrk = $Fld->FldBasicSearchExpression . ew_Like(ew_QuotedValue("%" . $Keyword . "%", EW_DATATYPE_STRING, $this->DBID), $this->DBID);
+					}
+					if ($sWrk <> "") {
+						$arSQL[$j] = $sWrk;
+						$arCond[$j] = $sDefCond;
+						$j += 1;
+					}
+				}
+			}
+		}
+		$cnt = count($arSQL);
+		$bQuoted = FALSE;
+		$sSql = "";
+		if ($cnt > 0) {
+			for ($i = 0; $i < $cnt-1; $i++) {
+				if ($arCond[$i] == "OR") {
+					if (!$bQuoted) $sSql .= "(";
+					$bQuoted = TRUE;
+				}
+				$sSql .= $arSQL[$i];
+				if ($bQuoted && $arCond[$i] <> "OR") {
+					$sSql .= ")";
+					$bQuoted = FALSE;
+				}
+				$sSql .= " " . $arCond[$i] . " ";
+			}
+			$sSql .= $arSQL[$cnt-1];
+			if ($bQuoted)
+				$sSql .= ")";
+		}
+		if ($sSql <> "") {
+			if ($Where <> "") $Where .= " OR ";
+			$Where .= "(" . $sSql . ")";
+		}
+	}
+
+	// Return basic search WHERE clause based on search keyword and type
+	function BasicSearchWhere($Default = FALSE) {
+		global $Security;
+		$sSearchStr = "";
+		if (!$Security->CanSearch()) return "";
+		$sSearchKeyword = ($Default) ? $this->BasicSearch->KeywordDefault : $this->BasicSearch->Keyword;
+		$sSearchType = ($Default) ? $this->BasicSearch->TypeDefault : $this->BasicSearch->Type;
+
+		// Get search SQL
+		if ($sSearchKeyword <> "") {
+			$ar = $this->BasicSearch->KeywordList($Default);
+
+			// Search keyword in any fields
+			if (($sSearchType == "OR" || $sSearchType == "AND") && $this->BasicSearch->BasicSearchAnyFields) {
+				foreach ($ar as $sKeyword) {
+					if ($sKeyword <> "") {
+						if ($sSearchStr <> "") $sSearchStr .= " " . $sSearchType . " ";
+						$sSearchStr .= "(" . $this->BasicSearchSQL(array($sKeyword), $sSearchType) . ")";
+					}
+				}
+			} else {
+				$sSearchStr = $this->BasicSearchSQL($ar, $sSearchType);
+			}
+			if (!$Default && in_array($this->Command, array("", "reset", "resetall"))) $this->Command = "search";
+		}
+		if (!$Default && $this->Command == "search") {
+			$this->BasicSearch->setKeyword($sSearchKeyword);
+			$this->BasicSearch->setType($sSearchType);
+		}
+		return $sSearchStr;
+	}
+
 	// Check if search parm exists
 	function CheckSearchParms() {
+
+		// Check basic search
+		if ($this->BasicSearch->IssetSession())
+			return TRUE;
 		if ($this->Id->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->id_persona->AdvancedSearch->IssetSession())
+		if ($this->id_fuente->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->tipo->AdvancedSearch->IssetSession())
+		if ($this->id_gestion->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->numero->AdvancedSearch->IssetSession())
+		if ($this->tipo_documento->AdvancedSearch->IssetSession())
 			return TRUE;
-		if ($this->ult_fecha_activo->AdvancedSearch->IssetSession())
+		if ($this->no_documento->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->nombres->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->paterno->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->materno->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->telefono1->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->telefono2->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->telefono3->AdvancedSearch->IssetSession())
+			return TRUE;
+		if ($this->telefono4->AdvancedSearch->IssetSession())
 			return TRUE;
 		return FALSE;
 	}
@@ -990,6 +1201,9 @@ class ctelefonos_list extends ctelefonos {
 		$this->SearchWhere = "";
 		$this->setSearchWhere($this->SearchWhere);
 
+		// Clear basic search parameters
+		$this->ResetBasicSearchParms();
+
 		// Clear advanced search parameters
 		$this->ResetAdvancedSearchParms();
 	}
@@ -999,25 +1213,47 @@ class ctelefonos_list extends ctelefonos {
 		return FALSE;
 	}
 
+	// Clear all basic search parameters
+	function ResetBasicSearchParms() {
+		$this->BasicSearch->UnsetSession();
+	}
+
 	// Clear all advanced search parameters
 	function ResetAdvancedSearchParms() {
 		$this->Id->AdvancedSearch->UnsetSession();
-		$this->id_persona->AdvancedSearch->UnsetSession();
-		$this->tipo->AdvancedSearch->UnsetSession();
-		$this->numero->AdvancedSearch->UnsetSession();
-		$this->ult_fecha_activo->AdvancedSearch->UnsetSession();
+		$this->id_fuente->AdvancedSearch->UnsetSession();
+		$this->id_gestion->AdvancedSearch->UnsetSession();
+		$this->tipo_documento->AdvancedSearch->UnsetSession();
+		$this->no_documento->AdvancedSearch->UnsetSession();
+		$this->nombres->AdvancedSearch->UnsetSession();
+		$this->paterno->AdvancedSearch->UnsetSession();
+		$this->materno->AdvancedSearch->UnsetSession();
+		$this->telefono1->AdvancedSearch->UnsetSession();
+		$this->telefono2->AdvancedSearch->UnsetSession();
+		$this->telefono3->AdvancedSearch->UnsetSession();
+		$this->telefono4->AdvancedSearch->UnsetSession();
 	}
 
 	// Restore all search parameters
 	function RestoreSearchParms() {
 		$this->RestoreSearch = TRUE;
 
+		// Restore basic search values
+		$this->BasicSearch->Load();
+
 		// Restore advanced search values
 		$this->Id->AdvancedSearch->Load();
-		$this->id_persona->AdvancedSearch->Load();
-		$this->tipo->AdvancedSearch->Load();
-		$this->numero->AdvancedSearch->Load();
-		$this->ult_fecha_activo->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->tipo_documento->AdvancedSearch->Load();
+		$this->no_documento->AdvancedSearch->Load();
+		$this->nombres->AdvancedSearch->Load();
+		$this->paterno->AdvancedSearch->Load();
+		$this->materno->AdvancedSearch->Load();
+		$this->telefono1->AdvancedSearch->Load();
+		$this->telefono2->AdvancedSearch->Load();
+		$this->telefono3->AdvancedSearch->Load();
+		$this->telefono4->AdvancedSearch->Load();
 	}
 
 	// Set up sort parameters
@@ -1028,10 +1264,17 @@ class ctelefonos_list extends ctelefonos {
 			$this->CurrentOrder = @$_GET["order"];
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
-			$this->UpdateSort($this->id_persona); // id_persona
-			$this->UpdateSort($this->tipo); // tipo
-			$this->UpdateSort($this->numero); // numero
-			$this->UpdateSort($this->ult_fecha_activo); // ult_fecha_activo
+			$this->UpdateSort($this->id_fuente); // id_fuente
+			$this->UpdateSort($this->id_gestion); // id_gestion
+			$this->UpdateSort($this->tipo_documento); // tipo_documento
+			$this->UpdateSort($this->no_documento); // no_documento
+			$this->UpdateSort($this->nombres); // nombres
+			$this->UpdateSort($this->paterno); // paterno
+			$this->UpdateSort($this->materno); // materno
+			$this->UpdateSort($this->telefono1); // telefono1
+			$this->UpdateSort($this->telefono2); // telefono2
+			$this->UpdateSort($this->telefono3); // telefono3
+			$this->UpdateSort($this->telefono4); // telefono4
 			$this->setStartRecordNumber(1); // Reset start position
 		}
 	}
@@ -1043,7 +1286,6 @@ class ctelefonos_list extends ctelefonos {
 			if ($this->getSqlOrderBy() <> "") {
 				$sOrderBy = $this->getSqlOrderBy();
 				$this->setSessionOrderBy($sOrderBy);
-				$this->ult_fecha_activo->setSort("DESC");
 			}
 		}
 	}
@@ -1061,23 +1303,22 @@ class ctelefonos_list extends ctelefonos {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
-			// Reset master/detail keys
-			if ($this->Command == "resetall") {
-				$this->setCurrentMasterTable(""); // Clear master table
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-				$this->id_persona->setSessionValue("");
-			}
-
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
-				$this->id_persona->setSort("");
-				$this->tipo->setSort("");
-				$this->numero->setSort("");
-				$this->ult_fecha_activo->setSort("");
+				$this->id_fuente->setSort("");
+				$this->id_gestion->setSort("");
+				$this->tipo_documento->setSort("");
+				$this->no_documento->setSort("");
+				$this->nombres->setSort("");
+				$this->paterno->setSort("");
+				$this->materno->setSort("");
+				$this->telefono1->setSort("");
+				$this->telefono2->setSort("");
+				$this->telefono3->setSort("");
+				$this->telefono4->setSort("");
 			}
 
 			// Reset start position
@@ -1402,7 +1643,7 @@ class ctelefonos_list extends ctelefonos {
 
 		// Show all button
 		$item = &$this->SearchOptions->Add("showall");
-		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ShowAll") . "\" data-caption=\"" . $Language->Phrase("ShowAll") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ShowAllBtn") . "</a>";
+		$item->Body = "<a class=\"btn btn-default ewShowAll\" title=\"" . $Language->Phrase("ResetSearch") . "\" data-caption=\"" . $Language->Phrase("ResetSearch") . "\" href=\"" . $this->PageUrl() . "cmd=reset\">" . $Language->Phrase("ResetSearchBtn") . "</a>";
 		$item->Visible = ($this->SearchWhere <> $this->DefaultSearchWhere && $this->SearchWhere <> "0=101");
 
 		// Button group for search
@@ -1470,6 +1711,13 @@ class ctelefonos_list extends ctelefonos {
 		}
 	}
 
+	// Load basic search values
+	function LoadBasicSearchValues() {
+		$this->BasicSearch->Keyword = @$_GET[EW_TABLE_BASIC_SEARCH];
+		if ($this->BasicSearch->Keyword <> "" && $this->Command == "") $this->Command = "search";
+		$this->BasicSearch->Type = @$_GET[EW_TABLE_BASIC_SEARCH_TYPE];
+	}
+
 	// Load search values for validation
 	function LoadSearchValues() {
 		global $objForm;
@@ -1481,29 +1729,60 @@ class ctelefonos_list extends ctelefonos {
 		if ($this->Id->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
 		$this->Id->AdvancedSearch->SearchOperator = @$_GET["z_Id"];
 
-		// id_persona
-		$this->id_persona->AdvancedSearch->SearchValue = @$_GET["x_id_persona"];
-		if ($this->id_persona->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->id_persona->AdvancedSearch->SearchOperator = @$_GET["z_id_persona"];
+		// id_fuente
+		$this->id_fuente->AdvancedSearch->SearchValue = @$_GET["x_id_fuente"];
+		if ($this->id_fuente->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_fuente->AdvancedSearch->SearchOperator = @$_GET["z_id_fuente"];
 
-		// tipo
-		$this->tipo->AdvancedSearch->SearchValue = @$_GET["x_tipo"];
-		if ($this->tipo->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->tipo->AdvancedSearch->SearchOperator = @$_GET["z_tipo"];
+		// id_gestion
+		$this->id_gestion->AdvancedSearch->SearchValue = @$_GET["x_id_gestion"];
+		if ($this->id_gestion->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->id_gestion->AdvancedSearch->SearchOperator = @$_GET["z_id_gestion"];
 
-		// numero
-		$this->numero->AdvancedSearch->SearchValue = @$_GET["x_numero"];
-		if ($this->numero->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->numero->AdvancedSearch->SearchOperator = @$_GET["z_numero"];
+		// tipo_documento
+		$this->tipo_documento->AdvancedSearch->SearchValue = @$_GET["x_tipo_documento"];
+		if ($this->tipo_documento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->tipo_documento->AdvancedSearch->SearchOperator = @$_GET["z_tipo_documento"];
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->AdvancedSearch->SearchValue = @$_GET["x_ult_fecha_activo"];
-		if ($this->ult_fecha_activo->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
-		$this->ult_fecha_activo->AdvancedSearch->SearchOperator = @$_GET["z_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->SearchCondition = @$_GET["v_ult_fecha_activo"];
-		$this->ult_fecha_activo->AdvancedSearch->SearchValue2 = @$_GET["y_ult_fecha_activo"];
-		if ($this->ult_fecha_activo->AdvancedSearch->SearchValue2 <> "" && $this->Command == "") $this->Command = "search";
-		$this->ult_fecha_activo->AdvancedSearch->SearchOperator2 = @$_GET["w_ult_fecha_activo"];
+		// no_documento
+		$this->no_documento->AdvancedSearch->SearchValue = @$_GET["x_no_documento"];
+		if ($this->no_documento->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->no_documento->AdvancedSearch->SearchOperator = @$_GET["z_no_documento"];
+
+		// nombres
+		$this->nombres->AdvancedSearch->SearchValue = @$_GET["x_nombres"];
+		if ($this->nombres->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->nombres->AdvancedSearch->SearchOperator = @$_GET["z_nombres"];
+
+		// paterno
+		$this->paterno->AdvancedSearch->SearchValue = @$_GET["x_paterno"];
+		if ($this->paterno->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->paterno->AdvancedSearch->SearchOperator = @$_GET["z_paterno"];
+
+		// materno
+		$this->materno->AdvancedSearch->SearchValue = @$_GET["x_materno"];
+		if ($this->materno->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->materno->AdvancedSearch->SearchOperator = @$_GET["z_materno"];
+
+		// telefono1
+		$this->telefono1->AdvancedSearch->SearchValue = @$_GET["x_telefono1"];
+		if ($this->telefono1->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->telefono1->AdvancedSearch->SearchOperator = @$_GET["z_telefono1"];
+
+		// telefono2
+		$this->telefono2->AdvancedSearch->SearchValue = @$_GET["x_telefono2"];
+		if ($this->telefono2->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->telefono2->AdvancedSearch->SearchOperator = @$_GET["z_telefono2"];
+
+		// telefono3
+		$this->telefono3->AdvancedSearch->SearchValue = @$_GET["x_telefono3"];
+		if ($this->telefono3->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->telefono3->AdvancedSearch->SearchOperator = @$_GET["z_telefono3"];
+
+		// telefono4
+		$this->telefono4->AdvancedSearch->SearchValue = @$_GET["x_telefono4"];
+		if ($this->telefono4->AdvancedSearch->SearchValue <> "" && $this->Command == "") $this->Command = "search";
+		$this->telefono4->AdvancedSearch->SearchOperator = @$_GET["z_telefono4"];
 	}
 
 	// Load recordset
@@ -1566,20 +1845,34 @@ class ctelefonos_list extends ctelefonos {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->tipo->setDbValue($row['tipo']);
-		$this->numero->setDbValue($row['numero']);
-		$this->ult_fecha_activo->setDbValue($row['ult_fecha_activo']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->telefono1->setDbValue($row['telefono1']);
+		$this->telefono2->setDbValue($row['telefono2']);
+		$this->telefono3->setDbValue($row['telefono3']);
+		$this->telefono4->setDbValue($row['telefono4']);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_persona'] = NULL;
-		$row['tipo'] = NULL;
-		$row['numero'] = NULL;
-		$row['ult_fecha_activo'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['tipo_documento'] = NULL;
+		$row['no_documento'] = NULL;
+		$row['nombres'] = NULL;
+		$row['paterno'] = NULL;
+		$row['materno'] = NULL;
+		$row['telefono1'] = NULL;
+		$row['telefono2'] = NULL;
+		$row['telefono3'] = NULL;
+		$row['telefono4'] = NULL;
 		return $row;
 	}
 
@@ -1589,10 +1882,17 @@ class ctelefonos_list extends ctelefonos {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->tipo->DbValue = $row['tipo'];
-		$this->numero->DbValue = $row['numero'];
-		$this->ult_fecha_activo->DbValue = $row['ult_fecha_activo'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->telefono1->DbValue = $row['telefono1'];
+		$this->telefono2->DbValue = $row['telefono2'];
+		$this->telefono3->DbValue = $row['telefono3'];
+		$this->telefono4->DbValue = $row['telefono4'];
 	}
 
 	// Load old record
@@ -1634,10 +1934,17 @@ class ctelefonos_list extends ctelefonos {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// tipo
-		// numero
-		// ult_fecha_activo
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// telefono1
+		// telefono2
+		// telefono3
+		// telefono4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -1645,80 +1952,151 @@ class ctelefonos_list extends ctelefonos {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// tipo
-		if (strval($this->tipo->CurrentValue) <> "") {
-			$this->tipo->ViewValue = $this->tipo->OptionCaption($this->tipo->CurrentValue);
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
 		} else {
-			$this->tipo->ViewValue = NULL;
+			$this->id_gestion->ViewValue = NULL;
 		}
-		$this->tipo->ViewCustomAttributes = "";
+		$this->id_gestion->ViewCustomAttributes = "";
 
-		// numero
-		$this->numero->ViewValue = $this->numero->CurrentValue;
-		$this->numero->ViewCustomAttributes = "";
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->ViewValue = $this->ult_fecha_activo->CurrentValue;
-		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
-		$this->ult_fecha_activo->ViewCustomAttributes = "";
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// telefono1
+		$this->telefono1->ViewValue = $this->telefono1->CurrentValue;
+		$this->telefono1->ViewCustomAttributes = "";
+
+		// telefono2
+		$this->telefono2->ViewValue = $this->telefono2->CurrentValue;
+		$this->telefono2->ViewCustomAttributes = "";
+
+		// telefono3
+		$this->telefono3->ViewValue = $this->telefono3->CurrentValue;
+		$this->telefono3->ViewCustomAttributes = "";
+
+		// telefono4
+		$this->telefono4->ViewValue = $this->telefono4->CurrentValue;
+		$this->telefono4->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
-			$this->id_persona->TooltipValue = "";
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
 
-			// tipo
-			$this->tipo->LinkCustomAttributes = "";
-			$this->tipo->HrefValue = "";
-			$this->tipo->TooltipValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
 
-			// numero
-			$this->numero->LinkCustomAttributes = "";
-			$this->numero->HrefValue = "";
-			$this->numero->TooltipValue = "";
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
 
-			// ult_fecha_activo
-			$this->ult_fecha_activo->LinkCustomAttributes = "";
-			$this->ult_fecha_activo->HrefValue = "";
-			$this->ult_fecha_activo->TooltipValue = "";
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// telefono1
+			$this->telefono1->LinkCustomAttributes = "";
+			$this->telefono1->HrefValue = "";
+			$this->telefono1->TooltipValue = "";
+
+			// telefono2
+			$this->telefono2->LinkCustomAttributes = "";
+			$this->telefono2->HrefValue = "";
+			$this->telefono2->TooltipValue = "";
+
+			// telefono3
+			$this->telefono3->LinkCustomAttributes = "";
+			$this->telefono3->HrefValue = "";
+			$this->telefono3->TooltipValue = "";
+
+			// telefono4
+			$this->telefono4->LinkCustomAttributes = "";
+			$this->telefono4->HrefValue = "";
+			$this->telefono4->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_SEARCH) { // Search row
 
 			// Id
@@ -1727,47 +2105,101 @@ class ctelefonos_list extends ctelefonos {
 			$this->Id->EditValue = ew_HtmlEncode($this->Id->AdvancedSearch->SearchValue);
 			$this->Id->PlaceHolder = ew_RemoveHtml($this->Id->FldCaption());
 
-			// id_persona
-			$this->id_persona->EditAttrs["class"] = "form-control";
-			$this->id_persona->EditCustomAttributes = "";
-			if (trim(strval($this->id_persona->AdvancedSearch->SearchValue)) == "") {
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if (trim(strval($this->id_fuente->AdvancedSearch->SearchValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
 			}
-			$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `personas`";
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
-			$this->id_persona->EditValue = $arwrk;
+			$this->id_fuente->EditValue = $arwrk;
 
-			// tipo
-			$this->tipo->EditAttrs["class"] = "form-control";
-			$this->tipo->EditCustomAttributes = "";
-			$this->tipo->EditValue = $this->tipo->Options(TRUE);
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->AdvancedSearch->SearchValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->AdvancedSearch->SearchValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
 
-			// numero
-			$this->numero->EditAttrs["class"] = "form-control";
-			$this->numero->EditCustomAttributes = "";
-			$this->numero->EditValue = ew_HtmlEncode($this->numero->AdvancedSearch->SearchValue);
-			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
+			// tipo_documento
+			$this->tipo_documento->EditAttrs["class"] = "form-control";
+			$this->tipo_documento->EditCustomAttributes = "";
+			$this->tipo_documento->EditValue = ew_HtmlEncode($this->tipo_documento->AdvancedSearch->SearchValue);
+			$this->tipo_documento->PlaceHolder = ew_RemoveHtml($this->tipo_documento->FldCaption());
 
-			// ult_fecha_activo
-			$this->ult_fecha_activo->EditAttrs["class"] = "form-control";
-			$this->ult_fecha_activo->EditCustomAttributes = "";
-			$this->ult_fecha_activo->EditValue = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->ult_fecha_activo->AdvancedSearch->SearchValue, 7), 7));
-			$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
-			$this->ult_fecha_activo->EditAttrs["class"] = "form-control";
-			$this->ult_fecha_activo->EditCustomAttributes = "";
-			$this->ult_fecha_activo->EditValue2 = ew_HtmlEncode(ew_FormatDateTime(ew_UnFormatDateTime($this->ult_fecha_activo->AdvancedSearch->SearchValue2, 7), 7));
-			$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
+			// no_documento
+			$this->no_documento->EditAttrs["class"] = "form-control";
+			$this->no_documento->EditCustomAttributes = "";
+			$this->no_documento->EditValue = ew_HtmlEncode($this->no_documento->AdvancedSearch->SearchValue);
+			$this->no_documento->PlaceHolder = ew_RemoveHtml($this->no_documento->FldCaption());
+
+			// nombres
+			$this->nombres->EditAttrs["class"] = "form-control";
+			$this->nombres->EditCustomAttributes = "";
+			$this->nombres->EditValue = ew_HtmlEncode($this->nombres->AdvancedSearch->SearchValue);
+			$this->nombres->PlaceHolder = ew_RemoveHtml($this->nombres->FldCaption());
+
+			// paterno
+			$this->paterno->EditAttrs["class"] = "form-control";
+			$this->paterno->EditCustomAttributes = "";
+			$this->paterno->EditValue = ew_HtmlEncode($this->paterno->AdvancedSearch->SearchValue);
+			$this->paterno->PlaceHolder = ew_RemoveHtml($this->paterno->FldCaption());
+
+			// materno
+			$this->materno->EditAttrs["class"] = "form-control";
+			$this->materno->EditCustomAttributes = "";
+			$this->materno->EditValue = ew_HtmlEncode($this->materno->AdvancedSearch->SearchValue);
+			$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+			// telefono1
+			$this->telefono1->EditAttrs["class"] = "form-control";
+			$this->telefono1->EditCustomAttributes = "";
+			$this->telefono1->EditValue = ew_HtmlEncode($this->telefono1->AdvancedSearch->SearchValue);
+			$this->telefono1->PlaceHolder = ew_RemoveHtml($this->telefono1->FldCaption());
+
+			// telefono2
+			$this->telefono2->EditAttrs["class"] = "form-control";
+			$this->telefono2->EditCustomAttributes = "";
+			$this->telefono2->EditValue = ew_HtmlEncode($this->telefono2->AdvancedSearch->SearchValue);
+			$this->telefono2->PlaceHolder = ew_RemoveHtml($this->telefono2->FldCaption());
+
+			// telefono3
+			$this->telefono3->EditAttrs["class"] = "form-control";
+			$this->telefono3->EditCustomAttributes = "";
+			$this->telefono3->EditValue = ew_HtmlEncode($this->telefono3->AdvancedSearch->SearchValue);
+			$this->telefono3->PlaceHolder = ew_RemoveHtml($this->telefono3->FldCaption());
+
+			// telefono4
+			$this->telefono4->EditAttrs["class"] = "form-control";
+			$this->telefono4->EditCustomAttributes = "";
+			$this->telefono4->EditValue = ew_HtmlEncode($this->telefono4->AdvancedSearch->SearchValue);
+			$this->telefono4->PlaceHolder = ew_RemoveHtml($this->telefono4->FldCaption());
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->SetupFieldTitles();
@@ -1787,12 +2219,6 @@ class ctelefonos_list extends ctelefonos {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return TRUE;
-		if (!ew_CheckEuroDate($this->ult_fecha_activo->AdvancedSearch->SearchValue)) {
-			ew_AddMessage($gsSearchError, $this->ult_fecha_activo->FldErrMsg());
-		}
-		if (!ew_CheckEuroDate($this->ult_fecha_activo->AdvancedSearch->SearchValue2)) {
-			ew_AddMessage($gsSearchError, $this->ult_fecha_activo->FldErrMsg());
-		}
 
 		// Return validate result
 		$ValidateSearch = ($gsSearchError == "");
@@ -1809,10 +2235,17 @@ class ctelefonos_list extends ctelefonos {
 	// Load advanced search
 	function LoadAdvancedSearch() {
 		$this->Id->AdvancedSearch->Load();
-		$this->id_persona->AdvancedSearch->Load();
-		$this->tipo->AdvancedSearch->Load();
-		$this->numero->AdvancedSearch->Load();
-		$this->ult_fecha_activo->AdvancedSearch->Load();
+		$this->id_fuente->AdvancedSearch->Load();
+		$this->id_gestion->AdvancedSearch->Load();
+		$this->tipo_documento->AdvancedSearch->Load();
+		$this->no_documento->AdvancedSearch->Load();
+		$this->nombres->AdvancedSearch->Load();
+		$this->paterno->AdvancedSearch->Load();
+		$this->materno->AdvancedSearch->Load();
+		$this->telefono1->AdvancedSearch->Load();
+		$this->telefono2->AdvancedSearch->Load();
+		$this->telefono3->AdvancedSearch->Load();
+		$this->telefono4->AdvancedSearch->Load();
 	}
 
 	// Set up export options
@@ -1929,25 +2362,6 @@ class ctelefonos_list extends ctelefonos {
 		// Call Page Exporting server event
 		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
 		$ParentTable = "";
-
-		// Export master record
-		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "personas") {
-			global $personas;
-			if (!isset($personas)) $personas = new cpersonas;
-			$rsmaster = $personas->LoadRs($this->DbMasterFilter); // Load master record
-			if ($rsmaster && !$rsmaster->EOF) {
-				$ExportStyle = $Doc->Style;
-				$Doc->SetStyle("v"); // Change to vertical
-				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
-					$Doc->Table = &$personas;
-					$personas->ExportDocument($Doc, $rsmaster, 1, 1);
-					$Doc->ExportEmptyRow();
-					$Doc->Table = &$this;
-				}
-				$Doc->SetStyle($ExportStyle); // Restore
-				$rsmaster->Close();
-			}
-		}
 		$sHeader = $this->PageHeader;
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
@@ -2074,11 +2488,21 @@ class ctelefonos_list extends ctelefonos {
 		$sQry = "export=html";
 
 		// Build QueryString for search
+		if ($this->BasicSearch->getKeyword() <> "") {
+			$sQry .= "&" . EW_TABLE_BASIC_SEARCH . "=" . urlencode($this->BasicSearch->getKeyword()) . "&" . EW_TABLE_BASIC_SEARCH_TYPE . "=" . urlencode($this->BasicSearch->getType());
+		}
 		$this->AddSearchQueryString($sQry, $this->Id); // Id
-		$this->AddSearchQueryString($sQry, $this->id_persona); // id_persona
-		$this->AddSearchQueryString($sQry, $this->tipo); // tipo
-		$this->AddSearchQueryString($sQry, $this->numero); // numero
-		$this->AddSearchQueryString($sQry, $this->ult_fecha_activo); // ult_fecha_activo
+		$this->AddSearchQueryString($sQry, $this->id_fuente); // id_fuente
+		$this->AddSearchQueryString($sQry, $this->id_gestion); // id_gestion
+		$this->AddSearchQueryString($sQry, $this->tipo_documento); // tipo_documento
+		$this->AddSearchQueryString($sQry, $this->no_documento); // no_documento
+		$this->AddSearchQueryString($sQry, $this->nombres); // nombres
+		$this->AddSearchQueryString($sQry, $this->paterno); // paterno
+		$this->AddSearchQueryString($sQry, $this->materno); // materno
+		$this->AddSearchQueryString($sQry, $this->telefono1); // telefono1
+		$this->AddSearchQueryString($sQry, $this->telefono2); // telefono2
+		$this->AddSearchQueryString($sQry, $this->telefono3); // telefono3
+		$this->AddSearchQueryString($sQry, $this->telefono4); // telefono4
 
 		// Build QueryString for pager
 		$sQry .= "&" . EW_TABLE_REC_PER_PAGE . "=" . urlencode($this->getRecordsPerPage()) . "&" . EW_TABLE_START_REC . "=" . urlencode($this->getStartRecordNumber());
@@ -2101,72 +2525,6 @@ class ctelefonos_list extends ctelefonos {
 		}
 	}
 
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Update URL
-			$this->AddUrl = $this->AddMasterUrl($this->AddUrl);
-			$this->InlineAddUrl = $this->AddMasterUrl($this->InlineAddUrl);
-			$this->GridAddUrl = $this->AddMasterUrl($this->GridAddUrl);
-			$this->GridEditUrl = $this->AddMasterUrl($this->GridEditUrl);
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -2185,17 +2543,31 @@ class ctelefonos_list extends ctelefonos {
 			}
 		} elseif ($pageId == "extbs") {
 			switch ($fld->FldVar) {
-		case "x_id_persona":
+		case "x_id_fuente":
 			$sSqlWrk = "";
-			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
 			$sSqlWrk = "";
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			if ($sSqlWrk <> "")
 				$fld->LookupFilters["s"] .= $sSqlWrk;
 			break;
@@ -2220,6 +2592,8 @@ class ctelefonos_list extends ctelefonos {
 	function Page_Load() {
 
 		//echo "Page Load";
+	if (!isset($_GET["cmd"]) && !isset($_GET["export"]))
+						$this->ResetSearchParms();
 	}
 
 	// Page Unload event
@@ -2384,10 +2758,10 @@ ftelefonoslist.Form_CustomValidate =
 ftelefonoslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-ftelefonoslist.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-ftelefonoslist.Lists["x_id_persona"].Data = "<?php echo $telefonos_list->id_persona->LookupFilterQuery(FALSE, "list") ?>";
-ftelefonoslist.Lists["x_tipo"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
-ftelefonoslist.Lists["x_tipo"].Options = <?php echo json_encode($telefonos_list->tipo->Options()) ?>;
+ftelefonoslist.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+ftelefonoslist.Lists["x_id_fuente"].Data = "<?php echo $telefonos_list->id_fuente->LookupFilterQuery(FALSE, "list") ?>";
+ftelefonoslist.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+ftelefonoslist.Lists["x_id_gestion"].Data = "<?php echo $telefonos_list->id_gestion->LookupFilterQuery(FALSE, "list") ?>";
 
 // Form object for search
 var CurrentSearchForm = ftelefonoslistsrch = new ew_Form("ftelefonoslistsrch");
@@ -2398,9 +2772,6 @@ ftelefonoslistsrch.Validate = function(fobj) {
 		return true; // Ignore validation
 	fobj = fobj || this.Form;
 	var infix = "";
-	elm = this.GetElements("x" + infix + "_ult_fecha_activo");
-	if (elm && !ew_CheckEuroDate(elm.value))
-		return this.OnError(elm, "<?php echo ew_JsEncode2($telefonos->ult_fecha_activo->FldErrMsg()) ?>");
 
 	// Fire Form_CustomValidate event
 	if (!this.Form_CustomValidate(fobj))
@@ -2420,13 +2791,10 @@ ftelefonoslistsrch.Form_CustomValidate =
 ftelefonoslistsrch.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-ftelefonoslistsrch.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-ftelefonoslistsrch.Lists["x_id_persona"].Data = "<?php echo $telefonos_list->id_persona->LookupFilterQuery(FALSE, "extbs") ?>";
-ftelefonoslistsrch.Lists["x_tipo"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
-ftelefonoslistsrch.Lists["x_tipo"].Options = <?php echo json_encode($telefonos_list->tipo->Options()) ?>;
-
-// Init search panel as collapsed
-if (ftelefonoslistsrch) ftelefonoslistsrch.InitSearchPanel = true;
+ftelefonoslistsrch.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+ftelefonoslistsrch.Lists["x_id_fuente"].Data = "<?php echo $telefonos_list->id_fuente->LookupFilterQuery(FALSE, "extbs") ?>";
+ftelefonoslistsrch.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+ftelefonoslistsrch.Lists["x_id_gestion"].Data = "<?php echo $telefonos_list->id_gestion->LookupFilterQuery(FALSE, "extbs") ?>";
 </script>
 <script type="text/javascript">
 
@@ -2446,17 +2814,6 @@ if (ftelefonoslistsrch) ftelefonoslistsrch.InitSearchPanel = true;
 <?php } ?>
 <div class="clearfix"></div>
 </div>
-<?php } ?>
-<?php if (($telefonos->Export == "") || (EW_EXPORT_MASTER_RECORD && $telefonos->Export == "print")) { ?>
-<?php
-if ($telefonos_list->DbMasterFilter <> "" && $telefonos->getCurrentMasterTable() == "personas") {
-	if ($telefonos_list->MasterRecordExists) {
-?>
-<?php include_once "personasmaster.php" ?>
-<?php
-	}
-}
-?>
 <?php } ?>
 <?php
 	$bSelectLimit = $telefonos_list->UseSelectLimit;
@@ -2506,69 +2863,124 @@ $telefonos->ResetAttrs();
 $telefonos_list->RenderRow();
 ?>
 <div id="xsr_1" class="ewRow">
-<?php if ($telefonos->id_persona->Visible) { // id_persona ?>
-	<div id="xsc_id_persona" class="ewCell form-group">
-		<label for="x_id_persona" class="ewSearchCaption ewLabel"><?php echo $telefonos->id_persona->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_persona" id="z_id_persona" value="="></span>
+<?php if ($telefonos->id_fuente->Visible) { // id_fuente ?>
+	<div id="xsc_id_fuente" class="ewCell form-group">
+		<label for="x_id_fuente" class="ewSearchCaption ewLabel"><?php echo $telefonos->id_fuente->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_fuente" id="z_id_fuente" value="="></span>
 		<span class="ewSearchField">
-<select data-table="telefonos" data-field="x_id_persona" data-value-separator="<?php echo $telefonos->id_persona->DisplayValueSeparatorAttribute() ?>" id="x_id_persona" name="x_id_persona"<?php echo $telefonos->id_persona->EditAttributes() ?>>
-<?php echo $telefonos->id_persona->SelectOptionListHtml("x_id_persona") ?>
+<select data-table="telefonos" data-field="x_id_fuente" data-value-separator="<?php echo $telefonos->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x_id_fuente" name="x_id_fuente"<?php echo $telefonos->id_fuente->EditAttributes() ?>>
+<?php echo $telefonos->id_fuente->SelectOptionListHtml("x_id_fuente") ?>
+</select>
+</span>
+	</div>
+<?php } ?>
+<?php if ($telefonos->id_gestion->Visible) { // id_gestion ?>
+	<div id="xsc_id_gestion" class="ewCell form-group">
+		<label for="x_id_gestion" class="ewSearchCaption ewLabel"><?php echo $telefonos->id_gestion->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("=") ?><input type="hidden" name="z_id_gestion" id="z_id_gestion" value="="></span>
+		<span class="ewSearchField">
+<select data-table="telefonos" data-field="x_id_gestion" data-value-separator="<?php echo $telefonos->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x_id_gestion" name="x_id_gestion"<?php echo $telefonos->id_gestion->EditAttributes() ?>>
+<?php echo $telefonos->id_gestion->SelectOptionListHtml("x_id_gestion") ?>
 </select>
 </span>
 	</div>
 <?php } ?>
 </div>
 <div id="xsr_2" class="ewRow">
-<?php if ($telefonos->tipo->Visible) { // tipo ?>
-	<div id="xsc_tipo" class="ewCell form-group">
-		<label for="x_tipo" class="ewSearchCaption ewLabel"><?php echo $telefonos->tipo->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_tipo" id="z_tipo" value="LIKE"></span>
+<?php if ($telefonos->no_documento->Visible) { // no_documento ?>
+	<div id="xsc_no_documento" class="ewCell form-group">
+		<label for="x_no_documento" class="ewSearchCaption ewLabel"><?php echo $telefonos->no_documento->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_no_documento" id="z_no_documento" value="LIKE"></span>
 		<span class="ewSearchField">
-<select data-table="telefonos" data-field="x_tipo" data-value-separator="<?php echo $telefonos->tipo->DisplayValueSeparatorAttribute() ?>" id="x_tipo" name="x_tipo"<?php echo $telefonos->tipo->EditAttributes() ?>>
-<?php echo $telefonos->tipo->SelectOptionListHtml("x_tipo") ?>
-</select>
+<input type="text" data-table="telefonos" data-field="x_no_documento" name="x_no_documento" id="x_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->no_documento->getPlaceHolder()) ?>" value="<?php echo $telefonos->no_documento->EditValue ?>"<?php echo $telefonos->no_documento->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($telefonos->nombres->Visible) { // nombres ?>
+	<div id="xsc_nombres" class="ewCell form-group">
+		<label for="x_nombres" class="ewSearchCaption ewLabel"><?php echo $telefonos->nombres->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_nombres" id="z_nombres" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="telefonos" data-field="x_nombres" name="x_nombres" id="x_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->nombres->getPlaceHolder()) ?>" value="<?php echo $telefonos->nombres->EditValue ?>"<?php echo $telefonos->nombres->EditAttributes() ?>>
 </span>
 	</div>
 <?php } ?>
 </div>
 <div id="xsr_3" class="ewRow">
-<?php if ($telefonos->numero->Visible) { // numero ?>
-	<div id="xsc_numero" class="ewCell form-group">
-		<label for="x_numero" class="ewSearchCaption ewLabel"><?php echo $telefonos->numero->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_numero" id="z_numero" value="LIKE"></span>
+<?php if ($telefonos->paterno->Visible) { // paterno ?>
+	<div id="xsc_paterno" class="ewCell form-group">
+		<label for="x_paterno" class="ewSearchCaption ewLabel"><?php echo $telefonos->paterno->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_paterno" id="z_paterno" value="LIKE"></span>
 		<span class="ewSearchField">
-<input type="text" data-table="telefonos" data-field="x_numero" name="x_numero" id="x_numero" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->numero->getPlaceHolder()) ?>" value="<?php echo $telefonos->numero->EditValue ?>"<?php echo $telefonos->numero->EditAttributes() ?>>
+<input type="text" data-table="telefonos" data-field="x_paterno" name="x_paterno" id="x_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->paterno->getPlaceHolder()) ?>" value="<?php echo $telefonos->paterno->EditValue ?>"<?php echo $telefonos->paterno->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($telefonos->materno->Visible) { // materno ?>
+	<div id="xsc_materno" class="ewCell form-group">
+		<label for="x_materno" class="ewSearchCaption ewLabel"><?php echo $telefonos->materno->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_materno" id="z_materno" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="telefonos" data-field="x_materno" name="x_materno" id="x_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->materno->getPlaceHolder()) ?>" value="<?php echo $telefonos->materno->EditValue ?>"<?php echo $telefonos->materno->EditAttributes() ?>>
 </span>
 	</div>
 <?php } ?>
 </div>
 <div id="xsr_4" class="ewRow">
-<?php if ($telefonos->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-	<div id="xsc_ult_fecha_activo" class="ewCell form-group">
-		<label for="x_ult_fecha_activo" class="ewSearchCaption ewLabel"><?php echo $telefonos->ult_fecha_activo->FldCaption() ?></label>
-		<span class="ewSearchOperator"><?php echo $Language->Phrase("BETWEEN") ?><input type="hidden" name="z_ult_fecha_activo" id="z_ult_fecha_activo" value="BETWEEN"></span>
+<?php if ($telefonos->telefono1->Visible) { // telefono1 ?>
+	<div id="xsc_telefono1" class="ewCell form-group">
+		<label for="x_telefono1" class="ewSearchCaption ewLabel"><?php echo $telefonos->telefono1->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_telefono1" id="z_telefono1" value="LIKE"></span>
 		<span class="ewSearchField">
-<input type="text" data-table="telefonos" data-field="x_ult_fecha_activo" data-format="7" name="x_ult_fecha_activo" id="x_ult_fecha_activo" size="20" placeholder="<?php echo ew_HtmlEncode($telefonos->ult_fecha_activo->getPlaceHolder()) ?>" value="<?php echo $telefonos->ult_fecha_activo->EditValue ?>"<?php echo $telefonos->ult_fecha_activo->EditAttributes() ?>>
-<?php if (!$telefonos->ult_fecha_activo->ReadOnly && !$telefonos->ult_fecha_activo->Disabled && !isset($telefonos->ult_fecha_activo->EditAttrs["readonly"]) && !isset($telefonos->ult_fecha_activo->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("ftelefonoslistsrch", "x_ult_fecha_activo", {"ignoreReadonly":true,"useCurrent":false,"format":7});
-</script>
-<?php } ?>
+<input type="text" data-table="telefonos" data-field="x_telefono1" name="x_telefono1" id="x_telefono1" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono1->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono1->EditValue ?>"<?php echo $telefonos->telefono1->EditAttributes() ?>>
 </span>
-		<span class="ewSearchCond btw1_ult_fecha_activo">&nbsp;<?php echo $Language->Phrase("AND") ?>&nbsp;</span>
-		<span class="ewSearchField btw1_ult_fecha_activo">
-<input type="text" data-table="telefonos" data-field="x_ult_fecha_activo" data-format="7" name="y_ult_fecha_activo" id="y_ult_fecha_activo" size="20" placeholder="<?php echo ew_HtmlEncode($telefonos->ult_fecha_activo->getPlaceHolder()) ?>" value="<?php echo $telefonos->ult_fecha_activo->EditValue2 ?>"<?php echo $telefonos->ult_fecha_activo->EditAttributes() ?>>
-<?php if (!$telefonos->ult_fecha_activo->ReadOnly && !$telefonos->ult_fecha_activo->Disabled && !isset($telefonos->ult_fecha_activo->EditAttrs["readonly"]) && !isset($telefonos->ult_fecha_activo->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("ftelefonoslistsrch", "y_ult_fecha_activo", {"ignoreReadonly":true,"useCurrent":false,"format":7});
-</script>
+	</div>
 <?php } ?>
+<?php if ($telefonos->telefono2->Visible) { // telefono2 ?>
+	<div id="xsc_telefono2" class="ewCell form-group">
+		<label for="x_telefono2" class="ewSearchCaption ewLabel"><?php echo $telefonos->telefono2->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_telefono2" id="z_telefono2" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="telefonos" data-field="x_telefono2" name="x_telefono2" id="x_telefono2" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono2->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono2->EditValue ?>"<?php echo $telefonos->telefono2->EditAttributes() ?>>
 </span>
 	</div>
 <?php } ?>
 </div>
 <div id="xsr_5" class="ewRow">
+<?php if ($telefonos->telefono3->Visible) { // telefono3 ?>
+	<div id="xsc_telefono3" class="ewCell form-group">
+		<label for="x_telefono3" class="ewSearchCaption ewLabel"><?php echo $telefonos->telefono3->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_telefono3" id="z_telefono3" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="telefonos" data-field="x_telefono3" name="x_telefono3" id="x_telefono3" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono3->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono3->EditValue ?>"<?php echo $telefonos->telefono3->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+<?php if ($telefonos->telefono4->Visible) { // telefono4 ?>
+	<div id="xsc_telefono4" class="ewCell form-group">
+		<label for="x_telefono4" class="ewSearchCaption ewLabel"><?php echo $telefonos->telefono4->FldCaption() ?></label>
+		<span class="ewSearchOperator"><?php echo $Language->Phrase("LIKE") ?><input type="hidden" name="z_telefono4" id="z_telefono4" value="LIKE"></span>
+		<span class="ewSearchField">
+<input type="text" data-table="telefonos" data-field="x_telefono4" name="x_telefono4" id="x_telefono4" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono4->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono4->EditValue ?>"<?php echo $telefonos->telefono4->EditAttributes() ?>>
+</span>
+	</div>
+<?php } ?>
+</div>
+<div id="xsr_6" class="ewRow">
+	<div class="ewQuickSearch input-group">
+	<input type="text" name="<?php echo EW_TABLE_BASIC_SEARCH ?>" id="<?php echo EW_TABLE_BASIC_SEARCH ?>" class="form-control" value="<?php echo ew_HtmlEncode($telefonos_list->BasicSearch->getKeyword()) ?>" placeholder="<?php echo ew_HtmlEncode($Language->Phrase("Search")) ?>">
+	<input type="hidden" name="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" id="<?php echo EW_TABLE_BASIC_SEARCH_TYPE ?>" value="<?php echo ew_HtmlEncode($telefonos_list->BasicSearch->getType()) ?>">
+	<div class="input-group-btn">
+		<button type="button" data-toggle="dropdown" class="btn btn-default"><span id="searchtype"><?php echo $telefonos_list->BasicSearch->getTypeNameShort() ?></span><span class="caret"></span></button>
+		<ul class="dropdown-menu pull-right" role="menu">
+			<li<?php if ($telefonos_list->BasicSearch->getType() == "") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this)"><?php echo $Language->Phrase("QuickSearchAuto") ?></a></li>
+			<li<?php if ($telefonos_list->BasicSearch->getType() == "=") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'=')"><?php echo $Language->Phrase("QuickSearchExact") ?></a></li>
+			<li<?php if ($telefonos_list->BasicSearch->getType() == "AND") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'AND')"><?php echo $Language->Phrase("QuickSearchAll") ?></a></li>
+			<li<?php if ($telefonos_list->BasicSearch->getType() == "OR") echo " class=\"active\""; ?>><a href="javascript:void(0);" onclick="ew_SetSearchType(this,'OR')"><?php echo $Language->Phrase("QuickSearchAny") ?></a></li>
+		</ul>
 	<button class="btn btn-primary ewButton" name="btnsubmit" id="btnsubmit" type="submit"><?php echo $Language->Phrase("SearchBtn") ?></button>
+	</div>
+	</div>
 </div>
 	</div>
 </div>
@@ -2644,10 +3056,6 @@ $telefonos_list->ShowMessage();
 <input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $telefonos_list->Token ?>">
 <?php } ?>
 <input type="hidden" name="t" value="telefonos">
-<?php if ($telefonos->getCurrentMasterTable() == "personas" && $telefonos->CurrentAction <> "") { ?>
-<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="personas">
-<input type="hidden" name="fk_Id" value="<?php echo $telefonos->id_persona->getSessionValue() ?>">
-<?php } ?>
 <div id="gmp_telefonos" class="<?php if (ew_IsResponsiveLayout()) { ?>table-responsive <?php } ?>ewGridMiddlePanel">
 <?php if ($telefonos_list->TotalRecs > 0 || $telefonos->CurrentAction == "gridedit") { ?>
 <table id="tbl_telefonoslist" class="table ewTable">
@@ -2673,39 +3081,102 @@ $telefonos_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($telefonos->id_persona->Visible) { // id_persona ?>
-	<?php if ($telefonos->SortUrl($telefonos->id_persona) == "") { ?>
-		<th data-name="id_persona" class="<?php echo $telefonos->id_persona->HeaderCellClass() ?>"><div id="elh_telefonos_id_persona" class="telefonos_id_persona"><div class="ewTableHeaderCaption"><?php echo $telefonos->id_persona->FldCaption() ?></div></div></th>
+<?php if ($telefonos->id_fuente->Visible) { // id_fuente ?>
+	<?php if ($telefonos->SortUrl($telefonos->id_fuente) == "") { ?>
+		<th data-name="id_fuente" class="<?php echo $telefonos->id_fuente->HeaderCellClass() ?>"><div id="elh_telefonos_id_fuente" class="telefonos_id_fuente"><div class="ewTableHeaderCaption"><?php echo $telefonos->id_fuente->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="id_persona" class="<?php echo $telefonos->id_persona->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->id_persona) ?>',1);"><div id="elh_telefonos_id_persona" class="telefonos_id_persona">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->id_persona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->id_persona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->id_persona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_fuente" class="<?php echo $telefonos->id_fuente->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->id_fuente) ?>',1);"><div id="elh_telefonos_id_fuente" class="telefonos_id_fuente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->id_fuente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->id_fuente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->id_fuente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($telefonos->tipo->Visible) { // tipo ?>
-	<?php if ($telefonos->SortUrl($telefonos->tipo) == "") { ?>
-		<th data-name="tipo" class="<?php echo $telefonos->tipo->HeaderCellClass() ?>"><div id="elh_telefonos_tipo" class="telefonos_tipo"><div class="ewTableHeaderCaption"><?php echo $telefonos->tipo->FldCaption() ?></div></div></th>
+<?php if ($telefonos->id_gestion->Visible) { // id_gestion ?>
+	<?php if ($telefonos->SortUrl($telefonos->id_gestion) == "") { ?>
+		<th data-name="id_gestion" class="<?php echo $telefonos->id_gestion->HeaderCellClass() ?>"><div id="elh_telefonos_id_gestion" class="telefonos_id_gestion"><div class="ewTableHeaderCaption"><?php echo $telefonos->id_gestion->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="tipo" class="<?php echo $telefonos->tipo->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->tipo) ?>',1);"><div id="elh_telefonos_tipo" class="telefonos_tipo">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->tipo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->tipo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->tipo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="id_gestion" class="<?php echo $telefonos->id_gestion->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->id_gestion) ?>',1);"><div id="elh_telefonos_id_gestion" class="telefonos_id_gestion">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->id_gestion->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->id_gestion->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->id_gestion->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($telefonos->numero->Visible) { // numero ?>
-	<?php if ($telefonos->SortUrl($telefonos->numero) == "") { ?>
-		<th data-name="numero" class="<?php echo $telefonos->numero->HeaderCellClass() ?>"><div id="elh_telefonos_numero" class="telefonos_numero"><div class="ewTableHeaderCaption"><?php echo $telefonos->numero->FldCaption() ?></div></div></th>
+<?php if ($telefonos->tipo_documento->Visible) { // tipo_documento ?>
+	<?php if ($telefonos->SortUrl($telefonos->tipo_documento) == "") { ?>
+		<th data-name="tipo_documento" class="<?php echo $telefonos->tipo_documento->HeaderCellClass() ?>"><div id="elh_telefonos_tipo_documento" class="telefonos_tipo_documento"><div class="ewTableHeaderCaption"><?php echo $telefonos->tipo_documento->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="numero" class="<?php echo $telefonos->numero->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->numero) ?>',1);"><div id="elh_telefonos_numero" class="telefonos_numero">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->numero->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->numero->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->numero->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="tipo_documento" class="<?php echo $telefonos->tipo_documento->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->tipo_documento) ?>',1);"><div id="elh_telefonos_tipo_documento" class="telefonos_tipo_documento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->tipo_documento->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->tipo_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->tipo_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
-<?php if ($telefonos->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-	<?php if ($telefonos->SortUrl($telefonos->ult_fecha_activo) == "") { ?>
-		<th data-name="ult_fecha_activo" class="<?php echo $telefonos->ult_fecha_activo->HeaderCellClass() ?>"><div id="elh_telefonos_ult_fecha_activo" class="telefonos_ult_fecha_activo"><div class="ewTableHeaderCaption"><?php echo $telefonos->ult_fecha_activo->FldCaption() ?></div></div></th>
+<?php if ($telefonos->no_documento->Visible) { // no_documento ?>
+	<?php if ($telefonos->SortUrl($telefonos->no_documento) == "") { ?>
+		<th data-name="no_documento" class="<?php echo $telefonos->no_documento->HeaderCellClass() ?>"><div id="elh_telefonos_no_documento" class="telefonos_no_documento"><div class="ewTableHeaderCaption"><?php echo $telefonos->no_documento->FldCaption() ?></div></div></th>
 	<?php } else { ?>
-		<th data-name="ult_fecha_activo" class="<?php echo $telefonos->ult_fecha_activo->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->ult_fecha_activo) ?>',1);"><div id="elh_telefonos_ult_fecha_activo" class="telefonos_ult_fecha_activo">
-			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->ult_fecha_activo->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->ult_fecha_activo->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->ult_fecha_activo->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		<th data-name="no_documento" class="<?php echo $telefonos->no_documento->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->no_documento) ?>',1);"><div id="elh_telefonos_no_documento" class="telefonos_no_documento">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->no_documento->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->no_documento->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->no_documento->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->nombres->Visible) { // nombres ?>
+	<?php if ($telefonos->SortUrl($telefonos->nombres) == "") { ?>
+		<th data-name="nombres" class="<?php echo $telefonos->nombres->HeaderCellClass() ?>"><div id="elh_telefonos_nombres" class="telefonos_nombres"><div class="ewTableHeaderCaption"><?php echo $telefonos->nombres->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="nombres" class="<?php echo $telefonos->nombres->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->nombres) ?>',1);"><div id="elh_telefonos_nombres" class="telefonos_nombres">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->nombres->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->nombres->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->nombres->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->paterno->Visible) { // paterno ?>
+	<?php if ($telefonos->SortUrl($telefonos->paterno) == "") { ?>
+		<th data-name="paterno" class="<?php echo $telefonos->paterno->HeaderCellClass() ?>"><div id="elh_telefonos_paterno" class="telefonos_paterno"><div class="ewTableHeaderCaption"><?php echo $telefonos->paterno->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="paterno" class="<?php echo $telefonos->paterno->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->paterno) ?>',1);"><div id="elh_telefonos_paterno" class="telefonos_paterno">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->paterno->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->paterno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->paterno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->materno->Visible) { // materno ?>
+	<?php if ($telefonos->SortUrl($telefonos->materno) == "") { ?>
+		<th data-name="materno" class="<?php echo $telefonos->materno->HeaderCellClass() ?>"><div id="elh_telefonos_materno" class="telefonos_materno"><div class="ewTableHeaderCaption"><?php echo $telefonos->materno->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="materno" class="<?php echo $telefonos->materno->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->materno) ?>',1);"><div id="elh_telefonos_materno" class="telefonos_materno">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->materno->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->materno->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->materno->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->telefono1->Visible) { // telefono1 ?>
+	<?php if ($telefonos->SortUrl($telefonos->telefono1) == "") { ?>
+		<th data-name="telefono1" class="<?php echo $telefonos->telefono1->HeaderCellClass() ?>"><div id="elh_telefonos_telefono1" class="telefonos_telefono1"><div class="ewTableHeaderCaption"><?php echo $telefonos->telefono1->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="telefono1" class="<?php echo $telefonos->telefono1->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->telefono1) ?>',1);"><div id="elh_telefonos_telefono1" class="telefonos_telefono1">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->telefono1->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->telefono1->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->telefono1->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->telefono2->Visible) { // telefono2 ?>
+	<?php if ($telefonos->SortUrl($telefonos->telefono2) == "") { ?>
+		<th data-name="telefono2" class="<?php echo $telefonos->telefono2->HeaderCellClass() ?>"><div id="elh_telefonos_telefono2" class="telefonos_telefono2"><div class="ewTableHeaderCaption"><?php echo $telefonos->telefono2->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="telefono2" class="<?php echo $telefonos->telefono2->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->telefono2) ?>',1);"><div id="elh_telefonos_telefono2" class="telefonos_telefono2">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->telefono2->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->telefono2->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->telefono2->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->telefono3->Visible) { // telefono3 ?>
+	<?php if ($telefonos->SortUrl($telefonos->telefono3) == "") { ?>
+		<th data-name="telefono3" class="<?php echo $telefonos->telefono3->HeaderCellClass() ?>"><div id="elh_telefonos_telefono3" class="telefonos_telefono3"><div class="ewTableHeaderCaption"><?php echo $telefonos->telefono3->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="telefono3" class="<?php echo $telefonos->telefono3->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->telefono3) ?>',1);"><div id="elh_telefonos_telefono3" class="telefonos_telefono3">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->telefono3->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->telefono3->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->telefono3->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($telefonos->telefono4->Visible) { // telefono4 ?>
+	<?php if ($telefonos->SortUrl($telefonos->telefono4) == "") { ?>
+		<th data-name="telefono4" class="<?php echo $telefonos->telefono4->HeaderCellClass() ?>"><div id="elh_telefonos_telefono4" class="telefonos_telefono4"><div class="ewTableHeaderCaption"><?php echo $telefonos->telefono4->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="telefono4" class="<?php echo $telefonos->telefono4->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $telefonos->SortUrl($telefonos->telefono4) ?>',1);"><div id="elh_telefonos_telefono4" class="telefonos_telefono4">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $telefonos->telefono4->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($telefonos->telefono4->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($telefonos->telefono4->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2782,40 +3253,91 @@ $telefonos_list->ListOptions->Render("body", "left", $telefonos_list->RowCnt);
 </span>
 </td>
 	<?php } ?>
-	<?php if ($telefonos->id_persona->Visible) { // id_persona ?>
-		<td data-name="id_persona"<?php echo $telefonos->id_persona->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_id_persona" class="telefonos_id_persona">
-<span<?php echo $telefonos->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($telefonos->id_persona->ListViewValue())) && $telefonos->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $telefonos->id_persona->LinkAttributes() ?>><?php echo $telefonos->id_persona->ListViewValue() ?></a>
-<?php } else { ?>
-<?php echo $telefonos->id_persona->ListViewValue() ?>
-<?php } ?>
-</span>
+	<?php if ($telefonos->id_fuente->Visible) { // id_fuente ?>
+		<td data-name="id_fuente"<?php echo $telefonos->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_id_fuente" class="telefonos_id_fuente">
+<span<?php echo $telefonos->id_fuente->ViewAttributes() ?>>
+<?php echo $telefonos->id_fuente->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>
-	<?php if ($telefonos->tipo->Visible) { // tipo ?>
-		<td data-name="tipo"<?php echo $telefonos->tipo->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_tipo" class="telefonos_tipo">
-<span<?php echo $telefonos->tipo->ViewAttributes() ?>>
-<?php echo $telefonos->tipo->ListViewValue() ?></span>
+	<?php if ($telefonos->id_gestion->Visible) { // id_gestion ?>
+		<td data-name="id_gestion"<?php echo $telefonos->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_id_gestion" class="telefonos_id_gestion">
+<span<?php echo $telefonos->id_gestion->ViewAttributes() ?>>
+<?php echo $telefonos->id_gestion->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>
-	<?php if ($telefonos->numero->Visible) { // numero ?>
-		<td data-name="numero"<?php echo $telefonos->numero->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_numero" class="telefonos_numero">
-<span<?php echo $telefonos->numero->ViewAttributes() ?>>
-<?php echo $telefonos->numero->ListViewValue() ?></span>
+	<?php if ($telefonos->tipo_documento->Visible) { // tipo_documento ?>
+		<td data-name="tipo_documento"<?php echo $telefonos->tipo_documento->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_tipo_documento" class="telefonos_tipo_documento">
+<span<?php echo $telefonos->tipo_documento->ViewAttributes() ?>>
+<?php echo $telefonos->tipo_documento->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>
-	<?php if ($telefonos->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-		<td data-name="ult_fecha_activo"<?php echo $telefonos->ult_fecha_activo->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_ult_fecha_activo" class="telefonos_ult_fecha_activo">
-<span<?php echo $telefonos->ult_fecha_activo->ViewAttributes() ?>>
-<?php echo $telefonos->ult_fecha_activo->ListViewValue() ?></span>
+	<?php if ($telefonos->no_documento->Visible) { // no_documento ?>
+		<td data-name="no_documento"<?php echo $telefonos->no_documento->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_no_documento" class="telefonos_no_documento">
+<span<?php echo $telefonos->no_documento->ViewAttributes() ?>>
+<?php echo $telefonos->no_documento->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->nombres->Visible) { // nombres ?>
+		<td data-name="nombres"<?php echo $telefonos->nombres->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_nombres" class="telefonos_nombres">
+<span<?php echo $telefonos->nombres->ViewAttributes() ?>>
+<?php echo $telefonos->nombres->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->paterno->Visible) { // paterno ?>
+		<td data-name="paterno"<?php echo $telefonos->paterno->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_paterno" class="telefonos_paterno">
+<span<?php echo $telefonos->paterno->ViewAttributes() ?>>
+<?php echo $telefonos->paterno->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->materno->Visible) { // materno ?>
+		<td data-name="materno"<?php echo $telefonos->materno->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_materno" class="telefonos_materno">
+<span<?php echo $telefonos->materno->ViewAttributes() ?>>
+<?php echo $telefonos->materno->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->telefono1->Visible) { // telefono1 ?>
+		<td data-name="telefono1"<?php echo $telefonos->telefono1->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_telefono1" class="telefonos_telefono1">
+<span<?php echo $telefonos->telefono1->ViewAttributes() ?>>
+<?php echo $telefonos->telefono1->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->telefono2->Visible) { // telefono2 ?>
+		<td data-name="telefono2"<?php echo $telefonos->telefono2->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_telefono2" class="telefonos_telefono2">
+<span<?php echo $telefonos->telefono2->ViewAttributes() ?>>
+<?php echo $telefonos->telefono2->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->telefono3->Visible) { // telefono3 ?>
+		<td data-name="telefono3"<?php echo $telefonos->telefono3->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_telefono3" class="telefonos_telefono3">
+<span<?php echo $telefonos->telefono3->ViewAttributes() ?>>
+<?php echo $telefonos->telefono3->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($telefonos->telefono4->Visible) { // telefono4 ?>
+		<td data-name="telefono4"<?php echo $telefonos->telefono4->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_list->RowCnt ?>_telefonos_telefono4" class="telefonos_telefono4">
+<span<?php echo $telefonos->telefono4->ViewAttributes() ?>>
+<?php echo $telefonos->telefono4->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

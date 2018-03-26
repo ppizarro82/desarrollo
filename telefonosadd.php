@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "telefonosinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -260,9 +259,6 @@ class ctelefonos_add extends ctelefonos {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'add', TRUE);
@@ -324,10 +320,20 @@ class ctelefonos_add extends ctelefonos {
 
 		$objForm = new cFormObj();
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
-		$this->id_persona->SetVisibility();
-		$this->tipo->SetVisibility();
-		$this->numero->SetVisibility();
-		$this->ult_fecha_activo->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->telefono1->SetVisibility();
+		$this->telefono2->SetVisibility();
+		$this->telefono3->SetVisibility();
+		$this->telefono4->SetVisibility();
+
+		// Set up multi page object
+		$this->SetupMultiPages();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -427,6 +433,7 @@ class ctelefonos_add extends ctelefonos {
 	var $Priv = 0;
 	var $OldRecordset;
 	var $CopyRecord;
+	var $MultiPages; // Multi pages object
 
 	//
 	// Page main
@@ -440,9 +447,6 @@ class ctelefonos_add extends ctelefonos {
 			$gbSkipHeaderFooter = TRUE;
 		$this->IsMobileOrModal = ew_IsMobile() || $this->IsModal;
 		$this->FormClassName = "ewForm ewAddForm form-horizontal";
-
-		// Set up master/detail parameters
-		$this->SetupMasterParms();
 
 		// Set up current action
 		if (@$_POST["a_add"] <> "") {
@@ -532,12 +536,26 @@ class ctelefonos_add extends ctelefonos {
 	function LoadDefaultValues() {
 		$this->Id->CurrentValue = NULL;
 		$this->Id->OldValue = $this->Id->CurrentValue;
-		$this->id_persona->CurrentValue = 0;
-		$this->tipo->CurrentValue = NULL;
-		$this->tipo->OldValue = $this->tipo->CurrentValue;
-		$this->numero->CurrentValue = NULL;
-		$this->numero->OldValue = $this->numero->CurrentValue;
-		$this->ult_fecha_activo->CurrentValue = "0000-00-00 00:00:00";
+		$this->id_fuente->CurrentValue = 0;
+		$this->id_gestion->CurrentValue = 0;
+		$this->tipo_documento->CurrentValue = NULL;
+		$this->tipo_documento->OldValue = $this->tipo_documento->CurrentValue;
+		$this->no_documento->CurrentValue = NULL;
+		$this->no_documento->OldValue = $this->no_documento->CurrentValue;
+		$this->nombres->CurrentValue = NULL;
+		$this->nombres->OldValue = $this->nombres->CurrentValue;
+		$this->paterno->CurrentValue = NULL;
+		$this->paterno->OldValue = $this->paterno->CurrentValue;
+		$this->materno->CurrentValue = NULL;
+		$this->materno->OldValue = $this->materno->CurrentValue;
+		$this->telefono1->CurrentValue = NULL;
+		$this->telefono1->OldValue = $this->telefono1->CurrentValue;
+		$this->telefono2->CurrentValue = NULL;
+		$this->telefono2->OldValue = $this->telefono2->CurrentValue;
+		$this->telefono3->CurrentValue = NULL;
+		$this->telefono3->OldValue = $this->telefono3->CurrentValue;
+		$this->telefono4->CurrentValue = NULL;
+		$this->telefono4->OldValue = $this->telefono4->CurrentValue;
 	}
 
 	// Load form values
@@ -545,29 +563,55 @@ class ctelefonos_add extends ctelefonos {
 
 		// Load from form
 		global $objForm;
-		if (!$this->id_persona->FldIsDetailKey) {
-			$this->id_persona->setFormValue($objForm->GetValue("x_id_persona"));
+		if (!$this->id_fuente->FldIsDetailKey) {
+			$this->id_fuente->setFormValue($objForm->GetValue("x_id_fuente"));
 		}
-		if (!$this->tipo->FldIsDetailKey) {
-			$this->tipo->setFormValue($objForm->GetValue("x_tipo"));
+		if (!$this->id_gestion->FldIsDetailKey) {
+			$this->id_gestion->setFormValue($objForm->GetValue("x_id_gestion"));
 		}
-		if (!$this->numero->FldIsDetailKey) {
-			$this->numero->setFormValue($objForm->GetValue("x_numero"));
+		if (!$this->tipo_documento->FldIsDetailKey) {
+			$this->tipo_documento->setFormValue($objForm->GetValue("x_tipo_documento"));
 		}
-		if (!$this->ult_fecha_activo->FldIsDetailKey) {
-			$this->ult_fecha_activo->setFormValue($objForm->GetValue("x_ult_fecha_activo"));
-			$this->ult_fecha_activo->CurrentValue = ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7);
+		if (!$this->no_documento->FldIsDetailKey) {
+			$this->no_documento->setFormValue($objForm->GetValue("x_no_documento"));
+		}
+		if (!$this->nombres->FldIsDetailKey) {
+			$this->nombres->setFormValue($objForm->GetValue("x_nombres"));
+		}
+		if (!$this->paterno->FldIsDetailKey) {
+			$this->paterno->setFormValue($objForm->GetValue("x_paterno"));
+		}
+		if (!$this->materno->FldIsDetailKey) {
+			$this->materno->setFormValue($objForm->GetValue("x_materno"));
+		}
+		if (!$this->telefono1->FldIsDetailKey) {
+			$this->telefono1->setFormValue($objForm->GetValue("x_telefono1"));
+		}
+		if (!$this->telefono2->FldIsDetailKey) {
+			$this->telefono2->setFormValue($objForm->GetValue("x_telefono2"));
+		}
+		if (!$this->telefono3->FldIsDetailKey) {
+			$this->telefono3->setFormValue($objForm->GetValue("x_telefono3"));
+		}
+		if (!$this->telefono4->FldIsDetailKey) {
+			$this->telefono4->setFormValue($objForm->GetValue("x_telefono4"));
 		}
 	}
 
 	// Restore form values
 	function RestoreFormValues() {
 		global $objForm;
-		$this->id_persona->CurrentValue = $this->id_persona->FormValue;
-		$this->tipo->CurrentValue = $this->tipo->FormValue;
-		$this->numero->CurrentValue = $this->numero->FormValue;
-		$this->ult_fecha_activo->CurrentValue = $this->ult_fecha_activo->FormValue;
-		$this->ult_fecha_activo->CurrentValue = ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7);
+		$this->id_fuente->CurrentValue = $this->id_fuente->FormValue;
+		$this->id_gestion->CurrentValue = $this->id_gestion->FormValue;
+		$this->tipo_documento->CurrentValue = $this->tipo_documento->FormValue;
+		$this->no_documento->CurrentValue = $this->no_documento->FormValue;
+		$this->nombres->CurrentValue = $this->nombres->FormValue;
+		$this->paterno->CurrentValue = $this->paterno->FormValue;
+		$this->materno->CurrentValue = $this->materno->FormValue;
+		$this->telefono1->CurrentValue = $this->telefono1->FormValue;
+		$this->telefono2->CurrentValue = $this->telefono2->FormValue;
+		$this->telefono3->CurrentValue = $this->telefono3->FormValue;
+		$this->telefono4->CurrentValue = $this->telefono4->FormValue;
 	}
 
 	// Load row based on key values
@@ -604,10 +648,17 @@ class ctelefonos_add extends ctelefonos {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->tipo->setDbValue($row['tipo']);
-		$this->numero->setDbValue($row['numero']);
-		$this->ult_fecha_activo->setDbValue($row['ult_fecha_activo']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->telefono1->setDbValue($row['telefono1']);
+		$this->telefono2->setDbValue($row['telefono2']);
+		$this->telefono3->setDbValue($row['telefono3']);
+		$this->telefono4->setDbValue($row['telefono4']);
 	}
 
 	// Return a row with default values
@@ -615,10 +666,17 @@ class ctelefonos_add extends ctelefonos {
 		$this->LoadDefaultValues();
 		$row = array();
 		$row['Id'] = $this->Id->CurrentValue;
-		$row['id_persona'] = $this->id_persona->CurrentValue;
-		$row['tipo'] = $this->tipo->CurrentValue;
-		$row['numero'] = $this->numero->CurrentValue;
-		$row['ult_fecha_activo'] = $this->ult_fecha_activo->CurrentValue;
+		$row['id_fuente'] = $this->id_fuente->CurrentValue;
+		$row['id_gestion'] = $this->id_gestion->CurrentValue;
+		$row['tipo_documento'] = $this->tipo_documento->CurrentValue;
+		$row['no_documento'] = $this->no_documento->CurrentValue;
+		$row['nombres'] = $this->nombres->CurrentValue;
+		$row['paterno'] = $this->paterno->CurrentValue;
+		$row['materno'] = $this->materno->CurrentValue;
+		$row['telefono1'] = $this->telefono1->CurrentValue;
+		$row['telefono2'] = $this->telefono2->CurrentValue;
+		$row['telefono3'] = $this->telefono3->CurrentValue;
+		$row['telefono4'] = $this->telefono4->CurrentValue;
 		return $row;
 	}
 
@@ -628,10 +686,17 @@ class ctelefonos_add extends ctelefonos {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->tipo->DbValue = $row['tipo'];
-		$this->numero->DbValue = $row['numero'];
-		$this->ult_fecha_activo->DbValue = $row['ult_fecha_activo'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->telefono1->DbValue = $row['telefono1'];
+		$this->telefono2->DbValue = $row['telefono2'];
+		$this->telefono3->DbValue = $row['telefono3'];
+		$this->telefono4->DbValue = $row['telefono4'];
 	}
 
 	// Load old record
@@ -667,10 +732,17 @@ class ctelefonos_add extends ctelefonos {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// tipo
-		// numero
-		// ult_fecha_activo
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// telefono1
+		// telefono2
+		// telefono3
+		// telefono4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -678,167 +750,289 @@ class ctelefonos_add extends ctelefonos {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// tipo
-		if (strval($this->tipo->CurrentValue) <> "") {
-			$this->tipo->ViewValue = $this->tipo->OptionCaption($this->tipo->CurrentValue);
-		} else {
-			$this->tipo->ViewValue = NULL;
-		}
-		$this->tipo->ViewCustomAttributes = "";
-
-		// numero
-		$this->numero->ViewValue = $this->numero->CurrentValue;
-		$this->numero->ViewCustomAttributes = "";
-
-		// ult_fecha_activo
-		$this->ult_fecha_activo->ViewValue = $this->ult_fecha_activo->CurrentValue;
-		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
-		$this->ult_fecha_activo->ViewCustomAttributes = "";
-
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
 			} else {
-				$this->id_persona->HrefValue = "";
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
 			}
-			$this->id_persona->TooltipValue = "";
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
 
-			// tipo
-			$this->tipo->LinkCustomAttributes = "";
-			$this->tipo->HrefValue = "";
-			$this->tipo->TooltipValue = "";
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
 
-			// numero
-			$this->numero->LinkCustomAttributes = "";
-			$this->numero->HrefValue = "";
-			$this->numero->TooltipValue = "";
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
 
-			// ult_fecha_activo
-			$this->ult_fecha_activo->LinkCustomAttributes = "";
-			$this->ult_fecha_activo->HrefValue = "";
-			$this->ult_fecha_activo->TooltipValue = "";
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// telefono1
+		$this->telefono1->ViewValue = $this->telefono1->CurrentValue;
+		$this->telefono1->ViewCustomAttributes = "";
+
+		// telefono2
+		$this->telefono2->ViewValue = $this->telefono2->CurrentValue;
+		$this->telefono2->ViewCustomAttributes = "";
+
+		// telefono3
+		$this->telefono3->ViewValue = $this->telefono3->CurrentValue;
+		$this->telefono3->ViewCustomAttributes = "";
+
+		// telefono4
+		$this->telefono4->ViewValue = $this->telefono4->CurrentValue;
+		$this->telefono4->ViewCustomAttributes = "";
+
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
+
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// telefono1
+			$this->telefono1->LinkCustomAttributes = "";
+			$this->telefono1->HrefValue = "";
+			$this->telefono1->TooltipValue = "";
+
+			// telefono2
+			$this->telefono2->LinkCustomAttributes = "";
+			$this->telefono2->HrefValue = "";
+			$this->telefono2->TooltipValue = "";
+
+			// telefono3
+			$this->telefono3->LinkCustomAttributes = "";
+			$this->telefono3->HrefValue = "";
+			$this->telefono3->TooltipValue = "";
+
+			// telefono4
+			$this->telefono4->LinkCustomAttributes = "";
+			$this->telefono4->HrefValue = "";
+			$this->telefono4->TooltipValue = "";
 		} elseif ($this->RowType == EW_ROWTYPE_ADD) { // Add row
 
-			// id_persona
-			$this->id_persona->EditAttrs["class"] = "form-control";
-			$this->id_persona->EditCustomAttributes = "";
-			if ($this->id_persona->getSessionValue() <> "") {
-				$this->id_persona->CurrentValue = $this->id_persona->getSessionValue();
-			if (strval($this->id_persona->CurrentValue) <> "") {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-			$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
-			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
-			$lookuptblfilter = "`estado`=1";
-			ew_AddFilter($sWhereWrk, $lookuptblfilter);
-			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
-			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
-				$rswrk = Conn()->Execute($sSqlWrk);
-				if ($rswrk && !$rswrk->EOF) { // Lookup values found
-					$arwrk = array();
-					$arwrk[1] = $rswrk->fields('DispFld');
-					$arwrk[2] = $rswrk->fields('Disp2Fld');
-					$arwrk[3] = $rswrk->fields('Disp3Fld');
-					$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
-					$rswrk->Close();
-				} else {
-					$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
-				}
-			} else {
-				$this->id_persona->ViewValue = NULL;
-			}
-			$this->id_persona->ViewCustomAttributes = "";
-			} else {
-			if (trim(strval($this->id_persona->CurrentValue)) == "") {
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if (trim(strval($this->id_fuente->CurrentValue)) == "") {
 				$sFilterWrk = "0=1";
 			} else {
-				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
 			}
-			$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `personas`";
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			ew_AddFilter($sWhereWrk, $sFilterWrk);
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
 			if ($rswrk) $rswrk->Close();
-			$this->id_persona->EditValue = $arwrk;
+			$this->id_fuente->EditValue = $arwrk;
+
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
 			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
 
-			// tipo
-			$this->tipo->EditAttrs["class"] = "form-control";
-			$this->tipo->EditCustomAttributes = "";
-			$this->tipo->EditValue = $this->tipo->Options(TRUE);
+			// tipo_documento
+			$this->tipo_documento->EditAttrs["class"] = "form-control";
+			$this->tipo_documento->EditCustomAttributes = "";
+			$this->tipo_documento->EditValue = ew_HtmlEncode($this->tipo_documento->CurrentValue);
+			$this->tipo_documento->PlaceHolder = ew_RemoveHtml($this->tipo_documento->FldCaption());
 
-			// numero
-			$this->numero->EditAttrs["class"] = "form-control";
-			$this->numero->EditCustomAttributes = "";
-			$this->numero->EditValue = ew_HtmlEncode($this->numero->CurrentValue);
-			$this->numero->PlaceHolder = ew_RemoveHtml($this->numero->FldCaption());
+			// no_documento
+			$this->no_documento->EditAttrs["class"] = "form-control";
+			$this->no_documento->EditCustomAttributes = "";
+			$this->no_documento->EditValue = ew_HtmlEncode($this->no_documento->CurrentValue);
+			$this->no_documento->PlaceHolder = ew_RemoveHtml($this->no_documento->FldCaption());
 
-			// ult_fecha_activo
-			$this->ult_fecha_activo->EditAttrs["class"] = "form-control";
-			$this->ult_fecha_activo->EditCustomAttributes = "";
-			$this->ult_fecha_activo->EditValue = ew_HtmlEncode(ew_FormatDateTime($this->ult_fecha_activo->CurrentValue, 7));
-			$this->ult_fecha_activo->PlaceHolder = ew_RemoveHtml($this->ult_fecha_activo->FldCaption());
+			// nombres
+			$this->nombres->EditAttrs["class"] = "form-control";
+			$this->nombres->EditCustomAttributes = "";
+			$this->nombres->EditValue = ew_HtmlEncode($this->nombres->CurrentValue);
+			$this->nombres->PlaceHolder = ew_RemoveHtml($this->nombres->FldCaption());
+
+			// paterno
+			$this->paterno->EditAttrs["class"] = "form-control";
+			$this->paterno->EditCustomAttributes = "";
+			$this->paterno->EditValue = ew_HtmlEncode($this->paterno->CurrentValue);
+			$this->paterno->PlaceHolder = ew_RemoveHtml($this->paterno->FldCaption());
+
+			// materno
+			$this->materno->EditAttrs["class"] = "form-control";
+			$this->materno->EditCustomAttributes = "";
+			$this->materno->EditValue = ew_HtmlEncode($this->materno->CurrentValue);
+			$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+			// telefono1
+			$this->telefono1->EditAttrs["class"] = "form-control";
+			$this->telefono1->EditCustomAttributes = "";
+			$this->telefono1->EditValue = ew_HtmlEncode($this->telefono1->CurrentValue);
+			$this->telefono1->PlaceHolder = ew_RemoveHtml($this->telefono1->FldCaption());
+
+			// telefono2
+			$this->telefono2->EditAttrs["class"] = "form-control";
+			$this->telefono2->EditCustomAttributes = "";
+			$this->telefono2->EditValue = ew_HtmlEncode($this->telefono2->CurrentValue);
+			$this->telefono2->PlaceHolder = ew_RemoveHtml($this->telefono2->FldCaption());
+
+			// telefono3
+			$this->telefono3->EditAttrs["class"] = "form-control";
+			$this->telefono3->EditCustomAttributes = "";
+			$this->telefono3->EditValue = ew_HtmlEncode($this->telefono3->CurrentValue);
+			$this->telefono3->PlaceHolder = ew_RemoveHtml($this->telefono3->FldCaption());
+
+			// telefono4
+			$this->telefono4->EditAttrs["class"] = "form-control";
+			$this->telefono4->EditCustomAttributes = "";
+			$this->telefono4->EditValue = ew_HtmlEncode($this->telefono4->CurrentValue);
+			$this->telefono4->PlaceHolder = ew_RemoveHtml($this->telefono4->FldCaption());
 
 			// Add refer script
-			// id_persona
+			// id_fuente
 
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
 
-			// tipo
-			$this->tipo->LinkCustomAttributes = "";
-			$this->tipo->HrefValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
 
-			// numero
-			$this->numero->LinkCustomAttributes = "";
-			$this->numero->HrefValue = "";
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
 
-			// ult_fecha_activo
-			$this->ult_fecha_activo->LinkCustomAttributes = "";
-			$this->ult_fecha_activo->HrefValue = "";
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+
+			// telefono1
+			$this->telefono1->LinkCustomAttributes = "";
+			$this->telefono1->HrefValue = "";
+
+			// telefono2
+			$this->telefono2->LinkCustomAttributes = "";
+			$this->telefono2->HrefValue = "";
+
+			// telefono3
+			$this->telefono3->LinkCustomAttributes = "";
+			$this->telefono3->HrefValue = "";
+
+			// telefono4
+			$this->telefono4->LinkCustomAttributes = "";
+			$this->telefono4->HrefValue = "";
 		}
 		if ($this->RowType == EW_ROWTYPE_ADD || $this->RowType == EW_ROWTYPE_EDIT || $this->RowType == EW_ROWTYPE_SEARCH) // Add/Edit/Search row
 			$this->SetupFieldTitles();
@@ -858,20 +1052,8 @@ class ctelefonos_add extends ctelefonos {
 		// Check if validation required
 		if (!EW_SERVER_VALIDATE)
 			return ($gsFormError == "");
-		if (!$this->id_persona->FldIsDetailKey && !is_null($this->id_persona->FormValue) && $this->id_persona->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->id_persona->FldCaption(), $this->id_persona->ReqErrMsg));
-		}
-		if (!$this->tipo->FldIsDetailKey && !is_null($this->tipo->FormValue) && $this->tipo->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->tipo->FldCaption(), $this->tipo->ReqErrMsg));
-		}
-		if (!$this->numero->FldIsDetailKey && !is_null($this->numero->FormValue) && $this->numero->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->numero->FldCaption(), $this->numero->ReqErrMsg));
-		}
-		if (!$this->ult_fecha_activo->FldIsDetailKey && !is_null($this->ult_fecha_activo->FormValue) && $this->ult_fecha_activo->FormValue == "") {
-			ew_AddMessage($gsFormError, str_replace("%s", $this->ult_fecha_activo->FldCaption(), $this->ult_fecha_activo->ReqErrMsg));
-		}
-		if (!ew_CheckEuroDate($this->ult_fecha_activo->FormValue)) {
-			ew_AddMessage($gsFormError, $this->ult_fecha_activo->FldErrMsg());
+		if (!$this->telefono1->FldIsDetailKey && !is_null($this->telefono1->FormValue) && $this->telefono1->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->telefono1->FldCaption(), $this->telefono1->ReqErrMsg));
 		}
 
 		// Return validate result
@@ -889,26 +1071,6 @@ class ctelefonos_add extends ctelefonos {
 	// Add record
 	function AddRow($rsold = NULL) {
 		global $Language, $Security;
-
-		// Check referential integrity for master table 'personas'
-		$bValidMasterRecord = TRUE;
-		$sMasterFilter = $this->SqlMasterFilter_personas();
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sMasterFilter = str_replace("@Id@", ew_AdjustSql($this->id_persona->CurrentValue, "DB"), $sMasterFilter);
-		} else {
-			$bValidMasterRecord = FALSE;
-		}
-		if ($bValidMasterRecord) {
-			if (!isset($GLOBALS["personas"])) $GLOBALS["personas"] = new cpersonas();
-			$rsmaster = $GLOBALS["personas"]->LoadRs($sMasterFilter);
-			$bValidMasterRecord = ($rsmaster && !$rsmaster->EOF);
-			$rsmaster->Close();
-		}
-		if (!$bValidMasterRecord) {
-			$sRelatedRecordMsg = str_replace("%t", "personas", $Language->Phrase("RelatedRecordRequired"));
-			$this->setFailureMessage($sRelatedRecordMsg);
-			return FALSE;
-		}
 		$conn = &$this->Connection();
 
 		// Load db values from rsold
@@ -917,17 +1079,38 @@ class ctelefonos_add extends ctelefonos {
 		}
 		$rsnew = array();
 
-		// id_persona
-		$this->id_persona->SetDbValueDef($rsnew, $this->id_persona->CurrentValue, 0, strval($this->id_persona->CurrentValue) == "");
+		// id_fuente
+		$this->id_fuente->SetDbValueDef($rsnew, $this->id_fuente->CurrentValue, 0, strval($this->id_fuente->CurrentValue) == "");
 
-		// tipo
-		$this->tipo->SetDbValueDef($rsnew, $this->tipo->CurrentValue, "", FALSE);
+		// id_gestion
+		$this->id_gestion->SetDbValueDef($rsnew, $this->id_gestion->CurrentValue, 0, strval($this->id_gestion->CurrentValue) == "");
 
-		// numero
-		$this->numero->SetDbValueDef($rsnew, $this->numero->CurrentValue, "", FALSE);
+		// tipo_documento
+		$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, FALSE);
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->ult_fecha_activo->CurrentValue, 7), ew_CurrentDate(), strval($this->ult_fecha_activo->CurrentValue) == "");
+		// no_documento
+		$this->no_documento->SetDbValueDef($rsnew, $this->no_documento->CurrentValue, NULL, FALSE);
+
+		// nombres
+		$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, NULL, FALSE);
+
+		// paterno
+		$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, NULL, FALSE);
+
+		// materno
+		$this->materno->SetDbValueDef($rsnew, $this->materno->CurrentValue, NULL, FALSE);
+
+		// telefono1
+		$this->telefono1->SetDbValueDef($rsnew, $this->telefono1->CurrentValue, NULL, FALSE);
+
+		// telefono2
+		$this->telefono2->SetDbValueDef($rsnew, $this->telefono2->CurrentValue, NULL, FALSE);
+
+		// telefono3
+		$this->telefono3->SetDbValueDef($rsnew, $this->telefono3->CurrentValue, NULL, FALSE);
+
+		// telefono4
+		$this->telefono4->SetDbValueDef($rsnew, $this->telefono4->CurrentValue, NULL, FALSE);
 
 		// Call Row Inserting event
 		$rs = ($rsold == NULL) ? NULL : $rsold->fields;
@@ -959,66 +1142,6 @@ class ctelefonos_add extends ctelefonos {
 		return $AddRow;
 	}
 
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
-	}
-
 	// Set up Breadcrumb
 	function SetupBreadcrumb() {
 		global $Breadcrumb, $Language;
@@ -1029,22 +1152,47 @@ class ctelefonos_add extends ctelefonos {
 		$Breadcrumb->Add("add", $PageId, $url);
 	}
 
+	// Set up multi pages
+	function SetupMultiPages() {
+		$pages = new cSubPages();
+		$pages->Style = "tabs";
+		$pages->Add(0);
+		$pages->Add(1);
+		$pages->Add(2);
+		$pages->Add(3);
+		$this->MultiPages = $pages;
+	}
+
 	// Setup lookup filters of a field
 	function SetupLookupFilters($fld, $pageId = null) {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
 		switch ($fld->FldVar) {
-		case "x_id_persona":
+		case "x_id_fuente":
 			$sSqlWrk = "";
-			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 			$sWhereWrk = "";
-			$this->id_persona->LookupFilters = array();
+			$this->id_fuente->LookupFilters = array();
 			$lookuptblfilter = "`estado`=1";
 			ew_AddFilter($sWhereWrk, $lookuptblfilter);
 			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
 			$sSqlWrk = "";
-			$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
 			if ($sSqlWrk <> "")
 				$fld->LookupFilters["s"] .= $sSqlWrk;
 			break;
@@ -1167,21 +1315,9 @@ ftelefonosadd.Validate = function() {
 	for (var i = startcnt; i <= rowcnt; i++) {
 		var infix = ($k[0]) ? String(i) : "";
 		$fobj.data("rowindex", infix);
-			elm = this.GetElements("x" + infix + "_id_persona");
+			elm = this.GetElements("x" + infix + "_telefono1");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $telefonos->id_persona->FldCaption(), $telefonos->id_persona->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_tipo");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $telefonos->tipo->FldCaption(), $telefonos->tipo->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_numero");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $telefonos->numero->FldCaption(), $telefonos->numero->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_ult_fecha_activo");
-			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
-				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $telefonos->ult_fecha_activo->FldCaption(), $telefonos->ult_fecha_activo->ReqErrMsg)) ?>");
-			elm = this.GetElements("x" + infix + "_ult_fecha_activo");
-			if (elm && !ew_CheckEuroDate(elm.value))
-				return this.OnError(elm, "<?php echo ew_JsEncode2($telefonos->ult_fecha_activo->FldErrMsg()) ?>");
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $telefonos->telefono1->FldCaption(), $telefonos->telefono1->ReqErrMsg)) ?>");
 
 			// Fire Form_CustomValidate event
 			if (!this.Form_CustomValidate(fobj))
@@ -1210,11 +1346,14 @@ ftelefonosadd.Form_CustomValidate =
 // Use JavaScript validation or not
 ftelefonosadd.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
+// Multi-Page
+ftelefonosadd.MultiPage = new ew_MultiPage("ftelefonosadd");
+
 // Dynamic selection lists
-ftelefonosadd.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-ftelefonosadd.Lists["x_id_persona"].Data = "<?php echo $telefonos_add->id_persona->LookupFilterQuery(FALSE, "add") ?>";
-ftelefonosadd.Lists["x_tipo"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
-ftelefonosadd.Lists["x_tipo"].Options = <?php echo json_encode($telefonos_add->tipo->Options()) ?>;
+ftelefonosadd.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+ftelefonosadd.Lists["x_id_fuente"].Data = "<?php echo $telefonos_add->id_fuente->LookupFilterQuery(FALSE, "add") ?>";
+ftelefonosadd.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+ftelefonosadd.Lists["x_id_gestion"].Data = "<?php echo $telefonos_add->id_gestion->LookupFilterQuery(FALSE, "add") ?>";
 
 // Form object for search
 </script>
@@ -1233,74 +1372,146 @@ $telefonos_add->ShowMessage();
 <input type="hidden" name="t" value="telefonos">
 <input type="hidden" name="a_add" id="a_add" value="A">
 <input type="hidden" name="modal" value="<?php echo intval($telefonos_add->IsModal) ?>">
-<?php if ($telefonos->getCurrentMasterTable() == "personas") { ?>
-<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="personas">
-<input type="hidden" name="fk_Id" value="<?php echo $telefonos->id_persona->getSessionValue() ?>">
-<?php } ?>
+<div class="ewMultiPage"><!-- multi-page -->
+<div class="nav-tabs-custom" id="telefonos_add"><!-- multi-page .nav-tabs-custom -->
+	<ul class="nav<?php echo $telefonos_add->MultiPages->NavStyle() ?>">
+		<li<?php echo $telefonos_add->MultiPages->TabStyle("1") ?>><a href="#tab_telefonos1" data-toggle="tab"><?php echo $telefonos->PageCaption(1) ?></a></li>
+		<li<?php echo $telefonos_add->MultiPages->TabStyle("2") ?>><a href="#tab_telefonos2" data-toggle="tab"><?php echo $telefonos->PageCaption(2) ?></a></li>
+		<li<?php echo $telefonos_add->MultiPages->TabStyle("3") ?>><a href="#tab_telefonos3" data-toggle="tab"><?php echo $telefonos->PageCaption(3) ?></a></li>
+	</ul>
+	<div class="tab-content"><!-- multi-page .nav-tabs-custom .tab-content -->
+		<div class="tab-pane<?php echo $telefonos_add->MultiPages->PageStyle("1") ?>" id="tab_telefonos1"><!-- multi-page .tab-pane -->
 <div class="ewAddDiv"><!-- page* -->
-<?php if ($telefonos->id_persona->Visible) { // id_persona ?>
-	<div id="r_id_persona" class="form-group">
-		<label id="elh_telefonos_id_persona" for="x_id_persona" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->id_persona->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->id_persona->CellAttributes() ?>>
-<?php if ($telefonos->id_persona->getSessionValue() <> "") { ?>
-<span id="el_telefonos_id_persona">
-<span<?php echo $telefonos->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($telefonos->id_persona->ViewValue)) && $telefonos->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $telefonos->id_persona->LinkAttributes() ?>><p class="form-control-static"><?php echo $telefonos->id_persona->ViewValue ?></p></a>
-<?php } else { ?>
-<p class="form-control-static"><?php echo $telefonos->id_persona->ViewValue ?></p>
-<?php } ?>
-</span>
-</span>
-<input type="hidden" id="x_id_persona" name="x_id_persona" value="<?php echo ew_HtmlEncode($telefonos->id_persona->CurrentValue) ?>">
-<?php } else { ?>
-<span id="el_telefonos_id_persona">
-<select data-table="telefonos" data-field="x_id_persona" data-value-separator="<?php echo $telefonos->id_persona->DisplayValueSeparatorAttribute() ?>" id="x_id_persona" name="x_id_persona"<?php echo $telefonos->id_persona->EditAttributes() ?>>
-<?php echo $telefonos->id_persona->SelectOptionListHtml("x_id_persona") ?>
+<?php if ($telefonos->id_fuente->Visible) { // id_fuente ?>
+	<div id="r_id_fuente" class="form-group">
+		<label id="elh_telefonos_id_fuente" for="x_id_fuente" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->id_fuente->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->id_fuente->CellAttributes() ?>>
+<span id="el_telefonos_id_fuente">
+<select data-table="telefonos" data-field="x_id_fuente" data-page="1" data-value-separator="<?php echo $telefonos->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x_id_fuente" name="x_id_fuente"<?php echo $telefonos->id_fuente->EditAttributes() ?>>
+<?php echo $telefonos->id_fuente->SelectOptionListHtml("x_id_fuente") ?>
 </select>
 </span>
-<?php } ?>
-<?php echo $telefonos->id_persona->CustomMsg ?></div></div>
+<?php echo $telefonos->id_fuente->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($telefonos->tipo->Visible) { // tipo ?>
-	<div id="r_tipo" class="form-group">
-		<label id="elh_telefonos_tipo" for="x_tipo" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->tipo->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->tipo->CellAttributes() ?>>
-<span id="el_telefonos_tipo">
-<select data-table="telefonos" data-field="x_tipo" data-value-separator="<?php echo $telefonos->tipo->DisplayValueSeparatorAttribute() ?>" id="x_tipo" name="x_tipo"<?php echo $telefonos->tipo->EditAttributes() ?>>
-<?php echo $telefonos->tipo->SelectOptionListHtml("x_tipo") ?>
+<?php if ($telefonos->id_gestion->Visible) { // id_gestion ?>
+	<div id="r_id_gestion" class="form-group">
+		<label id="elh_telefonos_id_gestion" for="x_id_gestion" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->id_gestion->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->id_gestion->CellAttributes() ?>>
+<span id="el_telefonos_id_gestion">
+<select data-table="telefonos" data-field="x_id_gestion" data-page="1" data-value-separator="<?php echo $telefonos->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x_id_gestion" name="x_id_gestion"<?php echo $telefonos->id_gestion->EditAttributes() ?>>
+<?php echo $telefonos->id_gestion->SelectOptionListHtml("x_id_gestion") ?>
 </select>
-</span>
-<?php echo $telefonos->tipo->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($telefonos->numero->Visible) { // numero ?>
-	<div id="r_numero" class="form-group">
-		<label id="elh_telefonos_numero" for="x_numero" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->numero->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->numero->CellAttributes() ?>>
-<span id="el_telefonos_numero">
-<input type="text" data-table="telefonos" data-field="x_numero" name="x_numero" id="x_numero" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->numero->getPlaceHolder()) ?>" value="<?php echo $telefonos->numero->EditValue ?>"<?php echo $telefonos->numero->EditAttributes() ?>>
-</span>
-<?php echo $telefonos->numero->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
-<?php if ($telefonos->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-	<div id="r_ult_fecha_activo" class="form-group">
-		<label id="elh_telefonos_ult_fecha_activo" for="x_ult_fecha_activo" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->ult_fecha_activo->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->ult_fecha_activo->CellAttributes() ?>>
-<span id="el_telefonos_ult_fecha_activo">
-<input type="text" data-table="telefonos" data-field="x_ult_fecha_activo" data-format="7" name="x_ult_fecha_activo" id="x_ult_fecha_activo" size="20" placeholder="<?php echo ew_HtmlEncode($telefonos->ult_fecha_activo->getPlaceHolder()) ?>" value="<?php echo $telefonos->ult_fecha_activo->EditValue ?>"<?php echo $telefonos->ult_fecha_activo->EditAttributes() ?>>
-<?php if (!$telefonos->ult_fecha_activo->ReadOnly && !$telefonos->ult_fecha_activo->Disabled && !isset($telefonos->ult_fecha_activo->EditAttrs["readonly"]) && !isset($telefonos->ult_fecha_activo->EditAttrs["disabled"])) { ?>
-<script type="text/javascript">
-ew_CreateDateTimePicker("ftelefonosadd", "x_ult_fecha_activo", {"ignoreReadonly":true,"useCurrent":false,"format":7});
-</script>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$telefonos->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $telefonos->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $telefonos->id_gestion->FldCaption() ?></span></button>
 <?php } ?>
 </span>
-<?php echo $telefonos->ult_fecha_activo->CustomMsg ?></div></div>
+<?php echo $telefonos->id_gestion->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 </div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+		<div class="tab-pane<?php echo $telefonos_add->MultiPages->PageStyle("2") ?>" id="tab_telefonos2"><!-- multi-page .tab-pane -->
+<div class="ewAddDiv"><!-- page* -->
+<?php if ($telefonos->tipo_documento->Visible) { // tipo_documento ?>
+	<div id="r_tipo_documento" class="form-group">
+		<label id="elh_telefonos_tipo_documento" for="x_tipo_documento" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->tipo_documento->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->tipo_documento->CellAttributes() ?>>
+<span id="el_telefonos_tipo_documento">
+<input type="text" data-table="telefonos" data-field="x_tipo_documento" data-page="2" name="x_tipo_documento" id="x_tipo_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->tipo_documento->getPlaceHolder()) ?>" value="<?php echo $telefonos->tipo_documento->EditValue ?>"<?php echo $telefonos->tipo_documento->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->tipo_documento->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->no_documento->Visible) { // no_documento ?>
+	<div id="r_no_documento" class="form-group">
+		<label id="elh_telefonos_no_documento" for="x_no_documento" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->no_documento->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->no_documento->CellAttributes() ?>>
+<span id="el_telefonos_no_documento">
+<input type="text" data-table="telefonos" data-field="x_no_documento" data-page="2" name="x_no_documento" id="x_no_documento" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->no_documento->getPlaceHolder()) ?>" value="<?php echo $telefonos->no_documento->EditValue ?>"<?php echo $telefonos->no_documento->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->no_documento->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->nombres->Visible) { // nombres ?>
+	<div id="r_nombres" class="form-group">
+		<label id="elh_telefonos_nombres" for="x_nombres" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->nombres->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->nombres->CellAttributes() ?>>
+<span id="el_telefonos_nombres">
+<input type="text" data-table="telefonos" data-field="x_nombres" data-page="2" name="x_nombres" id="x_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->nombres->getPlaceHolder()) ?>" value="<?php echo $telefonos->nombres->EditValue ?>"<?php echo $telefonos->nombres->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->nombres->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->paterno->Visible) { // paterno ?>
+	<div id="r_paterno" class="form-group">
+		<label id="elh_telefonos_paterno" for="x_paterno" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->paterno->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->paterno->CellAttributes() ?>>
+<span id="el_telefonos_paterno">
+<input type="text" data-table="telefonos" data-field="x_paterno" data-page="2" name="x_paterno" id="x_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->paterno->getPlaceHolder()) ?>" value="<?php echo $telefonos->paterno->EditValue ?>"<?php echo $telefonos->paterno->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->paterno->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->materno->Visible) { // materno ?>
+	<div id="r_materno" class="form-group">
+		<label id="elh_telefonos_materno" for="x_materno" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->materno->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->materno->CellAttributes() ?>>
+<span id="el_telefonos_materno">
+<input type="text" data-table="telefonos" data-field="x_materno" data-page="2" name="x_materno" id="x_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->materno->getPlaceHolder()) ?>" value="<?php echo $telefonos->materno->EditValue ?>"<?php echo $telefonos->materno->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->materno->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+</div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+		<div class="tab-pane<?php echo $telefonos_add->MultiPages->PageStyle("3") ?>" id="tab_telefonos3"><!-- multi-page .tab-pane -->
+<div class="ewAddDiv"><!-- page* -->
+<?php if ($telefonos->telefono1->Visible) { // telefono1 ?>
+	<div id="r_telefono1" class="form-group">
+		<label id="elh_telefonos_telefono1" for="x_telefono1" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->telefono1->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->telefono1->CellAttributes() ?>>
+<span id="el_telefonos_telefono1">
+<input type="text" data-table="telefonos" data-field="x_telefono1" data-page="3" name="x_telefono1" id="x_telefono1" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono1->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono1->EditValue ?>"<?php echo $telefonos->telefono1->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->telefono1->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->telefono2->Visible) { // telefono2 ?>
+	<div id="r_telefono2" class="form-group">
+		<label id="elh_telefonos_telefono2" for="x_telefono2" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->telefono2->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->telefono2->CellAttributes() ?>>
+<span id="el_telefonos_telefono2">
+<input type="text" data-table="telefonos" data-field="x_telefono2" data-page="3" name="x_telefono2" id="x_telefono2" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono2->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono2->EditValue ?>"<?php echo $telefonos->telefono2->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->telefono2->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->telefono3->Visible) { // telefono3 ?>
+	<div id="r_telefono3" class="form-group">
+		<label id="elh_telefonos_telefono3" for="x_telefono3" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->telefono3->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->telefono3->CellAttributes() ?>>
+<span id="el_telefonos_telefono3">
+<input type="text" data-table="telefonos" data-field="x_telefono3" data-page="3" name="x_telefono3" id="x_telefono3" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono3->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono3->EditValue ?>"<?php echo $telefonos->telefono3->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->telefono3->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($telefonos->telefono4->Visible) { // telefono4 ?>
+	<div id="r_telefono4" class="form-group">
+		<label id="elh_telefonos_telefono4" for="x_telefono4" class="<?php echo $telefonos_add->LeftColumnClass ?>"><?php echo $telefonos->telefono4->FldCaption() ?></label>
+		<div class="<?php echo $telefonos_add->RightColumnClass ?>"><div<?php echo $telefonos->telefono4->CellAttributes() ?>>
+<span id="el_telefonos_telefono4">
+<input type="text" data-table="telefonos" data-field="x_telefono4" data-page="3" name="x_telefono4" id="x_telefono4" size="30" maxlength="100" placeholder="<?php echo ew_HtmlEncode($telefonos->telefono4->getPlaceHolder()) ?>" value="<?php echo $telefonos->telefono4->EditValue ?>"<?php echo $telefonos->telefono4->EditAttributes() ?>>
+</span>
+<?php echo $telefonos->telefono4->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+</div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+	</div><!-- /multi-page .nav-tabs-custom .tab-content -->
+</div><!-- /multi-page .nav-tabs-custom -->
+</div><!-- /multi-page -->
 <?php if (!$telefonos_add->IsModal) { ?>
 <div class="form-group"><!-- buttons .form-group -->
 	<div class="<?php echo $telefonos_add->OffsetColumnClass ?>"><!-- buttons offset -->

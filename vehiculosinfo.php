@@ -9,6 +9,8 @@ $vehiculos = NULL;
 class cvehiculos extends cTable {
 	var $Id;
 	var $id_persona;
+	var $id_fuente;
+	var $id_gestion;
 	var $marca;
 	var $modelo;
 	var $placa;
@@ -58,6 +60,22 @@ class cvehiculos extends cTable {
 		$this->id_persona->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
 		$this->id_persona->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
 		$this->fields['id_persona'] = &$this->id_persona;
+
+		// id_fuente
+		$this->id_fuente = new cField('vehiculos', 'vehiculos', 'x_id_fuente', 'id_fuente', '`id_fuente`', '`id_fuente`', 3, -1, FALSE, '`id_fuente`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_fuente->Sortable = TRUE; // Allow sort
+		$this->id_fuente->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_fuente->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_fuente->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_fuente'] = &$this->id_fuente;
+
+		// id_gestion
+		$this->id_gestion = new cField('vehiculos', 'vehiculos', 'x_id_gestion', 'id_gestion', '`id_gestion`', '`id_gestion`', 3, -1, FALSE, '`id_gestion`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'SELECT');
+		$this->id_gestion->Sortable = TRUE; // Allow sort
+		$this->id_gestion->UsePleaseSelect = TRUE; // Use PleaseSelect by default
+		$this->id_gestion->PleaseSelectText = $Language->Phrase("PleaseSelect"); // PleaseSelect text
+		$this->id_gestion->FldDefaultErrMsg = $Language->Phrase("IncorrectInteger");
+		$this->fields['id_gestion'] = &$this->id_gestion;
 
 		// marca
 		$this->marca = new cField('vehiculos', 'vehiculos', 'x_marca', 'marca', '`marca`', '`marca`', 200, -1, FALSE, '`marca`', FALSE, FALSE, FALSE, 'FORMATTED TEXT', 'TEXT');
@@ -657,6 +675,8 @@ class cvehiculos extends cTable {
 	function LoadListRowValues(&$rs) {
 		$this->Id->setDbValue($rs->fields('Id'));
 		$this->id_persona->setDbValue($rs->fields('id_persona'));
+		$this->id_fuente->setDbValue($rs->fields('id_fuente'));
+		$this->id_gestion->setDbValue($rs->fields('id_gestion'));
 		$this->marca->setDbValue($rs->fields('marca'));
 		$this->modelo->setDbValue($rs->fields('modelo'));
 		$this->placa->setDbValue($rs->fields('placa'));
@@ -673,6 +693,8 @@ class cvehiculos extends cTable {
 	// Common render codes
 		// Id
 		// id_persona
+		// id_fuente
+		// id_gestion
 		// marca
 		// modelo
 		// placa
@@ -685,14 +707,13 @@ class cvehiculos extends cTable {
 		// id_persona
 		if (strval($this->id_persona->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, `paterno` AS `DispFld`, `materno` AS `Disp2Fld`, `nombres` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		$this->id_persona->LookupFilters = array("dx1" => '`paterno`', "dx2" => '`materno`', "dx3" => '`nombres`');
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `paterno`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
@@ -708,6 +729,56 @@ class cvehiculos extends cTable {
 			$this->id_persona->ViewValue = NULL;
 		}
 		$this->id_persona->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
 
 		// marca
 		$this->marca->ViewValue = $this->marca->CurrentValue;
@@ -740,6 +811,16 @@ class cvehiculos extends cTable {
 			$this->id_persona->HrefValue = "";
 		}
 		$this->id_persona->TooltipValue = "";
+
+		// id_fuente
+		$this->id_fuente->LinkCustomAttributes = "";
+		$this->id_fuente->HrefValue = "";
+		$this->id_fuente->TooltipValue = "";
+
+		// id_gestion
+		$this->id_gestion->LinkCustomAttributes = "";
+		$this->id_gestion->HrefValue = "";
+		$this->id_gestion->TooltipValue = "";
 
 		// marca
 		$this->marca->LinkCustomAttributes = "";
@@ -788,14 +869,13 @@ class cvehiculos extends cTable {
 			$this->id_persona->CurrentValue = $this->id_persona->getSessionValue();
 		if (strval($this->id_persona->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, `paterno` AS `DispFld`, `materno` AS `Disp2Fld`, `nombres` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		$this->id_persona->LookupFilters = array("dx1" => '`paterno`', "dx2" => '`materno`', "dx3" => '`nombres`');
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `paterno`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
@@ -813,6 +893,14 @@ class cvehiculos extends cTable {
 		$this->id_persona->ViewCustomAttributes = "";
 		} else {
 		}
+
+		// id_fuente
+		$this->id_fuente->EditAttrs["class"] = "form-control";
+		$this->id_fuente->EditCustomAttributes = "";
+
+		// id_gestion
+		$this->id_gestion->EditAttrs["class"] = "form-control";
+		$this->id_gestion->EditCustomAttributes = "";
 
 		// marca
 		$this->marca->EditAttrs["class"] = "form-control";
@@ -867,6 +955,8 @@ class cvehiculos extends cTable {
 				if ($ExportPageType == "view") {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
 					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
+					if ($this->id_fuente->Exportable) $Doc->ExportCaption($this->id_fuente);
+					if ($this->id_gestion->Exportable) $Doc->ExportCaption($this->id_gestion);
 					if ($this->marca->Exportable) $Doc->ExportCaption($this->marca);
 					if ($this->modelo->Exportable) $Doc->ExportCaption($this->modelo);
 					if ($this->placa->Exportable) $Doc->ExportCaption($this->placa);
@@ -874,6 +964,8 @@ class cvehiculos extends cTable {
 				} else {
 					if ($this->Id->Exportable) $Doc->ExportCaption($this->Id);
 					if ($this->id_persona->Exportable) $Doc->ExportCaption($this->id_persona);
+					if ($this->id_fuente->Exportable) $Doc->ExportCaption($this->id_fuente);
+					if ($this->id_gestion->Exportable) $Doc->ExportCaption($this->id_gestion);
 					if ($this->marca->Exportable) $Doc->ExportCaption($this->marca);
 					if ($this->modelo->Exportable) $Doc->ExportCaption($this->modelo);
 					if ($this->placa->Exportable) $Doc->ExportCaption($this->placa);
@@ -911,6 +1003,8 @@ class cvehiculos extends cTable {
 					if ($ExportPageType == "view") {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
 						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
+						if ($this->id_fuente->Exportable) $Doc->ExportField($this->id_fuente);
+						if ($this->id_gestion->Exportable) $Doc->ExportField($this->id_gestion);
 						if ($this->marca->Exportable) $Doc->ExportField($this->marca);
 						if ($this->modelo->Exportable) $Doc->ExportField($this->modelo);
 						if ($this->placa->Exportable) $Doc->ExportField($this->placa);
@@ -918,6 +1012,8 @@ class cvehiculos extends cTable {
 					} else {
 						if ($this->Id->Exportable) $Doc->ExportField($this->Id);
 						if ($this->id_persona->Exportable) $Doc->ExportField($this->id_persona);
+						if ($this->id_fuente->Exportable) $Doc->ExportField($this->id_fuente);
+						if ($this->id_gestion->Exportable) $Doc->ExportField($this->id_gestion);
 						if ($this->marca->Exportable) $Doc->ExportField($this->marca);
 						if ($this->modelo->Exportable) $Doc->ExportField($this->modelo);
 						if ($this->placa->Exportable) $Doc->ExportField($this->placa);

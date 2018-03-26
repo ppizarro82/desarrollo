@@ -6,6 +6,7 @@ ob_start(); // Turn on output buffering
 <?php include_once ((EW_USE_ADODB) ? "adodb5/adodb.inc.php" : "ewmysql14.php") ?>
 <?php include_once "phpfn14.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "deudasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -521,6 +522,7 @@ class cusers_view extends cusers {
 	var $RecCnt;
 	var $RecKey = array();
 	var $IsModal = FALSE;
+	var $deudas_Count;
 	var $Recordset;
 
 	//
@@ -579,6 +581,9 @@ class cusers_view extends cusers {
 		$this->RowType = EW_ROWTYPE_VIEW;
 		$this->ResetAttrs();
 		$this->RenderRow();
+
+		// Set up detail parameters
+		$this->SetupDetailParms();
 	}
 
 	// Set up other options
@@ -618,6 +623,82 @@ class cusers_view extends cusers {
 		$item = &$option->Add("delete");
 		$item->Body = "<a onclick=\"return ew_ConfirmDelete(this);\" class=\"ewAction ewDelete\" title=\"" . ew_HtmlTitle($Language->Phrase("ViewPageDeleteLink")) . "\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("ViewPageDeleteLink")) . "\" href=\"" . ew_HtmlEncode($this->DeleteUrl) . "\">" . $Language->Phrase("ViewPageDeleteLink") . "</a>";
 		$item->Visible = ($this->DeleteUrl <> "" && $Security->CanDelete());
+		$option = &$options["detail"];
+		$DetailTableLink = "";
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_deudas"
+		$item = &$option->Add("detail_deudas");
+		$body = $Language->Phrase("ViewPageDetailLink") . $Language->TablePhrase("deudas", "TblCaption");
+		$body .= str_replace("%c", $this->deudas_Count, $Language->Phrase("DetailCount"));
+		$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("deudaslist.php?" . EW_TABLE_SHOW_MASTER . "=users&fk_id_user=" . urlencode(strval($this->id_user->CurrentValue)) . "") . "\">" . $body . "</a>";
+		$links = "";
+		if ($GLOBALS["deudas_grid"] && $GLOBALS["deudas_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'deudas')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=deudas")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+			$DetailViewTblVar .= "deudas";
+		}
+		if ($GLOBALS["deudas_grid"] && $GLOBALS["deudas_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'deudas')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=deudas")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+			$DetailEditTblVar .= "deudas";
+		}
+		if ($GLOBALS["deudas_grid"] && $GLOBALS["deudas_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'deudas')) {
+			$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=deudas")) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+			$DetailCopyTblVar .= "deudas";
+		}
+		if ($links <> "") {
+			$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+			$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+		}
+		$body = "<div class=\"btn-group\">" . $body . "</div>";
+		$item->Body = $body;
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'deudas');
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "deudas";
+		}
+		if ($this->ShowMultipleDetails) $item->Visible = FALSE;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$option->Add("details");
+			$oListOpt->Body = $body;
+		}
+
+		// Set up detail default
+		$option = &$options["detail"];
+		$options["detail"]->DropDownButtonPhrase = $Language->Phrase("ButtonDetails");
+		$option->UseImageAndText = TRUE;
+		$ar = explode(",", $DetailTableLink);
+		$cnt = count($ar);
+		$option->UseDropDownButton = ($cnt > 1);
+		$option->UseButtonGroup = TRUE;
+		$item = &$option->Add($option->GroupOptionName);
+		$item->Body = "";
+		$item->Visible = FALSE;
 
 		// Set up action default
 		$option = &$options["action"];
@@ -746,6 +827,12 @@ class cusers_view extends cusers {
 		$this->observaciones->setDbValue($row['observaciones']);
 		$this->fecha_ingreso->setDbValue($row['fecha_ingreso']);
 		$this->Profile->setDbValue($row['Profile']);
+		if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid;
+		$sDetailFilter = $GLOBALS["deudas"]->SqlDetailFilter_users();
+		$sDetailFilter = str_replace("@id_agente@", ew_AdjustSql($this->id_user->DbValue, "DB"), $sDetailFilter);
+		$GLOBALS["deudas"]->setCurrentMasterTable("users");
+		$sDetailFilter = $GLOBALS["deudas"]->ApplyUserIDFilters($sDetailFilter);
+		$this->deudas_Count = $GLOBALS["deudas"]->LoadRecordCount($sDetailFilter);
 	}
 
 	// Return a row with default values
@@ -885,7 +972,11 @@ class cusers_view extends cusers {
 		$this->No_documento->ViewCustomAttributes = "";
 
 		// Tipo_documento
-		$this->Tipo_documento->ViewValue = $this->Tipo_documento->CurrentValue;
+		if (strval($this->Tipo_documento->CurrentValue) <> "") {
+			$this->Tipo_documento->ViewValue = $this->Tipo_documento->OptionCaption($this->Tipo_documento->CurrentValue);
+		} else {
+			$this->Tipo_documento->ViewValue = NULL;
+		}
 		$this->Tipo_documento->ViewCustomAttributes = "";
 
 		// First_Name
@@ -949,7 +1040,7 @@ class cusers_view extends cusers {
 
 		// fecha_ingreso
 		$this->fecha_ingreso->ViewValue = $this->fecha_ingreso->CurrentValue;
-		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 0);
+		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 11);
 		$this->fecha_ingreso->ViewCustomAttributes = "";
 
 			// id_user
@@ -1156,6 +1247,27 @@ class cusers_view extends cusers {
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
 		$this->ExportDocument($Doc, $rs, $this->StartRec, $this->StopRec, "view");
+
+		// Export detail records (deudas)
+		if (EW_EXPORT_DETAIL_RECORDS && in_array("deudas", explode(",", $this->getCurrentDetailTable()))) {
+			global $deudas;
+			if (!isset($deudas)) $deudas = new cdeudas;
+			$rsdetail = $deudas->LoadRs($deudas->GetDetailFilter()); // Load detail records
+			if ($rsdetail && !$rsdetail->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("h"); // Change to horizontal
+				if ($this->Export <> "csv" || EW_EXPORT_DETAIL_RECORDS_FOR_CSV) {
+					$Doc->ExportEmptyRow();
+					$detailcnt = $rsdetail->RecordCount();
+					$oldtbl = $Doc->Table;
+					$Doc->Table = $deudas;
+					$deudas->ExportDocument($Doc, $rsdetail, 1, $detailcnt);
+					$Doc->Table = $oldtbl;
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsdetail->Close();
+			}
+		}
 		$sFooter = $this->PageFooter;
 		$this->Page_DataRendered($sFooter);
 		$Doc->Text .= $sFooter;
@@ -1280,6 +1392,35 @@ class cusers_view extends cusers {
 		// Add record key QueryString
 		$sQry .= "&" . substr($this->KeyUrl("", ""), 1);
 		return $sQry;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetupDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("deudas", $DetailTblVar)) {
+				if (!isset($GLOBALS["deudas_grid"]))
+					$GLOBALS["deudas_grid"] = new cdeudas_grid;
+				if ($GLOBALS["deudas_grid"]->DetailView) {
+					$GLOBALS["deudas_grid"]->CurrentMode = "view";
+
+					// Save current master table to detail table
+					$GLOBALS["deudas_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["deudas_grid"]->setStartRecordNumber(1);
+					$GLOBALS["deudas_grid"]->id_agente->FldIsDetailKey = TRUE;
+					$GLOBALS["deudas_grid"]->id_agente->CurrentValue = $this->id_user->CurrentValue;
+					$GLOBALS["deudas_grid"]->id_agente->setSessionValue($GLOBALS["deudas_grid"]->id_agente->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -1435,6 +1576,8 @@ fusersview.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 // Dynamic selection lists
 fusersview.Lists["x_User_Level"] = {"LinkField":"x_userlevelid","Ajax":true,"AutoFill":false,"DisplayFields":["x_userlevelname","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"userlevels"};
 fusersview.Lists["x_User_Level"].Data = "<?php echo $users_view->User_Level->LookupFilterQuery(FALSE, "view") ?>";
+fusersview.Lists["x_Tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
+fusersview.Lists["x_Tipo_documento"].Options = <?php echo json_encode($users_view->Tipo_documento->Options()) ?>;
 fusersview.Lists["x_Activated"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fusersview.Lists["x_Activated"].Options = <?php echo json_encode($users_view->Activated->Options()) ?>;
 fusersview.Lists["x_Locked"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -1652,6 +1795,14 @@ $users_view->ShowMessage();
 	</tr>
 <?php } ?>
 </table>
+<?php
+	if (in_array("deudas", explode(",", $users->getCurrentDetailTable())) && $deudas->DetailView) {
+?>
+<?php if ($users->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("deudas", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "deudasgrid.php" ?>
+<?php } ?>
 </form>
 <?php if ($users->Export == "") { ?>
 <script type="text/javascript">

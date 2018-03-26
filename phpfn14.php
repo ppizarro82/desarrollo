@@ -26,7 +26,7 @@ spl_autoload_register("ew_AutoLoad");
 
 // Create Database helper class
 function &DbHelper($dbid = "") {
-	$dbclass = "ccobranzas_db";
+	$dbclass = "ccobranzas_db_db";
 	$dbhelper = new $dbclass();
 	return $dbhelper;
 }
@@ -5611,7 +5611,11 @@ function ew_SearchString($FldOpr, $FldVal, $FldType, $dbid) {
 	} elseif (strval($FldVal) == EW_NOT_NULL_VALUE || $FldOpr == "IS NOT NULL") {
 		return " IS NOT NULL";
 	} elseif ($FldOpr == "LIKE") {
-		return ew_Like(ew_QuotedValue("%$FldVal%", $FldType, $dbid), $dbid);
+
+		//return ew_Like(ew_QuotedValue("%$FldVal%", $FldType, $dbid), $dbid);
+		//PPP - Fixed for Cobranzas		
+
+		return ew_Like(ew_QuotedValue("$FldVal", $FldType, $dbid), $dbid);	
 	} elseif ($FldOpr == "NOT LIKE") {
 		return " NOT " . ew_Like(ew_QuotedValue("%$FldVal%", $FldType, $dbid), $dbid);
 	} elseif ($FldOpr == "STARTS WITH") {

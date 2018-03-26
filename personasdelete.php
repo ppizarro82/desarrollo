@@ -7,6 +7,7 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "personasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "fuentesinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -259,6 +260,9 @@ class cpersonas_delete extends cpersonas {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
+		// Table object (fuentes)
+		if (!isset($GLOBALS['fuentes'])) $GLOBALS['fuentes'] = new cfuentes();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'delete', TRUE);
@@ -317,6 +321,9 @@ class cpersonas_delete extends cpersonas {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->id_ref->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
@@ -403,6 +410,9 @@ class cpersonas_delete extends cpersonas {
 	function Page_Main() {
 		global $Language;
 
+		// Set up master/detail parameters
+		$this->SetupMasterParms();
+
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
 
@@ -423,7 +433,7 @@ class cpersonas_delete extends cpersonas {
 		} elseif (@$_GET["a_delete"] == "1") {
 			$this->CurrentAction = "D"; // Delete record directly
 		} else {
-			$this->CurrentAction = "D"; // Delete record directly
+			$this->CurrentAction = "I"; // Display record
 		}
 		if ($this->CurrentAction == "D") {
 			$this->SendEmail = TRUE; // Send email on delete success
@@ -432,7 +442,7 @@ class cpersonas_delete extends cpersonas {
 					$this->setSuccessMessage($Language->Phrase("DeleteSuccess")); // Set up success message
 				$this->Page_Terminate($this->getReturnUrl()); // Return to caller
 			} else { // Delete failed
-				$this->Page_Terminate($this->getReturnUrl()); // Return to caller
+				$this->CurrentAction = "I"; // Display record
 			}
 		}
 		if ($this->CurrentAction == "I") { // Load records for display
@@ -506,11 +516,15 @@ class cpersonas_delete extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->id_ref->setDbValue($row['id_ref']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
 		$this->paterno->setDbValue($row['paterno']);
 		$this->materno->setDbValue($row['materno']);
+		$this->especial->setDbValue($row['especial']);
 		$this->fecha_nacimiento->setDbValue($row['fecha_nacimiento']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
 		$this->imagen->Upload->DbValue = $row['imagen'];
@@ -523,11 +537,15 @@ class cpersonas_delete extends cpersonas {
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['id_ref'] = NULL;
 		$row['tipo_documento'] = NULL;
 		$row['no_documento'] = NULL;
 		$row['nombres'] = NULL;
 		$row['paterno'] = NULL;
 		$row['materno'] = NULL;
+		$row['especial'] = NULL;
 		$row['fecha_nacimiento'] = NULL;
 		$row['fecha_registro'] = NULL;
 		$row['imagen'] = NULL;
@@ -542,11 +560,15 @@ class cpersonas_delete extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->id_ref->DbValue = $row['id_ref'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
 		$this->paterno->DbValue = $row['paterno'];
 		$this->materno->DbValue = $row['materno'];
+		$this->especial->DbValue = $row['especial'];
 		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
 		$this->fecha_registro->DbValue = $row['fecha_registro'];
 		$this->imagen->Upload->DbValue = $row['imagen'];
@@ -565,14 +587,21 @@ class cpersonas_delete extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
+		// id_fuente
+		// id_gestion
+		// id_ref
 		// tipo_documento
 		// no_documento
 		// nombres
 		// paterno
 		// materno
+		// especial
 		// fecha_nacimiento
 		// fecha_registro
 		// imagen
+
+		$this->imagen->CellCssStyle = "white-space: nowrap;";
+
 		// observaciones
 		// estado
 
@@ -581,6 +610,60 @@ class cpersonas_delete extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// id_ref
+		$this->id_ref->ViewValue = $this->id_ref->CurrentValue;
+		$this->id_ref->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -606,6 +689,10 @@ class cpersonas_delete extends cpersonas {
 		// materno
 		$this->materno->ViewValue = $this->materno->CurrentValue;
 		$this->materno->ViewCustomAttributes = "";
+
+		// especial
+		$this->especial->ViewValue = $this->especial->CurrentValue;
+		$this->especial->ViewCustomAttributes = "";
 
 		// fecha_nacimiento
 		$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
@@ -645,6 +732,21 @@ class cpersonas_delete extends cpersonas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
+
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
+			$this->id_ref->TooltipValue = "";
 
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
@@ -734,61 +836,6 @@ class cpersonas_delete extends cpersonas {
 			return FALSE;
 		}
 		$rows = ($rs) ? $rs->GetRows() : array();
-
-		// Check if records exist for detail table 'direcciones'
-		if (!isset($GLOBALS["direcciones"])) $GLOBALS["direcciones"] = new cdirecciones();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["direcciones"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "direcciones", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'telefonos'
-		if (!isset($GLOBALS["telefonos"])) $GLOBALS["telefonos"] = new ctelefonos();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["telefonos"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "telefonos", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'emails'
-		if (!isset($GLOBALS["emails"])) $GLOBALS["emails"] = new cemails();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["emails"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "emails", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'vehiculos'
-		if (!isset($GLOBALS["vehiculos"])) $GLOBALS["vehiculos"] = new cvehiculos();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["vehiculos"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "vehiculos", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
-
-		// Check if records exist for detail table 'deuda_persona'
-		if (!isset($GLOBALS["deuda_persona"])) $GLOBALS["deuda_persona"] = new cdeuda_persona();
-		foreach ($rows as $row) {
-			$rsdetail = $GLOBALS["deuda_persona"]->LoadRs("`id_persona` = " . ew_QuotedValue($row['Id'], EW_DATATYPE_NUMBER, 'DB'));
-			if ($rsdetail && !$rsdetail->EOF) {
-				$sRelatedRecordMsg = str_replace("%t", "deuda_persona", $Language->Phrase("RelatedRecordExists"));
-				$this->setFailureMessage($sRelatedRecordMsg);
-				return FALSE;
-			}
-		}
 		$conn->BeginTrans();
 
 		// Clone old rows
@@ -844,6 +891,66 @@ class cpersonas_delete extends cpersonas {
 			}
 		}
 		return $DeleteRows;
+	}
+
+	// Set up master/detail based on QueryString
+	function SetupMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fuentes") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_Id"] <> "") {
+					$GLOBALS["fuentes"]->Id->setQueryStringValue($_GET["fk_Id"]);
+					$this->id_fuente->setQueryStringValue($GLOBALS["fuentes"]->Id->QueryStringValue);
+					$this->id_fuente->setSessionValue($this->id_fuente->QueryStringValue);
+					if (!is_numeric($GLOBALS["fuentes"]->Id->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fuentes") {
+				$bValidMaster = TRUE;
+				if (@$_POST["fk_Id"] <> "") {
+					$GLOBALS["fuentes"]->Id->setFormValue($_POST["fk_Id"]);
+					$this->id_fuente->setFormValue($GLOBALS["fuentes"]->Id->FormValue);
+					$this->id_fuente->setSessionValue($this->id_fuente->FormValue);
+					if (!is_numeric($GLOBALS["fuentes"]->Id->FormValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "fuentes") {
+				if ($this->id_fuente->CurrentValue == "") $this->id_fuente->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -970,6 +1077,10 @@ fpersonasdelete.Form_CustomValidate =
 fpersonasdelete.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
+fpersonasdelete.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fpersonasdelete.Lists["x_id_fuente"].Data = "<?php echo $personas_delete->id_fuente->LookupFilterQuery(FALSE, "delete") ?>";
+fpersonasdelete.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fpersonasdelete.Lists["x_id_gestion"].Data = "<?php echo $personas_delete->id_gestion->LookupFilterQuery(FALSE, "delete") ?>";
 fpersonasdelete.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonasdelete.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_delete->tipo_documento->Options()) ?>;
 fpersonasdelete.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -1002,6 +1113,15 @@ $personas_delete->ShowMessage();
 	<tr class="ewTableHeader">
 <?php if ($personas->Id->Visible) { // Id ?>
 		<th class="<?php echo $personas->Id->HeaderCellClass() ?>"><span id="elh_personas_Id" class="personas_Id"><?php echo $personas->Id->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+		<th class="<?php echo $personas->id_fuente->HeaderCellClass() ?>"><span id="elh_personas_id_fuente" class="personas_id_fuente"><?php echo $personas->id_fuente->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+		<th class="<?php echo $personas->id_gestion->HeaderCellClass() ?>"><span id="elh_personas_id_gestion" class="personas_id_gestion"><?php echo $personas->id_gestion->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($personas->id_ref->Visible) { // id_ref ?>
+		<th class="<?php echo $personas->id_ref->HeaderCellClass() ?>"><span id="elh_personas_id_ref" class="personas_id_ref"><?php echo $personas->id_ref->FldCaption() ?></span></th>
 <?php } ?>
 <?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
 		<th class="<?php echo $personas->tipo_documento->HeaderCellClass() ?>"><span id="elh_personas_tipo_documento" class="personas_tipo_documento"><?php echo $personas->tipo_documento->FldCaption() ?></span></th>
@@ -1056,6 +1176,30 @@ while (!$personas_delete->Recordset->EOF) {
 <span id="el<?php echo $personas_delete->RowCnt ?>_personas_Id" class="personas_Id">
 <span<?php echo $personas->Id->ViewAttributes() ?>>
 <?php echo $personas->Id->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+		<td<?php echo $personas->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $personas_delete->RowCnt ?>_personas_id_fuente" class="personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<?php echo $personas->id_fuente->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+		<td<?php echo $personas->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $personas_delete->RowCnt ?>_personas_id_gestion" class="personas_id_gestion">
+<span<?php echo $personas->id_gestion->ViewAttributes() ?>>
+<?php echo $personas->id_gestion->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($personas->id_ref->Visible) { // id_ref ?>
+		<td<?php echo $personas->id_ref->CellAttributes() ?>>
+<span id="el<?php echo $personas_delete->RowCnt ?>_personas_id_ref" class="personas_id_ref">
+<span<?php echo $personas->id_ref->ViewAttributes() ?>>
+<?php echo $personas->id_ref->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

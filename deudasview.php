@@ -428,7 +428,34 @@ class cdeudas_view extends cdeudas {
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 		$this->id_cliente->SetVisibility();
-		$this->codigo->SetVisibility();
+		$this->id_ciudad->SetVisibility();
+		$this->id_agente->SetVisibility();
+		$this->id_estadodeuda->SetVisibility();
+		$this->mig_codigo_deuda->SetVisibility();
+		$this->mig_tipo_operacion->SetVisibility();
+		$this->mig_fecha_desembolso->SetVisibility();
+		$this->mig_fecha_estado->SetVisibility();
+		$this->mig_anios_castigo->SetVisibility();
+		$this->mig_tipo_garantia->SetVisibility();
+		$this->mig_real->SetVisibility();
+		$this->mig_actividad_economica->SetVisibility();
+		$this->mig_agencia->SetVisibility();
+		$this->mig_no_juicio->SetVisibility();
+		$this->mig_nombre_abogado->SetVisibility();
+		$this->mig_fase_procesal->SetVisibility();
+		$this->mig_moneda->SetVisibility();
+		$this->mig_tasa->SetVisibility();
+		$this->mig_plazo->SetVisibility();
+		$this->mig_dias_mora->SetVisibility();
+		$this->mig_monto_desembolso->SetVisibility();
+		$this->mig_total_cartera->SetVisibility();
+		$this->mig_capital->SetVisibility();
+		$this->mig_intereses->SetVisibility();
+		$this->mig_cargos_gastos->SetVisibility();
+		$this->mig_total_deuda->SetVisibility();
+
+		// Set up multi page object
+		$this->SetupMultiPages();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -519,6 +546,7 @@ class cdeudas_view extends cdeudas {
 	var $IsModal = FALSE;
 	var $deuda_persona_Count;
 	var $Recordset;
+	var $MultiPages; // Multi pages object
 
 	//
 	// Page main
@@ -807,7 +835,31 @@ class cdeudas_view extends cdeudas {
 		$this->Id->setDbValue($row['Id']);
 		$this->cuenta->setDbValue($row['cuenta']);
 		$this->id_cliente->setDbValue($row['id_cliente']);
-		$this->codigo->setDbValue($row['codigo']);
+		$this->id_ciudad->setDbValue($row['id_ciudad']);
+		$this->id_agente->setDbValue($row['id_agente']);
+		$this->id_estadodeuda->setDbValue($row['id_estadodeuda']);
+		$this->mig_codigo_deuda->setDbValue($row['mig_codigo_deuda']);
+		$this->mig_tipo_operacion->setDbValue($row['mig_tipo_operacion']);
+		$this->mig_fecha_desembolso->setDbValue($row['mig_fecha_desembolso']);
+		$this->mig_fecha_estado->setDbValue($row['mig_fecha_estado']);
+		$this->mig_anios_castigo->setDbValue($row['mig_anios_castigo']);
+		$this->mig_tipo_garantia->setDbValue($row['mig_tipo_garantia']);
+		$this->mig_real->setDbValue($row['mig_real']);
+		$this->mig_actividad_economica->setDbValue($row['mig_actividad_economica']);
+		$this->mig_agencia->setDbValue($row['mig_agencia']);
+		$this->mig_no_juicio->setDbValue($row['mig_no_juicio']);
+		$this->mig_nombre_abogado->setDbValue($row['mig_nombre_abogado']);
+		$this->mig_fase_procesal->setDbValue($row['mig_fase_procesal']);
+		$this->mig_moneda->setDbValue($row['mig_moneda']);
+		$this->mig_tasa->setDbValue($row['mig_tasa']);
+		$this->mig_plazo->setDbValue($row['mig_plazo']);
+		$this->mig_dias_mora->setDbValue($row['mig_dias_mora']);
+		$this->mig_monto_desembolso->setDbValue($row['mig_monto_desembolso']);
+		$this->mig_total_cartera->setDbValue($row['mig_total_cartera']);
+		$this->mig_capital->setDbValue($row['mig_capital']);
+		$this->mig_intereses->setDbValue($row['mig_intereses']);
+		$this->mig_cargos_gastos->setDbValue($row['mig_cargos_gastos']);
+		$this->mig_total_deuda->setDbValue($row['mig_total_deuda']);
 		if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
 		$sDetailFilter = $GLOBALS["deuda_persona"]->SqlDetailFilter_deudas();
 		$sDetailFilter = str_replace("@id_deuda@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
@@ -822,7 +874,31 @@ class cdeudas_view extends cdeudas {
 		$row['Id'] = NULL;
 		$row['cuenta'] = NULL;
 		$row['id_cliente'] = NULL;
-		$row['codigo'] = NULL;
+		$row['id_ciudad'] = NULL;
+		$row['id_agente'] = NULL;
+		$row['id_estadodeuda'] = NULL;
+		$row['mig_codigo_deuda'] = NULL;
+		$row['mig_tipo_operacion'] = NULL;
+		$row['mig_fecha_desembolso'] = NULL;
+		$row['mig_fecha_estado'] = NULL;
+		$row['mig_anios_castigo'] = NULL;
+		$row['mig_tipo_garantia'] = NULL;
+		$row['mig_real'] = NULL;
+		$row['mig_actividad_economica'] = NULL;
+		$row['mig_agencia'] = NULL;
+		$row['mig_no_juicio'] = NULL;
+		$row['mig_nombre_abogado'] = NULL;
+		$row['mig_fase_procesal'] = NULL;
+		$row['mig_moneda'] = NULL;
+		$row['mig_tasa'] = NULL;
+		$row['mig_plazo'] = NULL;
+		$row['mig_dias_mora'] = NULL;
+		$row['mig_monto_desembolso'] = NULL;
+		$row['mig_total_cartera'] = NULL;
+		$row['mig_capital'] = NULL;
+		$row['mig_intereses'] = NULL;
+		$row['mig_cargos_gastos'] = NULL;
+		$row['mig_total_deuda'] = NULL;
 		return $row;
 	}
 
@@ -834,7 +910,31 @@ class cdeudas_view extends cdeudas {
 		$this->Id->DbValue = $row['Id'];
 		$this->cuenta->DbValue = $row['cuenta'];
 		$this->id_cliente->DbValue = $row['id_cliente'];
-		$this->codigo->DbValue = $row['codigo'];
+		$this->id_ciudad->DbValue = $row['id_ciudad'];
+		$this->id_agente->DbValue = $row['id_agente'];
+		$this->id_estadodeuda->DbValue = $row['id_estadodeuda'];
+		$this->mig_codigo_deuda->DbValue = $row['mig_codigo_deuda'];
+		$this->mig_tipo_operacion->DbValue = $row['mig_tipo_operacion'];
+		$this->mig_fecha_desembolso->DbValue = $row['mig_fecha_desembolso'];
+		$this->mig_fecha_estado->DbValue = $row['mig_fecha_estado'];
+		$this->mig_anios_castigo->DbValue = $row['mig_anios_castigo'];
+		$this->mig_tipo_garantia->DbValue = $row['mig_tipo_garantia'];
+		$this->mig_real->DbValue = $row['mig_real'];
+		$this->mig_actividad_economica->DbValue = $row['mig_actividad_economica'];
+		$this->mig_agencia->DbValue = $row['mig_agencia'];
+		$this->mig_no_juicio->DbValue = $row['mig_no_juicio'];
+		$this->mig_nombre_abogado->DbValue = $row['mig_nombre_abogado'];
+		$this->mig_fase_procesal->DbValue = $row['mig_fase_procesal'];
+		$this->mig_moneda->DbValue = $row['mig_moneda'];
+		$this->mig_tasa->DbValue = $row['mig_tasa'];
+		$this->mig_plazo->DbValue = $row['mig_plazo'];
+		$this->mig_dias_mora->DbValue = $row['mig_dias_mora'];
+		$this->mig_monto_desembolso->DbValue = $row['mig_monto_desembolso'];
+		$this->mig_total_cartera->DbValue = $row['mig_total_cartera'];
+		$this->mig_capital->DbValue = $row['mig_capital'];
+		$this->mig_intereses->DbValue = $row['mig_intereses'];
+		$this->mig_cargos_gastos->DbValue = $row['mig_cargos_gastos'];
+		$this->mig_total_deuda->DbValue = $row['mig_total_deuda'];
 	}
 
 	// Render row values based on field settings
@@ -849,6 +949,42 @@ class cdeudas_view extends cdeudas {
 		$this->ListUrl = $this->GetListUrl();
 		$this->SetupOtherOptions();
 
+		// Convert decimal values if posted back
+		if ($this->mig_tasa->FormValue == $this->mig_tasa->CurrentValue && is_numeric(ew_StrToFloat($this->mig_tasa->CurrentValue)))
+			$this->mig_tasa->CurrentValue = ew_StrToFloat($this->mig_tasa->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_plazo->FormValue == $this->mig_plazo->CurrentValue && is_numeric(ew_StrToFloat($this->mig_plazo->CurrentValue)))
+			$this->mig_plazo->CurrentValue = ew_StrToFloat($this->mig_plazo->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_dias_mora->FormValue == $this->mig_dias_mora->CurrentValue && is_numeric(ew_StrToFloat($this->mig_dias_mora->CurrentValue)))
+			$this->mig_dias_mora->CurrentValue = ew_StrToFloat($this->mig_dias_mora->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_monto_desembolso->FormValue == $this->mig_monto_desembolso->CurrentValue && is_numeric(ew_StrToFloat($this->mig_monto_desembolso->CurrentValue)))
+			$this->mig_monto_desembolso->CurrentValue = ew_StrToFloat($this->mig_monto_desembolso->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_total_cartera->FormValue == $this->mig_total_cartera->CurrentValue && is_numeric(ew_StrToFloat($this->mig_total_cartera->CurrentValue)))
+			$this->mig_total_cartera->CurrentValue = ew_StrToFloat($this->mig_total_cartera->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_capital->FormValue == $this->mig_capital->CurrentValue && is_numeric(ew_StrToFloat($this->mig_capital->CurrentValue)))
+			$this->mig_capital->CurrentValue = ew_StrToFloat($this->mig_capital->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_intereses->FormValue == $this->mig_intereses->CurrentValue && is_numeric(ew_StrToFloat($this->mig_intereses->CurrentValue)))
+			$this->mig_intereses->CurrentValue = ew_StrToFloat($this->mig_intereses->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_cargos_gastos->FormValue == $this->mig_cargos_gastos->CurrentValue && is_numeric(ew_StrToFloat($this->mig_cargos_gastos->CurrentValue)))
+			$this->mig_cargos_gastos->CurrentValue = ew_StrToFloat($this->mig_cargos_gastos->CurrentValue);
+
+		// Convert decimal values if posted back
+		if ($this->mig_total_deuda->FormValue == $this->mig_total_deuda->CurrentValue && is_numeric(ew_StrToFloat($this->mig_total_deuda->CurrentValue)))
+			$this->mig_total_deuda->CurrentValue = ew_StrToFloat($this->mig_total_deuda->CurrentValue);
+
 		// Call Row_Rendering event
 		$this->Row_Rendering();
 
@@ -856,7 +992,31 @@ class cdeudas_view extends cdeudas {
 		// Id
 		// cuenta
 		// id_cliente
-		// codigo
+		// id_ciudad
+		// id_agente
+		// id_estadodeuda
+		// mig_codigo_deuda
+		// mig_tipo_operacion
+		// mig_fecha_desembolso
+		// mig_fecha_estado
+		// mig_anios_castigo
+		// mig_tipo_garantia
+		// mig_real
+		// mig_actividad_economica
+		// mig_agencia
+		// mig_no_juicio
+		// mig_nombre_abogado
+		// mig_fase_procesal
+		// mig_moneda
+		// mig_tasa
+		// mig_plazo
+		// mig_dias_mora
+		// mig_monto_desembolso
+		// mig_total_cartera
+		// mig_capital
+		// mig_intereses
+		// mig_cargos_gastos
+		// mig_total_deuda
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -890,9 +1050,188 @@ class cdeudas_view extends cdeudas {
 		}
 		$this->id_cliente->ViewCustomAttributes = "";
 
-		// codigo
-		$this->codigo->ViewValue = $this->codigo->CurrentValue;
-		$this->codigo->ViewCustomAttributes = "";
+		// id_ciudad
+		if (strval($this->id_ciudad->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_ciudad->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `ciudades`";
+		$sWhereWrk = "";
+		$this->id_ciudad->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_ciudad, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_ciudad->ViewValue = $this->id_ciudad->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_ciudad->ViewValue = $this->id_ciudad->CurrentValue;
+			}
+		} else {
+			$this->id_ciudad->ViewValue = NULL;
+		}
+		$this->id_ciudad->ViewCustomAttributes = "";
+
+		// id_agente
+		if (strval($this->id_agente->CurrentValue) <> "") {
+			$sFilterWrk = "`id_user`" . ew_SearchString("=", $this->id_agente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `id_user`, `First_Name` AS `DispFld`, `Last_Name` AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `users`";
+		$sWhereWrk = "";
+		$this->id_agente->LookupFilters = array();
+		$lookuptblfilter = "`User_Level`=2";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_agente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `First_Name`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$arwrk[2] = $rswrk->fields('Disp2Fld');
+				$this->id_agente->ViewValue = $this->id_agente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_agente->ViewValue = $this->id_agente->CurrentValue;
+			}
+		} else {
+			$this->id_agente->ViewValue = NULL;
+		}
+		$this->id_agente->ViewCustomAttributes = "";
+
+		// id_estadodeuda
+		if (strval($this->id_estadodeuda->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_estadodeuda->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `estado_deuda`";
+		$sWhereWrk = "";
+		$this->id_estadodeuda->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_estadodeuda, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_estadodeuda->ViewValue = $this->id_estadodeuda->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_estadodeuda->ViewValue = $this->id_estadodeuda->CurrentValue;
+			}
+		} else {
+			$this->id_estadodeuda->ViewValue = NULL;
+		}
+		$this->id_estadodeuda->ViewCustomAttributes = "";
+
+		// mig_codigo_deuda
+		$this->mig_codigo_deuda->ViewValue = $this->mig_codigo_deuda->CurrentValue;
+		$this->mig_codigo_deuda->ViewCustomAttributes = "";
+
+		// mig_tipo_operacion
+		$this->mig_tipo_operacion->ViewValue = $this->mig_tipo_operacion->CurrentValue;
+		$this->mig_tipo_operacion->ViewCustomAttributes = "";
+
+		// mig_fecha_desembolso
+		$this->mig_fecha_desembolso->ViewValue = $this->mig_fecha_desembolso->CurrentValue;
+		$this->mig_fecha_desembolso->ViewValue = ew_FormatDateTime($this->mig_fecha_desembolso->ViewValue, 7);
+		$this->mig_fecha_desembolso->ViewCustomAttributes = "";
+
+		// mig_fecha_estado
+		$this->mig_fecha_estado->ViewValue = $this->mig_fecha_estado->CurrentValue;
+		$this->mig_fecha_estado->ViewValue = ew_FormatDateTime($this->mig_fecha_estado->ViewValue, 7);
+		$this->mig_fecha_estado->ViewCustomAttributes = "";
+
+		// mig_anios_castigo
+		$this->mig_anios_castigo->ViewValue = $this->mig_anios_castigo->CurrentValue;
+		$this->mig_anios_castigo->ViewValue = ew_FormatNumber($this->mig_anios_castigo->ViewValue, 0, 0, 0, 0);
+		$this->mig_anios_castigo->ViewCustomAttributes = "";
+
+		// mig_tipo_garantia
+		$this->mig_tipo_garantia->ViewValue = $this->mig_tipo_garantia->CurrentValue;
+		$this->mig_tipo_garantia->ViewCustomAttributes = "";
+
+		// mig_real
+		$this->mig_real->ViewValue = $this->mig_real->CurrentValue;
+		$this->mig_real->ViewCustomAttributes = "";
+
+		// mig_actividad_economica
+		$this->mig_actividad_economica->ViewValue = $this->mig_actividad_economica->CurrentValue;
+		$this->mig_actividad_economica->ViewCustomAttributes = "";
+
+		// mig_agencia
+		$this->mig_agencia->ViewValue = $this->mig_agencia->CurrentValue;
+		$this->mig_agencia->ViewCustomAttributes = "";
+
+		// mig_no_juicio
+		$this->mig_no_juicio->ViewValue = $this->mig_no_juicio->CurrentValue;
+		$this->mig_no_juicio->ViewCustomAttributes = "";
+
+		// mig_nombre_abogado
+		$this->mig_nombre_abogado->ViewValue = $this->mig_nombre_abogado->CurrentValue;
+		$this->mig_nombre_abogado->ViewCustomAttributes = "";
+
+		// mig_fase_procesal
+		$this->mig_fase_procesal->ViewValue = $this->mig_fase_procesal->CurrentValue;
+		$this->mig_fase_procesal->ViewCustomAttributes = "";
+
+		// mig_moneda
+		if (strval($this->mig_moneda->CurrentValue) <> "") {
+			$this->mig_moneda->ViewValue = $this->mig_moneda->OptionCaption($this->mig_moneda->CurrentValue);
+		} else {
+			$this->mig_moneda->ViewValue = NULL;
+		}
+		$this->mig_moneda->ViewCustomAttributes = "";
+
+		// mig_tasa
+		$this->mig_tasa->ViewValue = $this->mig_tasa->CurrentValue;
+		$this->mig_tasa->ViewValue = ew_FormatNumber($this->mig_tasa->ViewValue, 2, 0, 0, 0);
+		$this->mig_tasa->ViewCustomAttributes = "";
+
+		// mig_plazo
+		$this->mig_plazo->ViewValue = $this->mig_plazo->CurrentValue;
+		$this->mig_plazo->ViewValue = ew_FormatNumber($this->mig_plazo->ViewValue, 2, 0, 0, 0);
+		$this->mig_plazo->ViewCustomAttributes = "";
+
+		// mig_dias_mora
+		$this->mig_dias_mora->ViewValue = $this->mig_dias_mora->CurrentValue;
+		$this->mig_dias_mora->ViewValue = ew_FormatNumber($this->mig_dias_mora->ViewValue, 2, 0, 0, 0);
+		$this->mig_dias_mora->ViewCustomAttributes = "";
+
+		// mig_monto_desembolso
+		$this->mig_monto_desembolso->ViewValue = $this->mig_monto_desembolso->CurrentValue;
+		$this->mig_monto_desembolso->ViewValue = ew_FormatNumber($this->mig_monto_desembolso->ViewValue, 2, 0, 0, 0);
+		$this->mig_monto_desembolso->ViewCustomAttributes = "";
+
+		// mig_total_cartera
+		$this->mig_total_cartera->ViewValue = $this->mig_total_cartera->CurrentValue;
+		$this->mig_total_cartera->ViewValue = ew_FormatNumber($this->mig_total_cartera->ViewValue, 2, 0, 0, 0);
+		$this->mig_total_cartera->ViewCustomAttributes = "";
+
+		// mig_capital
+		$this->mig_capital->ViewValue = $this->mig_capital->CurrentValue;
+		$this->mig_capital->ViewValue = ew_FormatNumber($this->mig_capital->ViewValue, 2, 0, 0, 0);
+		$this->mig_capital->ViewCustomAttributes = "";
+
+		// mig_intereses
+		$this->mig_intereses->ViewValue = $this->mig_intereses->CurrentValue;
+		$this->mig_intereses->ViewValue = ew_FormatNumber($this->mig_intereses->ViewValue, 2, 0, 0, 0);
+		$this->mig_intereses->ViewCustomAttributes = "";
+
+		// mig_cargos_gastos
+		$this->mig_cargos_gastos->ViewValue = $this->mig_cargos_gastos->CurrentValue;
+		$this->mig_cargos_gastos->ViewValue = ew_FormatNumber($this->mig_cargos_gastos->ViewValue, 2, 0, 0, 0);
+		$this->mig_cargos_gastos->ViewCustomAttributes = "";
+
+		// mig_total_deuda
+		$this->mig_total_deuda->ViewValue = $this->mig_total_deuda->CurrentValue;
+		$this->mig_total_deuda->ViewValue = ew_FormatNumber($this->mig_total_deuda->ViewValue, 2, 0, 0, 0);
+		$this->mig_total_deuda->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
@@ -910,10 +1249,130 @@ class cdeudas_view extends cdeudas {
 			}
 			$this->id_cliente->TooltipValue = "";
 
-			// codigo
-			$this->codigo->LinkCustomAttributes = "";
-			$this->codigo->HrefValue = "";
-			$this->codigo->TooltipValue = "";
+			// id_ciudad
+			$this->id_ciudad->LinkCustomAttributes = "";
+			$this->id_ciudad->HrefValue = "";
+			$this->id_ciudad->TooltipValue = "";
+
+			// id_agente
+			$this->id_agente->LinkCustomAttributes = "";
+			$this->id_agente->HrefValue = "";
+			$this->id_agente->TooltipValue = "";
+
+			// id_estadodeuda
+			$this->id_estadodeuda->LinkCustomAttributes = "";
+			$this->id_estadodeuda->HrefValue = "";
+			$this->id_estadodeuda->TooltipValue = "";
+
+			// mig_codigo_deuda
+			$this->mig_codigo_deuda->LinkCustomAttributes = "";
+			$this->mig_codigo_deuda->HrefValue = "";
+			$this->mig_codigo_deuda->TooltipValue = "";
+
+			// mig_tipo_operacion
+			$this->mig_tipo_operacion->LinkCustomAttributes = "";
+			$this->mig_tipo_operacion->HrefValue = "";
+			$this->mig_tipo_operacion->TooltipValue = "";
+
+			// mig_fecha_desembolso
+			$this->mig_fecha_desembolso->LinkCustomAttributes = "";
+			$this->mig_fecha_desembolso->HrefValue = "";
+			$this->mig_fecha_desembolso->TooltipValue = "";
+
+			// mig_fecha_estado
+			$this->mig_fecha_estado->LinkCustomAttributes = "";
+			$this->mig_fecha_estado->HrefValue = "";
+			$this->mig_fecha_estado->TooltipValue = "";
+
+			// mig_anios_castigo
+			$this->mig_anios_castigo->LinkCustomAttributes = "";
+			$this->mig_anios_castigo->HrefValue = "";
+			$this->mig_anios_castigo->TooltipValue = "";
+
+			// mig_tipo_garantia
+			$this->mig_tipo_garantia->LinkCustomAttributes = "";
+			$this->mig_tipo_garantia->HrefValue = "";
+			$this->mig_tipo_garantia->TooltipValue = "";
+
+			// mig_real
+			$this->mig_real->LinkCustomAttributes = "";
+			$this->mig_real->HrefValue = "";
+			$this->mig_real->TooltipValue = "";
+
+			// mig_actividad_economica
+			$this->mig_actividad_economica->LinkCustomAttributes = "";
+			$this->mig_actividad_economica->HrefValue = "";
+			$this->mig_actividad_economica->TooltipValue = "";
+
+			// mig_agencia
+			$this->mig_agencia->LinkCustomAttributes = "";
+			$this->mig_agencia->HrefValue = "";
+			$this->mig_agencia->TooltipValue = "";
+
+			// mig_no_juicio
+			$this->mig_no_juicio->LinkCustomAttributes = "";
+			$this->mig_no_juicio->HrefValue = "";
+			$this->mig_no_juicio->TooltipValue = "";
+
+			// mig_nombre_abogado
+			$this->mig_nombre_abogado->LinkCustomAttributes = "";
+			$this->mig_nombre_abogado->HrefValue = "";
+			$this->mig_nombre_abogado->TooltipValue = "";
+
+			// mig_fase_procesal
+			$this->mig_fase_procesal->LinkCustomAttributes = "";
+			$this->mig_fase_procesal->HrefValue = "";
+			$this->mig_fase_procesal->TooltipValue = "";
+
+			// mig_moneda
+			$this->mig_moneda->LinkCustomAttributes = "";
+			$this->mig_moneda->HrefValue = "";
+			$this->mig_moneda->TooltipValue = "";
+
+			// mig_tasa
+			$this->mig_tasa->LinkCustomAttributes = "";
+			$this->mig_tasa->HrefValue = "";
+			$this->mig_tasa->TooltipValue = "";
+
+			// mig_plazo
+			$this->mig_plazo->LinkCustomAttributes = "";
+			$this->mig_plazo->HrefValue = "";
+			$this->mig_plazo->TooltipValue = "";
+
+			// mig_dias_mora
+			$this->mig_dias_mora->LinkCustomAttributes = "";
+			$this->mig_dias_mora->HrefValue = "";
+			$this->mig_dias_mora->TooltipValue = "";
+
+			// mig_monto_desembolso
+			$this->mig_monto_desembolso->LinkCustomAttributes = "";
+			$this->mig_monto_desembolso->HrefValue = "";
+			$this->mig_monto_desembolso->TooltipValue = "";
+
+			// mig_total_cartera
+			$this->mig_total_cartera->LinkCustomAttributes = "";
+			$this->mig_total_cartera->HrefValue = "";
+			$this->mig_total_cartera->TooltipValue = "";
+
+			// mig_capital
+			$this->mig_capital->LinkCustomAttributes = "";
+			$this->mig_capital->HrefValue = "";
+			$this->mig_capital->TooltipValue = "";
+
+			// mig_intereses
+			$this->mig_intereses->LinkCustomAttributes = "";
+			$this->mig_intereses->HrefValue = "";
+			$this->mig_intereses->TooltipValue = "";
+
+			// mig_cargos_gastos
+			$this->mig_cargos_gastos->LinkCustomAttributes = "";
+			$this->mig_cargos_gastos->HrefValue = "";
+			$this->mig_cargos_gastos->TooltipValue = "";
+
+			// mig_total_deuda
+			$this->mig_total_deuda->LinkCustomAttributes = "";
+			$this->mig_total_deuda->HrefValue = "";
+			$this->mig_total_deuda->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -1203,6 +1662,17 @@ class cdeudas_view extends cdeudas {
 					$bValidMaster = FALSE;
 				}
 			}
+			if ($sMasterTblVar == "users") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_id_user"] <> "") {
+					$GLOBALS["users"]->id_user->setQueryStringValue($_GET["fk_id_user"]);
+					$this->id_agente->setQueryStringValue($GLOBALS["users"]->id_user->QueryStringValue);
+					$this->id_agente->setSessionValue($this->id_agente->QueryStringValue);
+					if (!is_numeric($GLOBALS["users"]->id_user->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
 		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
 			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
 			if ($sMasterTblVar == "") {
@@ -1221,6 +1691,17 @@ class cdeudas_view extends cdeudas {
 					$bValidMaster = FALSE;
 				}
 			}
+			if ($sMasterTblVar == "users") {
+				$bValidMaster = TRUE;
+				if (@$_POST["fk_id_user"] <> "") {
+					$GLOBALS["users"]->id_user->setFormValue($_POST["fk_id_user"]);
+					$this->id_agente->setFormValue($GLOBALS["users"]->id_user->FormValue);
+					$this->id_agente->setSessionValue($this->id_agente->FormValue);
+					if (!is_numeric($GLOBALS["users"]->id_user->FormValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
 		}
 		if ($bValidMaster) {
 
@@ -1235,6 +1716,9 @@ class cdeudas_view extends cdeudas {
 			// Clear previous master key from Session
 			if ($sMasterTblVar <> "cuentas") {
 				if ($this->id_cliente->CurrentValue == "") $this->id_cliente->setSessionValue("");
+			}
+			if ($sMasterTblVar <> "users") {
+				if ($this->id_agente->CurrentValue == "") $this->id_agente->setSessionValue("");
 			}
 		}
 		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
@@ -1278,6 +1762,18 @@ class cdeudas_view extends cdeudas {
 		$Breadcrumb->Add("list", $this->TableVar, $this->AddMasterUrl("deudaslist.php"), "", $this->TableVar, TRUE);
 		$PageId = "view";
 		$Breadcrumb->Add("view", $PageId, $url);
+	}
+
+	// Set up multi pages
+	function SetupMultiPages() {
+		$pages = new cSubPages();
+		$pages->Style = "tabs";
+		$pages->Add(0);
+		$pages->Add(1);
+		$pages->Add(2);
+		$pages->Add(3);
+		$pages->Add(4);
+		$this->MultiPages = $pages;
 	}
 
 	// Setup lookup filters of a field
@@ -1420,9 +1916,20 @@ fdeudasview.Form_CustomValidate =
 // Use JavaScript validation or not
 fdeudasview.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
+// Multi-Page
+fdeudasview.MultiPage = new ew_MultiPage("fdeudasview");
+
 // Dynamic selection lists
 fdeudasview.Lists["x_id_cliente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_denominacion","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"cuentas"};
 fdeudasview.Lists["x_id_cliente"].Data = "<?php echo $deudas_view->id_cliente->LookupFilterQuery(FALSE, "view") ?>";
+fdeudasview.Lists["x_id_ciudad"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"ciudades"};
+fdeudasview.Lists["x_id_ciudad"].Data = "<?php echo $deudas_view->id_ciudad->LookupFilterQuery(FALSE, "view") ?>";
+fdeudasview.Lists["x_id_agente"] = {"LinkField":"x_id_user","Ajax":true,"AutoFill":false,"DisplayFields":["x_First_Name","x_Last_Name","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"users"};
+fdeudasview.Lists["x_id_agente"].Data = "<?php echo $deudas_view->id_agente->LookupFilterQuery(FALSE, "view") ?>";
+fdeudasview.Lists["x_id_estadodeuda"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"estado_deuda"};
+fdeudasview.Lists["x_id_estadodeuda"].Data = "<?php echo $deudas_view->id_estadodeuda->LookupFilterQuery(FALSE, "view") ?>";
+fdeudasview.Lists["x_mig_moneda"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
+fdeudasview.Lists["x_mig_moneda"].Options = <?php echo json_encode($deudas_view->mig_moneda->Options()) ?>;
 
 // Form object for search
 </script>
@@ -1451,12 +1958,26 @@ $deudas_view->ShowMessage();
 <?php } ?>
 <input type="hidden" name="t" value="deudas">
 <input type="hidden" name="modal" value="<?php echo intval($deudas_view->IsModal) ?>">
+<?php if ($deudas->Export == "") { ?>
+<div class="ewMultiPage">
+<div class="nav-tabs-custom" id="deudas_view">
+	<ul class="nav<?php echo $deudas_view->MultiPages->NavStyle() ?>">
+		<li<?php echo $deudas_view->MultiPages->TabStyle("1") ?>><a href="#tab_deudas1" data-toggle="tab"><?php echo $deudas->PageCaption(1) ?></a></li>
+		<li<?php echo $deudas_view->MultiPages->TabStyle("2") ?>><a href="#tab_deudas2" data-toggle="tab"><?php echo $deudas->PageCaption(2) ?></a></li>
+		<li<?php echo $deudas_view->MultiPages->TabStyle("3") ?>><a href="#tab_deudas3" data-toggle="tab"><?php echo $deudas->PageCaption(3) ?></a></li>
+		<li<?php echo $deudas_view->MultiPages->TabStyle("4") ?>><a href="#tab_deudas4" data-toggle="tab"><?php echo $deudas->PageCaption(4) ?></a></li>
+	</ul>
+	<div class="tab-content">
+<?php } ?>
+<?php if ($deudas->Export == "") { ?>
+		<div class="tab-pane<?php echo $deudas_view->MultiPages->PageStyle("1") ?>" id="tab_deudas1">
+<?php } ?>
 <table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
 <?php if ($deudas->Id->Visible) { // Id ?>
 	<tr id="r_Id">
 		<td class="col-sm-2"><span id="elh_deudas_Id"><?php echo $deudas->Id->FldCaption() ?></span></td>
 		<td data-name="Id"<?php echo $deudas->Id->CellAttributes() ?>>
-<span id="el_deudas_Id">
+<span id="el_deudas_Id" data-page="1">
 <span<?php echo $deudas->Id->ViewAttributes() ?>>
 <?php echo $deudas->Id->ViewValue ?></span>
 </span>
@@ -1467,7 +1988,7 @@ $deudas_view->ShowMessage();
 	<tr id="r_id_cliente">
 		<td class="col-sm-2"><span id="elh_deudas_id_cliente"><?php echo $deudas->id_cliente->FldCaption() ?></span></td>
 		<td data-name="id_cliente"<?php echo $deudas->id_cliente->CellAttributes() ?>>
-<span id="el_deudas_id_cliente">
+<span id="el_deudas_id_cliente" data-page="1">
 <span<?php echo $deudas->id_cliente->ViewAttributes() ?>>
 <?php if ((!ew_EmptyStr($deudas->id_cliente->ViewValue)) && $deudas->id_cliente->LinkAttributes() <> "") { ?>
 <a<?php echo $deudas->id_cliente->LinkAttributes() ?>><?php echo $deudas->id_cliente->ViewValue ?></a>
@@ -1479,18 +2000,314 @@ $deudas_view->ShowMessage();
 </td>
 	</tr>
 <?php } ?>
-<?php if ($deudas->codigo->Visible) { // codigo ?>
-	<tr id="r_codigo">
-		<td class="col-sm-2"><span id="elh_deudas_codigo"><?php echo $deudas->codigo->FldCaption() ?></span></td>
-		<td data-name="codigo"<?php echo $deudas->codigo->CellAttributes() ?>>
-<span id="el_deudas_codigo">
-<span<?php echo $deudas->codigo->ViewAttributes() ?>>
-<?php echo $deudas->codigo->ViewValue ?></span>
+<?php if ($deudas->id_ciudad->Visible) { // id_ciudad ?>
+	<tr id="r_id_ciudad">
+		<td class="col-sm-2"><span id="elh_deudas_id_ciudad"><?php echo $deudas->id_ciudad->FldCaption() ?></span></td>
+		<td data-name="id_ciudad"<?php echo $deudas->id_ciudad->CellAttributes() ?>>
+<span id="el_deudas_id_ciudad" data-page="1">
+<span<?php echo $deudas->id_ciudad->ViewAttributes() ?>>
+<?php echo $deudas->id_ciudad->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->id_agente->Visible) { // id_agente ?>
+	<tr id="r_id_agente">
+		<td class="col-sm-2"><span id="elh_deudas_id_agente"><?php echo $deudas->id_agente->FldCaption() ?></span></td>
+		<td data-name="id_agente"<?php echo $deudas->id_agente->CellAttributes() ?>>
+<span id="el_deudas_id_agente" data-page="1">
+<span<?php echo $deudas->id_agente->ViewAttributes() ?>>
+<?php echo $deudas->id_agente->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->id_estadodeuda->Visible) { // id_estadodeuda ?>
+	<tr id="r_id_estadodeuda">
+		<td class="col-sm-2"><span id="elh_deudas_id_estadodeuda"><?php echo $deudas->id_estadodeuda->FldCaption() ?></span></td>
+		<td data-name="id_estadodeuda"<?php echo $deudas->id_estadodeuda->CellAttributes() ?>>
+<span id="el_deudas_id_estadodeuda" data-page="1">
+<span<?php echo $deudas->id_estadodeuda->ViewAttributes() ?>>
+<?php echo $deudas->id_estadodeuda->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_codigo_deuda->Visible) { // mig_codigo_deuda ?>
+	<tr id="r_mig_codigo_deuda">
+		<td class="col-sm-2"><span id="elh_deudas_mig_codigo_deuda"><?php echo $deudas->mig_codigo_deuda->FldCaption() ?></span></td>
+		<td data-name="mig_codigo_deuda"<?php echo $deudas->mig_codigo_deuda->CellAttributes() ?>>
+<span id="el_deudas_mig_codigo_deuda" data-page="1">
+<span<?php echo $deudas->mig_codigo_deuda->ViewAttributes() ?>>
+<?php echo $deudas->mig_codigo_deuda->ViewValue ?></span>
 </span>
 </td>
 	</tr>
 <?php } ?>
 </table>
+<?php if ($deudas->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($deudas->Export == "") { ?>
+		<div class="tab-pane<?php echo $deudas_view->MultiPages->PageStyle("2") ?>" id="tab_deudas2">
+<?php } ?>
+<table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
+<?php if ($deudas->mig_tipo_operacion->Visible) { // mig_tipo_operacion ?>
+	<tr id="r_mig_tipo_operacion">
+		<td class="col-sm-2"><span id="elh_deudas_mig_tipo_operacion"><?php echo $deudas->mig_tipo_operacion->FldCaption() ?></span></td>
+		<td data-name="mig_tipo_operacion"<?php echo $deudas->mig_tipo_operacion->CellAttributes() ?>>
+<span id="el_deudas_mig_tipo_operacion" data-page="2">
+<span<?php echo $deudas->mig_tipo_operacion->ViewAttributes() ?>>
+<?php echo $deudas->mig_tipo_operacion->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_fecha_desembolso->Visible) { // mig_fecha_desembolso ?>
+	<tr id="r_mig_fecha_desembolso">
+		<td class="col-sm-2"><span id="elh_deudas_mig_fecha_desembolso"><?php echo $deudas->mig_fecha_desembolso->FldCaption() ?></span></td>
+		<td data-name="mig_fecha_desembolso"<?php echo $deudas->mig_fecha_desembolso->CellAttributes() ?>>
+<span id="el_deudas_mig_fecha_desembolso" data-page="2">
+<span<?php echo $deudas->mig_fecha_desembolso->ViewAttributes() ?>>
+<?php echo $deudas->mig_fecha_desembolso->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_fecha_estado->Visible) { // mig_fecha_estado ?>
+	<tr id="r_mig_fecha_estado">
+		<td class="col-sm-2"><span id="elh_deudas_mig_fecha_estado"><?php echo $deudas->mig_fecha_estado->FldCaption() ?></span></td>
+		<td data-name="mig_fecha_estado"<?php echo $deudas->mig_fecha_estado->CellAttributes() ?>>
+<span id="el_deudas_mig_fecha_estado" data-page="2">
+<span<?php echo $deudas->mig_fecha_estado->ViewAttributes() ?>>
+<?php echo $deudas->mig_fecha_estado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_anios_castigo->Visible) { // mig_anios_castigo ?>
+	<tr id="r_mig_anios_castigo">
+		<td class="col-sm-2"><span id="elh_deudas_mig_anios_castigo"><?php echo $deudas->mig_anios_castigo->FldCaption() ?></span></td>
+		<td data-name="mig_anios_castigo"<?php echo $deudas->mig_anios_castigo->CellAttributes() ?>>
+<span id="el_deudas_mig_anios_castigo" data-page="2">
+<span<?php echo $deudas->mig_anios_castigo->ViewAttributes() ?>>
+<?php echo $deudas->mig_anios_castigo->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_tipo_garantia->Visible) { // mig_tipo_garantia ?>
+	<tr id="r_mig_tipo_garantia">
+		<td class="col-sm-2"><span id="elh_deudas_mig_tipo_garantia"><?php echo $deudas->mig_tipo_garantia->FldCaption() ?></span></td>
+		<td data-name="mig_tipo_garantia"<?php echo $deudas->mig_tipo_garantia->CellAttributes() ?>>
+<span id="el_deudas_mig_tipo_garantia" data-page="2">
+<span<?php echo $deudas->mig_tipo_garantia->ViewAttributes() ?>>
+<?php echo $deudas->mig_tipo_garantia->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_real->Visible) { // mig_real ?>
+	<tr id="r_mig_real">
+		<td class="col-sm-2"><span id="elh_deudas_mig_real"><?php echo $deudas->mig_real->FldCaption() ?></span></td>
+		<td data-name="mig_real"<?php echo $deudas->mig_real->CellAttributes() ?>>
+<span id="el_deudas_mig_real" data-page="2">
+<span<?php echo $deudas->mig_real->ViewAttributes() ?>>
+<?php echo $deudas->mig_real->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+</table>
+<?php if ($deudas->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($deudas->Export == "") { ?>
+		<div class="tab-pane<?php echo $deudas_view->MultiPages->PageStyle("3") ?>" id="tab_deudas3">
+<?php } ?>
+<table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
+<?php if ($deudas->mig_actividad_economica->Visible) { // mig_actividad_economica ?>
+	<tr id="r_mig_actividad_economica">
+		<td class="col-sm-2"><span id="elh_deudas_mig_actividad_economica"><?php echo $deudas->mig_actividad_economica->FldCaption() ?></span></td>
+		<td data-name="mig_actividad_economica"<?php echo $deudas->mig_actividad_economica->CellAttributes() ?>>
+<span id="el_deudas_mig_actividad_economica" data-page="3">
+<span<?php echo $deudas->mig_actividad_economica->ViewAttributes() ?>>
+<?php echo $deudas->mig_actividad_economica->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_agencia->Visible) { // mig_agencia ?>
+	<tr id="r_mig_agencia">
+		<td class="col-sm-2"><span id="elh_deudas_mig_agencia"><?php echo $deudas->mig_agencia->FldCaption() ?></span></td>
+		<td data-name="mig_agencia"<?php echo $deudas->mig_agencia->CellAttributes() ?>>
+<span id="el_deudas_mig_agencia" data-page="3">
+<span<?php echo $deudas->mig_agencia->ViewAttributes() ?>>
+<?php echo $deudas->mig_agencia->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_no_juicio->Visible) { // mig_no_juicio ?>
+	<tr id="r_mig_no_juicio">
+		<td class="col-sm-2"><span id="elh_deudas_mig_no_juicio"><?php echo $deudas->mig_no_juicio->FldCaption() ?></span></td>
+		<td data-name="mig_no_juicio"<?php echo $deudas->mig_no_juicio->CellAttributes() ?>>
+<span id="el_deudas_mig_no_juicio" data-page="3">
+<span<?php echo $deudas->mig_no_juicio->ViewAttributes() ?>>
+<?php echo $deudas->mig_no_juicio->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_nombre_abogado->Visible) { // mig_nombre_abogado ?>
+	<tr id="r_mig_nombre_abogado">
+		<td class="col-sm-2"><span id="elh_deudas_mig_nombre_abogado"><?php echo $deudas->mig_nombre_abogado->FldCaption() ?></span></td>
+		<td data-name="mig_nombre_abogado"<?php echo $deudas->mig_nombre_abogado->CellAttributes() ?>>
+<span id="el_deudas_mig_nombre_abogado" data-page="3">
+<span<?php echo $deudas->mig_nombre_abogado->ViewAttributes() ?>>
+<?php echo $deudas->mig_nombre_abogado->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_fase_procesal->Visible) { // mig_fase_procesal ?>
+	<tr id="r_mig_fase_procesal">
+		<td class="col-sm-2"><span id="elh_deudas_mig_fase_procesal"><?php echo $deudas->mig_fase_procesal->FldCaption() ?></span></td>
+		<td data-name="mig_fase_procesal"<?php echo $deudas->mig_fase_procesal->CellAttributes() ?>>
+<span id="el_deudas_mig_fase_procesal" data-page="3">
+<span<?php echo $deudas->mig_fase_procesal->ViewAttributes() ?>>
+<?php echo $deudas->mig_fase_procesal->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+</table>
+<?php if ($deudas->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($deudas->Export == "") { ?>
+		<div class="tab-pane<?php echo $deudas_view->MultiPages->PageStyle("4") ?>" id="tab_deudas4">
+<?php } ?>
+<table class="table table-striped table-bordered table-hover table-condensed ewViewTable">
+<?php if ($deudas->mig_moneda->Visible) { // mig_moneda ?>
+	<tr id="r_mig_moneda">
+		<td class="col-sm-2"><span id="elh_deudas_mig_moneda"><?php echo $deudas->mig_moneda->FldCaption() ?></span></td>
+		<td data-name="mig_moneda"<?php echo $deudas->mig_moneda->CellAttributes() ?>>
+<span id="el_deudas_mig_moneda" data-page="4">
+<span<?php echo $deudas->mig_moneda->ViewAttributes() ?>>
+<?php echo $deudas->mig_moneda->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_tasa->Visible) { // mig_tasa ?>
+	<tr id="r_mig_tasa">
+		<td class="col-sm-2"><span id="elh_deudas_mig_tasa"><?php echo $deudas->mig_tasa->FldCaption() ?></span></td>
+		<td data-name="mig_tasa"<?php echo $deudas->mig_tasa->CellAttributes() ?>>
+<span id="el_deudas_mig_tasa" data-page="4">
+<span<?php echo $deudas->mig_tasa->ViewAttributes() ?>>
+<?php echo $deudas->mig_tasa->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_plazo->Visible) { // mig_plazo ?>
+	<tr id="r_mig_plazo">
+		<td class="col-sm-2"><span id="elh_deudas_mig_plazo"><?php echo $deudas->mig_plazo->FldCaption() ?></span></td>
+		<td data-name="mig_plazo"<?php echo $deudas->mig_plazo->CellAttributes() ?>>
+<span id="el_deudas_mig_plazo" data-page="4">
+<span<?php echo $deudas->mig_plazo->ViewAttributes() ?>>
+<?php echo $deudas->mig_plazo->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_dias_mora->Visible) { // mig_dias_mora ?>
+	<tr id="r_mig_dias_mora">
+		<td class="col-sm-2"><span id="elh_deudas_mig_dias_mora"><?php echo $deudas->mig_dias_mora->FldCaption() ?></span></td>
+		<td data-name="mig_dias_mora"<?php echo $deudas->mig_dias_mora->CellAttributes() ?>>
+<span id="el_deudas_mig_dias_mora" data-page="4">
+<span<?php echo $deudas->mig_dias_mora->ViewAttributes() ?>>
+<?php echo $deudas->mig_dias_mora->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_monto_desembolso->Visible) { // mig_monto_desembolso ?>
+	<tr id="r_mig_monto_desembolso">
+		<td class="col-sm-2"><span id="elh_deudas_mig_monto_desembolso"><?php echo $deudas->mig_monto_desembolso->FldCaption() ?></span></td>
+		<td data-name="mig_monto_desembolso"<?php echo $deudas->mig_monto_desembolso->CellAttributes() ?>>
+<span id="el_deudas_mig_monto_desembolso" data-page="4">
+<span<?php echo $deudas->mig_monto_desembolso->ViewAttributes() ?>>
+<?php echo $deudas->mig_monto_desembolso->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_total_cartera->Visible) { // mig_total_cartera ?>
+	<tr id="r_mig_total_cartera">
+		<td class="col-sm-2"><span id="elh_deudas_mig_total_cartera"><?php echo $deudas->mig_total_cartera->FldCaption() ?></span></td>
+		<td data-name="mig_total_cartera"<?php echo $deudas->mig_total_cartera->CellAttributes() ?>>
+<span id="el_deudas_mig_total_cartera" data-page="4">
+<span<?php echo $deudas->mig_total_cartera->ViewAttributes() ?>>
+<?php echo $deudas->mig_total_cartera->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_capital->Visible) { // mig_capital ?>
+	<tr id="r_mig_capital">
+		<td class="col-sm-2"><span id="elh_deudas_mig_capital"><?php echo $deudas->mig_capital->FldCaption() ?></span></td>
+		<td data-name="mig_capital"<?php echo $deudas->mig_capital->CellAttributes() ?>>
+<span id="el_deudas_mig_capital" data-page="4">
+<span<?php echo $deudas->mig_capital->ViewAttributes() ?>>
+<?php echo $deudas->mig_capital->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_intereses->Visible) { // mig_intereses ?>
+	<tr id="r_mig_intereses">
+		<td class="col-sm-2"><span id="elh_deudas_mig_intereses"><?php echo $deudas->mig_intereses->FldCaption() ?></span></td>
+		<td data-name="mig_intereses"<?php echo $deudas->mig_intereses->CellAttributes() ?>>
+<span id="el_deudas_mig_intereses" data-page="4">
+<span<?php echo $deudas->mig_intereses->ViewAttributes() ?>>
+<?php echo $deudas->mig_intereses->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_cargos_gastos->Visible) { // mig_cargos_gastos ?>
+	<tr id="r_mig_cargos_gastos">
+		<td class="col-sm-2"><span id="elh_deudas_mig_cargos_gastos"><?php echo $deudas->mig_cargos_gastos->FldCaption() ?></span></td>
+		<td data-name="mig_cargos_gastos"<?php echo $deudas->mig_cargos_gastos->CellAttributes() ?>>
+<span id="el_deudas_mig_cargos_gastos" data-page="4">
+<span<?php echo $deudas->mig_cargos_gastos->ViewAttributes() ?>>
+<?php echo $deudas->mig_cargos_gastos->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($deudas->mig_total_deuda->Visible) { // mig_total_deuda ?>
+	<tr id="r_mig_total_deuda">
+		<td class="col-sm-2"><span id="elh_deudas_mig_total_deuda"><?php echo $deudas->mig_total_deuda->FldCaption() ?></span></td>
+		<td data-name="mig_total_deuda"<?php echo $deudas->mig_total_deuda->CellAttributes() ?>>
+<span id="el_deudas_mig_total_deuda" data-page="4">
+<span<?php echo $deudas->mig_total_deuda->ViewAttributes() ?>>
+<?php echo $deudas->mig_total_deuda->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+</table>
+<?php if ($deudas->Export == "") { ?>
+		</div>
+<?php } ?>
+<?php if ($deudas->Export == "") { ?>
+	</div>
+</div>
+</div>
+<?php } ?>
 <?php
 	if (in_array("deuda_persona", explode(",", $deudas->getCurrentDetailTable())) && $deuda_persona->DetailView) {
 ?>

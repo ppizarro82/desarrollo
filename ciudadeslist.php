@@ -7,6 +7,8 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "ciudadesinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "paisesinfo.php" ?>
+<?php include_once "provinciasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -304,7 +306,7 @@ class cciudades_list extends cciudades {
 		$this->ExportXmlUrl = $this->PageUrl() . "export=xml";
 		$this->ExportCsvUrl = $this->PageUrl() . "export=csv";
 		$this->ExportPdfUrl = $this->PageUrl() . "export=pdf";
-		$this->AddUrl = "ciudadesadd.php";
+		$this->AddUrl = "ciudadesadd.php?" . EW_TABLE_SHOW_DETAIL . "=";
 		$this->InlineAddUrl = $this->PageUrl() . "a=add";
 		$this->GridAddUrl = $this->PageUrl() . "a=gridadd";
 		$this->GridEditUrl = $this->PageUrl() . "a=gridedit";
@@ -313,6 +315,9 @@ class cciudades_list extends cciudades {
 
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
+
+		// Table object (paises)
+		if (!isset($GLOBALS['paises'])) $GLOBALS['paises'] = new cpaises();
 
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
@@ -446,7 +451,10 @@ class cciudades_list extends cciudades {
 		$this->SetupExportOptions();
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->id_pais->SetVisibility();
 		$this->nombre->SetVisibility();
+		$this->latitud->SetVisibility();
+		$this->longitud->SetVisibility();
 		$this->estado->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
@@ -464,6 +472,14 @@ class cciudades_list extends cciudades {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'provincias'
+			if (@$_POST["grid"] == "fprovinciasgrid") {
+				if (!isset($GLOBALS["provincias_grid"])) $GLOBALS["provincias_grid"] = new cprovincias_grid;
+				$GLOBALS["provincias_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -478,6 +494,9 @@ class cciudades_list extends cciudades {
 
 		// Create Token
 		$this->CreateToken();
+
+		// Set up master detail parameters
+		$this->SetupMasterParms();
 
 		// Setup other options
 		$this->SetupOtherOptions();
@@ -580,6 +599,7 @@ class cciudades_list extends cciudades {
 	var $MultiSelectKey;
 	var $Command;
 	var $RestoreSearch = FALSE;
+	var $provincias_Count;
 	var $DetailPages;
 	var $Recordset;
 	var $OldRecordset;
@@ -697,8 +717,28 @@ class cciudades_list extends cciudades {
 		$sFilter = "";
 		if (!$Security->CanList())
 			$sFilter = "(0=1)"; // Filter all records
+
+		// Restore master/detail filter
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Restore master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Restore detail filter
 		ew_AddFilter($sFilter, $this->DbDetailFilter);
 		ew_AddFilter($sFilter, $this->SearchWhere);
+
+		// Load master record
+		if ($this->CurrentMode <> "add" && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "paises") {
+			global $paises;
+			$rsmaster = $paises->LoadRs($this->DbMasterFilter);
+			$this->MasterRecordExists = ($rsmaster && !$rsmaster->EOF);
+			if (!$this->MasterRecordExists) {
+				$this->setFailureMessage($Language->Phrase("NoRecord")); // Set no record found
+				$this->Page_Terminate("paiseslist.php"); // Return to master page
+			} else {
+				$paises->LoadListRowValues($rsmaster);
+				$paises->RowType = EW_ROWTYPE_MASTER; // Master row
+				$paises->RenderListRow();
+				$rsmaster->Close();
+			}
+		}
 
 		// Set up filter
 		if ($this->Command == "json") {
@@ -783,7 +823,11 @@ class cciudades_list extends cciudades {
 		// Initialize
 		$sFilterList = "";
 		$sFilterList = ew_Concat($sFilterList, $this->Id->AdvancedSearch->ToJson(), ","); // Field Id
+		$sFilterList = ew_Concat($sFilterList, $this->id_pais->AdvancedSearch->ToJson(), ","); // Field id_pais
+		$sFilterList = ew_Concat($sFilterList, $this->nombre_pais->AdvancedSearch->ToJson(), ","); // Field nombre_pais
 		$sFilterList = ew_Concat($sFilterList, $this->nombre->AdvancedSearch->ToJson(), ","); // Field nombre
+		$sFilterList = ew_Concat($sFilterList, $this->latitud->AdvancedSearch->ToJson(), ","); // Field latitud
+		$sFilterList = ew_Concat($sFilterList, $this->longitud->AdvancedSearch->ToJson(), ","); // Field longitud
 		$sFilterList = ew_Concat($sFilterList, $this->estado->AdvancedSearch->ToJson(), ","); // Field estado
 		if ($this->BasicSearch->Keyword <> "") {
 			$sWrk = "\"" . EW_TABLE_BASIC_SEARCH . "\":\"" . ew_JsEncode2($this->BasicSearch->Keyword) . "\",\"" . EW_TABLE_BASIC_SEARCH_TYPE . "\":\"" . ew_JsEncode2($this->BasicSearch->Type) . "\"";
@@ -837,6 +881,22 @@ class cciudades_list extends cciudades {
 		$this->Id->AdvancedSearch->SearchOperator2 = @$filter["w_Id"];
 		$this->Id->AdvancedSearch->Save();
 
+		// Field id_pais
+		$this->id_pais->AdvancedSearch->SearchValue = @$filter["x_id_pais"];
+		$this->id_pais->AdvancedSearch->SearchOperator = @$filter["z_id_pais"];
+		$this->id_pais->AdvancedSearch->SearchCondition = @$filter["v_id_pais"];
+		$this->id_pais->AdvancedSearch->SearchValue2 = @$filter["y_id_pais"];
+		$this->id_pais->AdvancedSearch->SearchOperator2 = @$filter["w_id_pais"];
+		$this->id_pais->AdvancedSearch->Save();
+
+		// Field nombre_pais
+		$this->nombre_pais->AdvancedSearch->SearchValue = @$filter["x_nombre_pais"];
+		$this->nombre_pais->AdvancedSearch->SearchOperator = @$filter["z_nombre_pais"];
+		$this->nombre_pais->AdvancedSearch->SearchCondition = @$filter["v_nombre_pais"];
+		$this->nombre_pais->AdvancedSearch->SearchValue2 = @$filter["y_nombre_pais"];
+		$this->nombre_pais->AdvancedSearch->SearchOperator2 = @$filter["w_nombre_pais"];
+		$this->nombre_pais->AdvancedSearch->Save();
+
 		// Field nombre
 		$this->nombre->AdvancedSearch->SearchValue = @$filter["x_nombre"];
 		$this->nombre->AdvancedSearch->SearchOperator = @$filter["z_nombre"];
@@ -844,6 +904,22 @@ class cciudades_list extends cciudades {
 		$this->nombre->AdvancedSearch->SearchValue2 = @$filter["y_nombre"];
 		$this->nombre->AdvancedSearch->SearchOperator2 = @$filter["w_nombre"];
 		$this->nombre->AdvancedSearch->Save();
+
+		// Field latitud
+		$this->latitud->AdvancedSearch->SearchValue = @$filter["x_latitud"];
+		$this->latitud->AdvancedSearch->SearchOperator = @$filter["z_latitud"];
+		$this->latitud->AdvancedSearch->SearchCondition = @$filter["v_latitud"];
+		$this->latitud->AdvancedSearch->SearchValue2 = @$filter["y_latitud"];
+		$this->latitud->AdvancedSearch->SearchOperator2 = @$filter["w_latitud"];
+		$this->latitud->AdvancedSearch->Save();
+
+		// Field longitud
+		$this->longitud->AdvancedSearch->SearchValue = @$filter["x_longitud"];
+		$this->longitud->AdvancedSearch->SearchOperator = @$filter["z_longitud"];
+		$this->longitud->AdvancedSearch->SearchCondition = @$filter["v_longitud"];
+		$this->longitud->AdvancedSearch->SearchValue2 = @$filter["y_longitud"];
+		$this->longitud->AdvancedSearch->SearchOperator2 = @$filter["w_longitud"];
+		$this->longitud->AdvancedSearch->Save();
 
 		// Field estado
 		$this->estado->AdvancedSearch->SearchValue = @$filter["x_estado"];
@@ -1007,7 +1083,10 @@ class cciudades_list extends cciudades {
 			$this->CurrentOrder = @$_GET["order"];
 			$this->CurrentOrderType = @$_GET["ordertype"];
 			$this->UpdateSort($this->Id); // Id
+			$this->UpdateSort($this->id_pais); // id_pais
 			$this->UpdateSort($this->nombre); // nombre
+			$this->UpdateSort($this->latitud); // latitud
+			$this->UpdateSort($this->longitud); // longitud
 			$this->UpdateSort($this->estado); // estado
 			$this->setStartRecordNumber(1); // Reset start position
 		}
@@ -1037,12 +1116,23 @@ class cciudades_list extends cciudades {
 			if ($this->Command == "reset" || $this->Command == "resetall")
 				$this->ResetSearchParms();
 
+			// Reset master/detail keys
+			if ($this->Command == "resetall") {
+				$this->setCurrentMasterTable(""); // Clear master table
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+				$this->id_pais->setSessionValue("");
+			}
+
 			// Reset sorting order
 			if ($this->Command == "resetsort") {
 				$sOrderBy = "";
 				$this->setSessionOrderBy($sOrderBy);
 				$this->Id->setSort("");
+				$this->id_pais->setSort("");
 				$this->nombre->setSort("");
+				$this->latitud->setSort("");
+				$this->longitud->setSort("");
 				$this->estado->setSort("");
 			}
 
@@ -1079,6 +1169,28 @@ class cciudades_list extends cciudades {
 		$item->CssClass = "text-nowrap";
 		$item->Visible = $Security->CanAdd();
 		$item->OnLeft = TRUE;
+
+		// "detail_provincias"
+		$item = &$this->ListOptions->Add("detail_provincias");
+		$item->CssClass = "text-nowrap";
+		$item->Visible = $Security->AllowList(CurrentProjectID() . 'provincias') && !$this->ShowMultipleDetails;
+		$item->OnLeft = TRUE;
+		$item->ShowInButtonGroup = FALSE;
+		if (!isset($GLOBALS["provincias_grid"])) $GLOBALS["provincias_grid"] = new cprovincias_grid;
+
+		// Multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$this->ListOptions->Add("details");
+			$item->CssClass = "text-nowrap";
+			$item->Visible = $this->ShowMultipleDetails;
+			$item->OnLeft = TRUE;
+			$item->ShowInButtonGroup = FALSE;
+		}
+
+		// Set up detail pages
+		$pages = new cSubPages();
+		$pages->Add("provincias");
+		$this->DetailPages = $pages;
 
 		// List actions
 		$item = &$this->ListOptions->Add("listactions");
@@ -1185,6 +1297,69 @@ class cciudades_list extends cciudades {
 				$oListOpt->Visible = TRUE;
 			}
 		}
+		$DetailViewTblVar = "";
+		$DetailCopyTblVar = "";
+		$DetailEditTblVar = "";
+
+		// "detail_provincias"
+		$oListOpt = &$this->ListOptions->Items["detail_provincias"];
+		if ($Security->AllowList(CurrentProjectID() . 'provincias')) {
+			$body = $Language->Phrase("DetailLink") . $Language->TablePhrase("provincias", "TblCaption");
+			$body .= "&nbsp;" . str_replace("%c", $this->provincias_Count, $Language->Phrase("DetailCount"));
+			$body = "<a class=\"btn btn-default btn-sm ewRowLink ewDetail\" data-action=\"list\" href=\"" . ew_HtmlEncode("provinciaslist.php?" . EW_TABLE_SHOW_MASTER . "=ciudades&fk_Id=" . urlencode(strval($this->Id->CurrentValue)) . "") . "\">" . $body . "</a>";
+			$links = "";
+			if ($GLOBALS["provincias_grid"]->DetailView && $Security->CanView() && $Security->AllowView(CurrentProjectID() . 'provincias')) {
+				$caption = $Language->Phrase("MasterDetailViewLink");
+				$url = $this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=provincias");
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
+				if ($DetailViewTblVar <> "") $DetailViewTblVar .= ",";
+				$DetailViewTblVar .= "provincias";
+			}
+			if ($GLOBALS["provincias_grid"]->DetailEdit && $Security->CanEdit() && $Security->AllowEdit(CurrentProjectID() . 'provincias')) {
+				$caption = $Language->Phrase("MasterDetailEditLink");
+				$url = $this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=provincias");
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
+				if ($DetailEditTblVar <> "") $DetailEditTblVar .= ",";
+				$DetailEditTblVar .= "provincias";
+			}
+			if ($GLOBALS["provincias_grid"]->DetailAdd && $Security->CanAdd() && $Security->AllowAdd(CurrentProjectID() . 'provincias')) {
+				$caption = $Language->Phrase("MasterDetailCopyLink");
+				$url = $this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=provincias");
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . ew_HtmlImageAndText($caption) . "</a></li>";
+				if ($DetailCopyTblVar <> "") $DetailCopyTblVar .= ",";
+				$DetailCopyTblVar .= "provincias";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewDetail\" data-toggle=\"dropdown\"><b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu\">". $links . "</ul>";
+			}
+			$body = "<div class=\"btn-group\">" . $body . "</div>";
+			$oListOpt->Body = $body;
+			if ($this->ShowMultipleDetails) $oListOpt->Visible = FALSE;
+		}
+		if ($this->ShowMultipleDetails) {
+			$body = $Language->Phrase("MultipleMasterDetails");
+			$body = "<div class=\"btn-group\">";
+			$links = "";
+			if ($DetailViewTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailView\" data-action=\"view\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailViewLink")) . "\" href=\"" . ew_HtmlEncode($this->GetViewUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailViewTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailViewLink")) . "</a></li>";
+			}
+			if ($DetailEditTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailEdit\" data-action=\"edit\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailEditLink")) . "\" href=\"" . ew_HtmlEncode($this->GetEditUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailEditTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailEditLink")) . "</a></li>";
+			}
+			if ($DetailCopyTblVar <> "") {
+				$links .= "<li><a class=\"ewRowLink ewDetailCopy\" data-action=\"add\" data-caption=\"" . ew_HtmlTitle($Language->Phrase("MasterDetailCopyLink")) . "\" href=\"" . ew_HtmlEncode($this->GetCopyUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailCopyTblVar)) . "\">" . ew_HtmlImageAndText($Language->Phrase("MasterDetailCopyLink")) . "</a></li>";
+			}
+			if ($links <> "") {
+				$body .= "<button class=\"dropdown-toggle btn btn-default btn-sm ewMasterDetail\" title=\"" . ew_HtmlTitle($Language->Phrase("MultipleMasterDetails")) . "\" data-toggle=\"dropdown\">" . $Language->Phrase("MultipleMasterDetails") . "<b class=\"caret\"></b></button>";
+				$body .= "<ul class=\"dropdown-menu ewMenu\">". $links . "</ul>";
+			}
+			$body .= "</div>";
+
+			// Multiple details
+			$oListOpt = &$this->ListOptions->Items["details"];
+			$oListOpt->Body = $body;
+		}
 
 		// "checkbox"
 		$oListOpt = &$this->ListOptions->Items["checkbox"];
@@ -1209,6 +1384,34 @@ class cciudades_list extends cciudades {
 		else
 			$item->Body = "<a class=\"ewAddEdit ewAdd\" title=\"" . $addcaption . "\" data-table=\"ciudades\" data-caption=\"" . $addcaption . "\" href=\"javascript:void(0);\" onclick=\"ew_ModalDialogShow({lnk:this,btn:'AddBtn',url:'" . ew_HtmlEncode($this->AddUrl) . "'});\">" . $Language->Phrase("AddLink") . "</a>";
 		$item->Visible = ($this->AddUrl <> "" && $Security->CanAdd());
+		$option = $options["detail"];
+		$DetailTableLink = "";
+		$item = &$option->Add("detailadd_provincias");
+		$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=provincias");
+		$caption = $Language->Phrase("Add") . "&nbsp;" . $this->TableCaption() . "/" . $GLOBALS["provincias"]->TableCaption();
+		$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
+		$item->Visible = ($GLOBALS["provincias"]->DetailAdd && $Security->AllowAdd(CurrentProjectID() . 'provincias') && $Security->CanAdd());
+		if ($item->Visible) {
+			if ($DetailTableLink <> "") $DetailTableLink .= ",";
+			$DetailTableLink .= "provincias";
+		}
+
+		// Add multiple details
+		if ($this->ShowMultipleDetails) {
+			$item = &$option->Add("detailsadd");
+			$url = $this->GetAddUrl(EW_TABLE_SHOW_DETAIL . "=" . $DetailTableLink);
+			$caption = $Language->Phrase("AddMasterDetailLink");
+			$item->Body = "<a class=\"ewDetailAddGroup ewDetailAdd\" title=\"" . ew_HtmlTitle($caption) . "\" data-caption=\"" . ew_HtmlTitle($caption) . "\" href=\"" . ew_HtmlEncode($url) . "\">" . $caption . "</a>";
+			$item->Visible = ($DetailTableLink <> "" && $Security->CanAdd());
+
+			// Hide single master/detail items
+			$ar = explode(",", $DetailTableLink);
+			$cnt = count($ar);
+			for ($i = 0; $i < $cnt; $i++) {
+				if ($item = &$option->GetItem("detailadd_" . $ar[$i]))
+					$item->Visible = FALSE;
+			}
+		}
 		$option = $options["action"];
 
 		// Add multi delete
@@ -1503,15 +1706,29 @@ class cciudades_list extends cciudades {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->id_pais->setDbValue($row['id_pais']);
+		$this->nombre_pais->setDbValue($row['nombre_pais']);
 		$this->nombre->setDbValue($row['nombre']);
+		$this->latitud->setDbValue($row['latitud']);
+		$this->longitud->setDbValue($row['longitud']);
 		$this->estado->setDbValue($row['estado']);
+		if (!isset($GLOBALS["provincias_grid"])) $GLOBALS["provincias_grid"] = new cprovincias_grid;
+		$sDetailFilter = $GLOBALS["provincias"]->SqlDetailFilter_ciudades();
+		$sDetailFilter = str_replace("@id_departamento@", ew_AdjustSql($this->Id->DbValue, "DB"), $sDetailFilter);
+		$GLOBALS["provincias"]->setCurrentMasterTable("ciudades");
+		$sDetailFilter = $GLOBALS["provincias"]->ApplyUserIDFilters($sDetailFilter);
+		$this->provincias_Count = $GLOBALS["provincias"]->LoadRecordCount($sDetailFilter);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['id_pais'] = NULL;
+		$row['nombre_pais'] = NULL;
 		$row['nombre'] = NULL;
+		$row['latitud'] = NULL;
+		$row['longitud'] = NULL;
 		$row['estado'] = NULL;
 		return $row;
 	}
@@ -1522,7 +1739,11 @@ class cciudades_list extends cciudades {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->id_pais->DbValue = $row['id_pais'];
+		$this->nombre_pais->DbValue = $row['nombre_pais'];
 		$this->nombre->DbValue = $row['nombre'];
+		$this->latitud->DbValue = $row['latitud'];
+		$this->longitud->DbValue = $row['longitud'];
 		$this->estado->DbValue = $row['estado'];
 	}
 
@@ -1565,7 +1786,14 @@ class cciudades_list extends cciudades {
 
 		// Common render codes for all row types
 		// Id
+		// id_pais
+		// nombre_pais
+
+		$this->nombre_pais->CellCssStyle = "white-space: nowrap;";
+
 		// nombre
+		// latitud
+		// longitud
 		// estado
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
@@ -1574,9 +1802,41 @@ class cciudades_list extends cciudades {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
+		// id_pais
+		if (strval($this->id_pais->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_pais->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `paises`";
+		$sWhereWrk = "";
+		$this->id_pais->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_pais, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_pais->ViewValue = $this->id_pais->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_pais->ViewValue = $this->id_pais->CurrentValue;
+			}
+		} else {
+			$this->id_pais->ViewValue = NULL;
+		}
+		$this->id_pais->ViewCustomAttributes = "";
+
 		// nombre
 		$this->nombre->ViewValue = $this->nombre->CurrentValue;
 		$this->nombre->ViewCustomAttributes = "";
+
+		// latitud
+		$this->latitud->ViewValue = $this->latitud->CurrentValue;
+		$this->latitud->ViewCustomAttributes = "";
+
+		// longitud
+		$this->longitud->ViewValue = $this->longitud->CurrentValue;
+		$this->longitud->ViewCustomAttributes = "";
 
 		// estado
 		if (strval($this->estado->CurrentValue) <> "") {
@@ -1591,10 +1851,25 @@ class cciudades_list extends cciudades {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
+			// id_pais
+			$this->id_pais->LinkCustomAttributes = "";
+			$this->id_pais->HrefValue = "";
+			$this->id_pais->TooltipValue = "";
+
 			// nombre
 			$this->nombre->LinkCustomAttributes = "";
 			$this->nombre->HrefValue = "";
 			$this->nombre->TooltipValue = "";
+
+			// latitud
+			$this->latitud->LinkCustomAttributes = "";
+			$this->latitud->HrefValue = "";
+			$this->latitud->TooltipValue = "";
+
+			// longitud
+			$this->longitud->LinkCustomAttributes = "";
+			$this->longitud->HrefValue = "";
+			$this->longitud->TooltipValue = "";
 
 			// estado
 			$this->estado->LinkCustomAttributes = "";
@@ -1721,6 +1996,25 @@ class cciudades_list extends cciudades {
 		// Call Page Exporting server event
 		$this->ExportDoc->ExportCustom = !$this->Page_Exporting();
 		$ParentTable = "";
+
+		// Export master record
+		if (EW_EXPORT_MASTER_RECORD && $this->GetMasterFilter() <> "" && $this->getCurrentMasterTable() == "paises") {
+			global $paises;
+			if (!isset($paises)) $paises = new cpaises;
+			$rsmaster = $paises->LoadRs($this->DbMasterFilter); // Load master record
+			if ($rsmaster && !$rsmaster->EOF) {
+				$ExportStyle = $Doc->Style;
+				$Doc->SetStyle("v"); // Change to vertical
+				if ($this->Export <> "csv" || EW_EXPORT_MASTER_RECORD_FOR_CSV) {
+					$Doc->Table = &$paises;
+					$paises->ExportDocument($Doc, $rsmaster, 1, 1);
+					$Doc->ExportEmptyRow();
+					$Doc->Table = &$this;
+				}
+				$Doc->SetStyle($ExportStyle); // Restore
+				$rsmaster->Close();
+			}
+		}
 		$sHeader = $this->PageHeader;
 		$this->Page_DataRendering($sHeader);
 		$Doc->Text .= $sHeader;
@@ -1870,6 +2164,72 @@ class cciudades_list extends cciudades {
 				"&y_" . $FldParm . "=" . urlencode($FldSearchValue2) .
 				"&w_" . $FldParm . "=" . urlencode($Fld->AdvancedSearch->getValue("w"));
 		}
+	}
+
+	// Set up master/detail based on QueryString
+	function SetupMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "paises") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_Id"] <> "") {
+					$GLOBALS["paises"]->Id->setQueryStringValue($_GET["fk_Id"]);
+					$this->id_pais->setQueryStringValue($GLOBALS["paises"]->Id->QueryStringValue);
+					$this->id_pais->setSessionValue($this->id_pais->QueryStringValue);
+					if (!is_numeric($GLOBALS["paises"]->Id->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "paises") {
+				$bValidMaster = TRUE;
+				if (@$_POST["fk_Id"] <> "") {
+					$GLOBALS["paises"]->Id->setFormValue($_POST["fk_Id"]);
+					$this->id_pais->setFormValue($GLOBALS["paises"]->Id->FormValue);
+					$this->id_pais->setSessionValue($this->id_pais->FormValue);
+					if (!is_numeric($GLOBALS["paises"]->Id->FormValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Update URL
+			$this->AddUrl = $this->AddMasterUrl($this->AddUrl);
+			$this->InlineAddUrl = $this->AddMasterUrl($this->InlineAddUrl);
+			$this->GridAddUrl = $this->AddMasterUrl($this->GridAddUrl);
+			$this->GridEditUrl = $this->AddMasterUrl($this->GridEditUrl);
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "paises") {
+				if ($this->id_pais->CurrentValue == "") $this->id_pais->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -2065,6 +2425,8 @@ fciudadeslist.Form_CustomValidate =
 fciudadeslist.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
+fciudadeslist.Lists["x_id_pais"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"paises"};
+fciudadeslist.Lists["x_id_pais"].Data = "<?php echo $ciudades_list->id_pais->LookupFilterQuery(FALSE, "list") ?>";
 fciudadeslist.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fciudadeslist.Lists["x_estado"].Options = <?php echo json_encode($ciudades_list->estado->Options()) ?>;
 
@@ -2092,6 +2454,17 @@ if (fciudadeslistsrch) fciudadeslistsrch.InitSearchPanel = true;
 <?php } ?>
 <div class="clearfix"></div>
 </div>
+<?php } ?>
+<?php if (($ciudades->Export == "") || (EW_EXPORT_MASTER_RECORD && $ciudades->Export == "print")) { ?>
+<?php
+if ($ciudades_list->DbMasterFilter <> "" && $ciudades->getCurrentMasterTable() == "paises") {
+	if ($ciudades_list->MasterRecordExists) {
+?>
+<?php include_once "paisesmaster.php" ?>
+<?php
+	}
+}
+?>
 <?php } ?>
 <?php
 	$bSelectLimit = $ciudades_list->UseSelectLimit;
@@ -2219,6 +2592,10 @@ $ciudades_list->ShowMessage();
 <input type="hidden" name="<?php echo EW_TOKEN_NAME ?>" value="<?php echo $ciudades_list->Token ?>">
 <?php } ?>
 <input type="hidden" name="t" value="ciudades">
+<?php if ($ciudades->getCurrentMasterTable() == "paises" && $ciudades->CurrentAction <> "") { ?>
+<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="paises">
+<input type="hidden" name="fk_Id" value="<?php echo $ciudades->id_pais->getSessionValue() ?>">
+<?php } ?>
 <div id="gmp_ciudades" class="<?php if (ew_IsResponsiveLayout()) { ?>table-responsive <?php } ?>ewGridMiddlePanel">
 <?php if ($ciudades_list->TotalRecs > 0 || $ciudades->CurrentAction == "gridedit") { ?>
 <table id="tbl_ciudadeslist" class="table ewTable">
@@ -2244,12 +2621,39 @@ $ciudades_list->ListOptions->Render("header", "left");
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
+<?php if ($ciudades->id_pais->Visible) { // id_pais ?>
+	<?php if ($ciudades->SortUrl($ciudades->id_pais) == "") { ?>
+		<th data-name="id_pais" class="<?php echo $ciudades->id_pais->HeaderCellClass() ?>"><div id="elh_ciudades_id_pais" class="ciudades_id_pais"><div class="ewTableHeaderCaption"><?php echo $ciudades->id_pais->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="id_pais" class="<?php echo $ciudades->id_pais->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $ciudades->SortUrl($ciudades->id_pais) ?>',1);"><div id="elh_ciudades_id_pais" class="ciudades_id_pais">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $ciudades->id_pais->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($ciudades->id_pais->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($ciudades->id_pais->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
 <?php if ($ciudades->nombre->Visible) { // nombre ?>
 	<?php if ($ciudades->SortUrl($ciudades->nombre) == "") { ?>
 		<th data-name="nombre" class="<?php echo $ciudades->nombre->HeaderCellClass() ?>"><div id="elh_ciudades_nombre" class="ciudades_nombre"><div class="ewTableHeaderCaption"><?php echo $ciudades->nombre->FldCaption() ?></div></div></th>
 	<?php } else { ?>
 		<th data-name="nombre" class="<?php echo $ciudades->nombre->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $ciudades->SortUrl($ciudades->nombre) ?>',1);"><div id="elh_ciudades_nombre" class="ciudades_nombre">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $ciudades->nombre->FldCaption() ?><?php echo $Language->Phrase("SrchLegend") ?></span><span class="ewTableHeaderSort"><?php if ($ciudades->nombre->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($ciudades->nombre->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($ciudades->latitud->Visible) { // latitud ?>
+	<?php if ($ciudades->SortUrl($ciudades->latitud) == "") { ?>
+		<th data-name="latitud" class="<?php echo $ciudades->latitud->HeaderCellClass() ?>"><div id="elh_ciudades_latitud" class="ciudades_latitud"><div class="ewTableHeaderCaption"><?php echo $ciudades->latitud->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="latitud" class="<?php echo $ciudades->latitud->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $ciudades->SortUrl($ciudades->latitud) ?>',1);"><div id="elh_ciudades_latitud" class="ciudades_latitud">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $ciudades->latitud->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($ciudades->latitud->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($ciudades->latitud->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($ciudades->longitud->Visible) { // longitud ?>
+	<?php if ($ciudades->SortUrl($ciudades->longitud) == "") { ?>
+		<th data-name="longitud" class="<?php echo $ciudades->longitud->HeaderCellClass() ?>"><div id="elh_ciudades_longitud" class="ciudades_longitud"><div class="ewTableHeaderCaption"><?php echo $ciudades->longitud->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="longitud" class="<?php echo $ciudades->longitud->HeaderCellClass() ?>"><div class="ewPointer" onclick="ew_Sort(event,'<?php echo $ciudades->SortUrl($ciudades->longitud) ?>',1);"><div id="elh_ciudades_longitud" class="ciudades_longitud">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $ciudades->longitud->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($ciudades->longitud->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($ciudades->longitud->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -2335,11 +2739,35 @@ $ciudades_list->ListOptions->Render("body", "left", $ciudades_list->RowCnt);
 </span>
 </td>
 	<?php } ?>
+	<?php if ($ciudades->id_pais->Visible) { // id_pais ?>
+		<td data-name="id_pais"<?php echo $ciudades->id_pais->CellAttributes() ?>>
+<span id="el<?php echo $ciudades_list->RowCnt ?>_ciudades_id_pais" class="ciudades_id_pais">
+<span<?php echo $ciudades->id_pais->ViewAttributes() ?>>
+<?php echo $ciudades->id_pais->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
 	<?php if ($ciudades->nombre->Visible) { // nombre ?>
 		<td data-name="nombre"<?php echo $ciudades->nombre->CellAttributes() ?>>
 <span id="el<?php echo $ciudades_list->RowCnt ?>_ciudades_nombre" class="ciudades_nombre">
 <span<?php echo $ciudades->nombre->ViewAttributes() ?>>
 <?php echo $ciudades->nombre->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($ciudades->latitud->Visible) { // latitud ?>
+		<td data-name="latitud"<?php echo $ciudades->latitud->CellAttributes() ?>>
+<span id="el<?php echo $ciudades_list->RowCnt ?>_ciudades_latitud" class="ciudades_latitud">
+<span<?php echo $ciudades->latitud->ViewAttributes() ?>>
+<?php echo $ciudades->latitud->ListViewValue() ?></span>
+</span>
+</td>
+	<?php } ?>
+	<?php if ($ciudades->longitud->Visible) { // longitud ?>
+		<td data-name="longitud"<?php echo $ciudades->longitud->CellAttributes() ?>>
+<span id="el<?php echo $ciudades_list->RowCnt ?>_ciudades_longitud" class="ciudades_longitud">
+<span<?php echo $ciudades->longitud->ViewAttributes() ?>>
+<?php echo $ciudades->longitud->ListViewValue() ?></span>
 </span>
 </td>
 	<?php } ?>

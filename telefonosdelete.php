@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "telefonosinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -260,9 +259,6 @@ class ctelefonos_delete extends ctelefonos {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'delete', TRUE);
@@ -321,10 +317,17 @@ class ctelefonos_delete extends ctelefonos {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_persona->SetVisibility();
-		$this->tipo->SetVisibility();
-		$this->numero->SetVisibility();
-		$this->ult_fecha_activo->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->telefono1->SetVisibility();
+		$this->telefono2->SetVisibility();
+		$this->telefono3->SetVisibility();
+		$this->telefono4->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -401,9 +404,6 @@ class ctelefonos_delete extends ctelefonos {
 	//
 	function Page_Main() {
 		global $Language;
-
-		// Set up master/detail parameters
-		$this->SetupMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -508,20 +508,34 @@ class ctelefonos_delete extends ctelefonos {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->tipo->setDbValue($row['tipo']);
-		$this->numero->setDbValue($row['numero']);
-		$this->ult_fecha_activo->setDbValue($row['ult_fecha_activo']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->telefono1->setDbValue($row['telefono1']);
+		$this->telefono2->setDbValue($row['telefono2']);
+		$this->telefono3->setDbValue($row['telefono3']);
+		$this->telefono4->setDbValue($row['telefono4']);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_persona'] = NULL;
-		$row['tipo'] = NULL;
-		$row['numero'] = NULL;
-		$row['ult_fecha_activo'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['tipo_documento'] = NULL;
+		$row['no_documento'] = NULL;
+		$row['nombres'] = NULL;
+		$row['paterno'] = NULL;
+		$row['materno'] = NULL;
+		$row['telefono1'] = NULL;
+		$row['telefono2'] = NULL;
+		$row['telefono3'] = NULL;
+		$row['telefono4'] = NULL;
 		return $row;
 	}
 
@@ -531,10 +545,17 @@ class ctelefonos_delete extends ctelefonos {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->tipo->DbValue = $row['tipo'];
-		$this->numero->DbValue = $row['numero'];
-		$this->ult_fecha_activo->DbValue = $row['ult_fecha_activo'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->telefono1->DbValue = $row['telefono1'];
+		$this->telefono2->DbValue = $row['telefono2'];
+		$this->telefono3->DbValue = $row['telefono3'];
+		$this->telefono4->DbValue = $row['telefono4'];
 	}
 
 	// Render row values based on field settings
@@ -548,10 +569,17 @@ class ctelefonos_delete extends ctelefonos {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// tipo
-		// numero
-		// ult_fecha_activo
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// telefono1
+		// telefono2
+		// telefono3
+		// telefono4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -559,80 +587,151 @@ class ctelefonos_delete extends ctelefonos {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// tipo
-		if (strval($this->tipo->CurrentValue) <> "") {
-			$this->tipo->ViewValue = $this->tipo->OptionCaption($this->tipo->CurrentValue);
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
 		} else {
-			$this->tipo->ViewValue = NULL;
+			$this->id_gestion->ViewValue = NULL;
 		}
-		$this->tipo->ViewCustomAttributes = "";
+		$this->id_gestion->ViewCustomAttributes = "";
 
-		// numero
-		$this->numero->ViewValue = $this->numero->CurrentValue;
-		$this->numero->ViewCustomAttributes = "";
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
 
-		// ult_fecha_activo
-		$this->ult_fecha_activo->ViewValue = $this->ult_fecha_activo->CurrentValue;
-		$this->ult_fecha_activo->ViewValue = ew_FormatDateTime($this->ult_fecha_activo->ViewValue, 7);
-		$this->ult_fecha_activo->ViewCustomAttributes = "";
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// telefono1
+		$this->telefono1->ViewValue = $this->telefono1->CurrentValue;
+		$this->telefono1->ViewCustomAttributes = "";
+
+		// telefono2
+		$this->telefono2->ViewValue = $this->telefono2->CurrentValue;
+		$this->telefono2->ViewCustomAttributes = "";
+
+		// telefono3
+		$this->telefono3->ViewValue = $this->telefono3->CurrentValue;
+		$this->telefono3->ViewCustomAttributes = "";
+
+		// telefono4
+		$this->telefono4->ViewValue = $this->telefono4->CurrentValue;
+		$this->telefono4->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
-			$this->id_persona->TooltipValue = "";
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
 
-			// tipo
-			$this->tipo->LinkCustomAttributes = "";
-			$this->tipo->HrefValue = "";
-			$this->tipo->TooltipValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
 
-			// numero
-			$this->numero->LinkCustomAttributes = "";
-			$this->numero->HrefValue = "";
-			$this->numero->TooltipValue = "";
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
 
-			// ult_fecha_activo
-			$this->ult_fecha_activo->LinkCustomAttributes = "";
-			$this->ult_fecha_activo->HrefValue = "";
-			$this->ult_fecha_activo->TooltipValue = "";
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// telefono1
+			$this->telefono1->LinkCustomAttributes = "";
+			$this->telefono1->HrefValue = "";
+			$this->telefono1->TooltipValue = "";
+
+			// telefono2
+			$this->telefono2->LinkCustomAttributes = "";
+			$this->telefono2->HrefValue = "";
+			$this->telefono2->TooltipValue = "";
+
+			// telefono3
+			$this->telefono3->LinkCustomAttributes = "";
+			$this->telefono3->HrefValue = "";
+			$this->telefono3->TooltipValue = "";
+
+			// telefono4
+			$this->telefono4->LinkCustomAttributes = "";
+			$this->telefono4->HrefValue = "";
+			$this->telefono4->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -718,66 +817,6 @@ class ctelefonos_delete extends ctelefonos {
 			}
 		}
 		return $DeleteRows;
-	}
-
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -904,10 +943,10 @@ ftelefonosdelete.Form_CustomValidate =
 ftelefonosdelete.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-ftelefonosdelete.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-ftelefonosdelete.Lists["x_id_persona"].Data = "<?php echo $telefonos_delete->id_persona->LookupFilterQuery(FALSE, "delete") ?>";
-ftelefonosdelete.Lists["x_tipo"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
-ftelefonosdelete.Lists["x_tipo"].Options = <?php echo json_encode($telefonos_delete->tipo->Options()) ?>;
+ftelefonosdelete.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+ftelefonosdelete.Lists["x_id_fuente"].Data = "<?php echo $telefonos_delete->id_fuente->LookupFilterQuery(FALSE, "delete") ?>";
+ftelefonosdelete.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+ftelefonosdelete.Lists["x_id_gestion"].Data = "<?php echo $telefonos_delete->id_gestion->LookupFilterQuery(FALSE, "delete") ?>";
 
 // Form object for search
 </script>
@@ -937,17 +976,38 @@ $telefonos_delete->ShowMessage();
 <?php if ($telefonos->Id->Visible) { // Id ?>
 		<th class="<?php echo $telefonos->Id->HeaderCellClass() ?>"><span id="elh_telefonos_Id" class="telefonos_Id"><?php echo $telefonos->Id->FldCaption() ?></span></th>
 <?php } ?>
-<?php if ($telefonos->id_persona->Visible) { // id_persona ?>
-		<th class="<?php echo $telefonos->id_persona->HeaderCellClass() ?>"><span id="elh_telefonos_id_persona" class="telefonos_id_persona"><?php echo $telefonos->id_persona->FldCaption() ?></span></th>
+<?php if ($telefonos->id_fuente->Visible) { // id_fuente ?>
+		<th class="<?php echo $telefonos->id_fuente->HeaderCellClass() ?>"><span id="elh_telefonos_id_fuente" class="telefonos_id_fuente"><?php echo $telefonos->id_fuente->FldCaption() ?></span></th>
 <?php } ?>
-<?php if ($telefonos->tipo->Visible) { // tipo ?>
-		<th class="<?php echo $telefonos->tipo->HeaderCellClass() ?>"><span id="elh_telefonos_tipo" class="telefonos_tipo"><?php echo $telefonos->tipo->FldCaption() ?></span></th>
+<?php if ($telefonos->id_gestion->Visible) { // id_gestion ?>
+		<th class="<?php echo $telefonos->id_gestion->HeaderCellClass() ?>"><span id="elh_telefonos_id_gestion" class="telefonos_id_gestion"><?php echo $telefonos->id_gestion->FldCaption() ?></span></th>
 <?php } ?>
-<?php if ($telefonos->numero->Visible) { // numero ?>
-		<th class="<?php echo $telefonos->numero->HeaderCellClass() ?>"><span id="elh_telefonos_numero" class="telefonos_numero"><?php echo $telefonos->numero->FldCaption() ?></span></th>
+<?php if ($telefonos->tipo_documento->Visible) { // tipo_documento ?>
+		<th class="<?php echo $telefonos->tipo_documento->HeaderCellClass() ?>"><span id="elh_telefonos_tipo_documento" class="telefonos_tipo_documento"><?php echo $telefonos->tipo_documento->FldCaption() ?></span></th>
 <?php } ?>
-<?php if ($telefonos->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-		<th class="<?php echo $telefonos->ult_fecha_activo->HeaderCellClass() ?>"><span id="elh_telefonos_ult_fecha_activo" class="telefonos_ult_fecha_activo"><?php echo $telefonos->ult_fecha_activo->FldCaption() ?></span></th>
+<?php if ($telefonos->no_documento->Visible) { // no_documento ?>
+		<th class="<?php echo $telefonos->no_documento->HeaderCellClass() ?>"><span id="elh_telefonos_no_documento" class="telefonos_no_documento"><?php echo $telefonos->no_documento->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->nombres->Visible) { // nombres ?>
+		<th class="<?php echo $telefonos->nombres->HeaderCellClass() ?>"><span id="elh_telefonos_nombres" class="telefonos_nombres"><?php echo $telefonos->nombres->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->paterno->Visible) { // paterno ?>
+		<th class="<?php echo $telefonos->paterno->HeaderCellClass() ?>"><span id="elh_telefonos_paterno" class="telefonos_paterno"><?php echo $telefonos->paterno->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->materno->Visible) { // materno ?>
+		<th class="<?php echo $telefonos->materno->HeaderCellClass() ?>"><span id="elh_telefonos_materno" class="telefonos_materno"><?php echo $telefonos->materno->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->telefono1->Visible) { // telefono1 ?>
+		<th class="<?php echo $telefonos->telefono1->HeaderCellClass() ?>"><span id="elh_telefonos_telefono1" class="telefonos_telefono1"><?php echo $telefonos->telefono1->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->telefono2->Visible) { // telefono2 ?>
+		<th class="<?php echo $telefonos->telefono2->HeaderCellClass() ?>"><span id="elh_telefonos_telefono2" class="telefonos_telefono2"><?php echo $telefonos->telefono2->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->telefono3->Visible) { // telefono3 ?>
+		<th class="<?php echo $telefonos->telefono3->HeaderCellClass() ?>"><span id="elh_telefonos_telefono3" class="telefonos_telefono3"><?php echo $telefonos->telefono3->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($telefonos->telefono4->Visible) { // telefono4 ?>
+		<th class="<?php echo $telefonos->telefono4->HeaderCellClass() ?>"><span id="elh_telefonos_telefono4" class="telefonos_telefono4"><?php echo $telefonos->telefono4->FldCaption() ?></span></th>
 <?php } ?>
 	</tr>
 	</thead>
@@ -978,40 +1038,91 @@ while (!$telefonos_delete->Recordset->EOF) {
 </span>
 </td>
 <?php } ?>
-<?php if ($telefonos->id_persona->Visible) { // id_persona ?>
-		<td<?php echo $telefonos->id_persona->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_id_persona" class="telefonos_id_persona">
-<span<?php echo $telefonos->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($telefonos->id_persona->ListViewValue())) && $telefonos->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $telefonos->id_persona->LinkAttributes() ?>><?php echo $telefonos->id_persona->ListViewValue() ?></a>
-<?php } else { ?>
-<?php echo $telefonos->id_persona->ListViewValue() ?>
-<?php } ?>
-</span>
+<?php if ($telefonos->id_fuente->Visible) { // id_fuente ?>
+		<td<?php echo $telefonos->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_id_fuente" class="telefonos_id_fuente">
+<span<?php echo $telefonos->id_fuente->ViewAttributes() ?>>
+<?php echo $telefonos->id_fuente->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($telefonos->tipo->Visible) { // tipo ?>
-		<td<?php echo $telefonos->tipo->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_tipo" class="telefonos_tipo">
-<span<?php echo $telefonos->tipo->ViewAttributes() ?>>
-<?php echo $telefonos->tipo->ListViewValue() ?></span>
+<?php if ($telefonos->id_gestion->Visible) { // id_gestion ?>
+		<td<?php echo $telefonos->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_id_gestion" class="telefonos_id_gestion">
+<span<?php echo $telefonos->id_gestion->ViewAttributes() ?>>
+<?php echo $telefonos->id_gestion->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($telefonos->numero->Visible) { // numero ?>
-		<td<?php echo $telefonos->numero->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_numero" class="telefonos_numero">
-<span<?php echo $telefonos->numero->ViewAttributes() ?>>
-<?php echo $telefonos->numero->ListViewValue() ?></span>
+<?php if ($telefonos->tipo_documento->Visible) { // tipo_documento ?>
+		<td<?php echo $telefonos->tipo_documento->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_tipo_documento" class="telefonos_tipo_documento">
+<span<?php echo $telefonos->tipo_documento->ViewAttributes() ?>>
+<?php echo $telefonos->tipo_documento->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($telefonos->ult_fecha_activo->Visible) { // ult_fecha_activo ?>
-		<td<?php echo $telefonos->ult_fecha_activo->CellAttributes() ?>>
-<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_ult_fecha_activo" class="telefonos_ult_fecha_activo">
-<span<?php echo $telefonos->ult_fecha_activo->ViewAttributes() ?>>
-<?php echo $telefonos->ult_fecha_activo->ListViewValue() ?></span>
+<?php if ($telefonos->no_documento->Visible) { // no_documento ?>
+		<td<?php echo $telefonos->no_documento->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_no_documento" class="telefonos_no_documento">
+<span<?php echo $telefonos->no_documento->ViewAttributes() ?>>
+<?php echo $telefonos->no_documento->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->nombres->Visible) { // nombres ?>
+		<td<?php echo $telefonos->nombres->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_nombres" class="telefonos_nombres">
+<span<?php echo $telefonos->nombres->ViewAttributes() ?>>
+<?php echo $telefonos->nombres->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->paterno->Visible) { // paterno ?>
+		<td<?php echo $telefonos->paterno->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_paterno" class="telefonos_paterno">
+<span<?php echo $telefonos->paterno->ViewAttributes() ?>>
+<?php echo $telefonos->paterno->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->materno->Visible) { // materno ?>
+		<td<?php echo $telefonos->materno->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_materno" class="telefonos_materno">
+<span<?php echo $telefonos->materno->ViewAttributes() ?>>
+<?php echo $telefonos->materno->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->telefono1->Visible) { // telefono1 ?>
+		<td<?php echo $telefonos->telefono1->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_telefono1" class="telefonos_telefono1">
+<span<?php echo $telefonos->telefono1->ViewAttributes() ?>>
+<?php echo $telefonos->telefono1->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->telefono2->Visible) { // telefono2 ?>
+		<td<?php echo $telefonos->telefono2->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_telefono2" class="telefonos_telefono2">
+<span<?php echo $telefonos->telefono2->ViewAttributes() ?>>
+<?php echo $telefonos->telefono2->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->telefono3->Visible) { // telefono3 ?>
+		<td<?php echo $telefonos->telefono3->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_telefono3" class="telefonos_telefono3">
+<span<?php echo $telefonos->telefono3->ViewAttributes() ?>>
+<?php echo $telefonos->telefono3->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($telefonos->telefono4->Visible) { // telefono4 ?>
+		<td<?php echo $telefonos->telefono4->CellAttributes() ?>>
+<span id="el<?php echo $telefonos_delete->RowCnt ?>_telefonos_telefono4" class="telefonos_telefono4">
+<span<?php echo $telefonos->telefono4->ViewAttributes() ?>>
+<?php echo $telefonos->telefono4->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>

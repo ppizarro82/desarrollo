@@ -66,6 +66,7 @@ fdeuda_personagrid.EmptyRow = function(infix) {
 	if (ew_ValueChanged(fobj, infix, "id_persona", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "id_deuda", false)) return false;
 	if (ew_ValueChanged(fobj, infix, "id_tipopersona", false)) return false;
+	if (ew_ValueChanged(fobj, infix, "mig_codigo_cliente", false)) return false;
 	return true;
 }
 
@@ -192,6 +193,15 @@ $deuda_persona_grid->ListOptions->Render("header", "left");
 	<?php } else { ?>
 		<th data-name="id_tipopersona" class="<?php echo $deuda_persona->id_tipopersona->HeaderCellClass() ?>"><div><div id="elh_deuda_persona_id_tipopersona" class="deuda_persona_id_tipopersona">
 			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $deuda_persona->id_tipopersona->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($deuda_persona->id_tipopersona->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($deuda_persona->id_tipopersona->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
+		</div></div></th>
+	<?php } ?>
+<?php } ?>
+<?php if ($deuda_persona->mig_codigo_cliente->Visible) { // mig_codigo_cliente ?>
+	<?php if ($deuda_persona->SortUrl($deuda_persona->mig_codigo_cliente) == "") { ?>
+		<th data-name="mig_codigo_cliente" class="<?php echo $deuda_persona->mig_codigo_cliente->HeaderCellClass() ?>"><div id="elh_deuda_persona_mig_codigo_cliente" class="deuda_persona_mig_codigo_cliente"><div class="ewTableHeaderCaption"><?php echo $deuda_persona->mig_codigo_cliente->FldCaption() ?></div></div></th>
+	<?php } else { ?>
+		<th data-name="mig_codigo_cliente" class="<?php echo $deuda_persona->mig_codigo_cliente->HeaderCellClass() ?>"><div><div id="elh_deuda_persona_mig_codigo_cliente" class="deuda_persona_mig_codigo_cliente">
+			<div class="ewTableHeaderBtn"><span class="ewTableHeaderCaption"><?php echo $deuda_persona->mig_codigo_cliente->FldCaption() ?></span><span class="ewTableHeaderSort"><?php if ($deuda_persona->mig_codigo_cliente->getSort() == "ASC") { ?><span class="caret ewSortUp"></span><?php } elseif ($deuda_persona->mig_codigo_cliente->getSort() == "DESC") { ?><span class="caret"></span><?php } ?></span></div>
 		</div></div></th>
 	<?php } ?>
 <?php } ?>
@@ -375,9 +385,11 @@ $deuda_persona_grid->ListOptions->Render("body", "left", $deuda_persona_grid->Ro
 <input type="hidden" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" value="<?php echo ew_HtmlEncode($deuda_persona->id_deuda->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el<?php echo $deuda_persona_grid->RowCnt ?>_deuda_persona_id_deuda" class="form-group deuda_persona_id_deuda">
-<select data-table="deuda_persona" data-field="x_id_deuda" data-value-separator="<?php echo $deuda_persona->id_deuda->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda"<?php echo $deuda_persona->id_deuda->EditAttributes() ?>>
-<?php echo $deuda_persona->id_deuda->SelectOptionListHtml("x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda"><?php echo (strval($deuda_persona->id_deuda->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $deuda_persona->id_deuda->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($deuda_persona->id_deuda->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda',m:0,n:10});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="deuda_persona" data-field="x_id_deuda" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $deuda_persona->id_deuda->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" value="<?php echo $deuda_persona->id_deuda->CurrentValue ?>"<?php echo $deuda_persona->id_deuda->EditAttributes() ?>>
 </span>
 <?php } ?>
 <input type="hidden" data-table="deuda_persona" data-field="x_id_deuda" name="o<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" id="o<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" value="<?php echo ew_HtmlEncode($deuda_persona->id_deuda->OldValue) ?>">
@@ -442,6 +454,34 @@ $deuda_persona_grid->ListOptions->Render("body", "left", $deuda_persona_grid->Ro
 <?php } else { ?>
 <input type="hidden" data-table="deuda_persona" data-field="x_id_tipopersona" name="fdeuda_personagrid$x<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" id="fdeuda_personagrid$x<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($deuda_persona->id_tipopersona->FormValue) ?>">
 <input type="hidden" data-table="deuda_persona" data-field="x_id_tipopersona" name="fdeuda_personagrid$o<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" id="fdeuda_personagrid$o<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($deuda_persona->id_tipopersona->OldValue) ?>">
+<?php } ?>
+<?php } ?>
+</td>
+	<?php } ?>
+	<?php if ($deuda_persona->mig_codigo_cliente->Visible) { // mig_codigo_cliente ?>
+		<td data-name="mig_codigo_cliente"<?php echo $deuda_persona->mig_codigo_cliente->CellAttributes() ?>>
+<?php if ($deuda_persona->RowType == EW_ROWTYPE_ADD) { // Add record ?>
+<span id="el<?php echo $deuda_persona_grid->RowCnt ?>_deuda_persona_mig_codigo_cliente" class="form-group deuda_persona_mig_codigo_cliente">
+<input type="text" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->getPlaceHolder()) ?>" value="<?php echo $deuda_persona->mig_codigo_cliente->EditValue ?>"<?php echo $deuda_persona->mig_codigo_cliente->EditAttributes() ?>>
+</span>
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->OldValue) ?>">
+<?php } ?>
+<?php if ($deuda_persona->RowType == EW_ROWTYPE_EDIT) { // Edit record ?>
+<span id="el<?php echo $deuda_persona_grid->RowCnt ?>_deuda_persona_mig_codigo_cliente" class="form-group deuda_persona_mig_codigo_cliente">
+<input type="text" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->getPlaceHolder()) ?>" value="<?php echo $deuda_persona->mig_codigo_cliente->EditValue ?>"<?php echo $deuda_persona->mig_codigo_cliente->EditAttributes() ?>>
+</span>
+<?php } ?>
+<?php if ($deuda_persona->RowType == EW_ROWTYPE_VIEW) { // View record ?>
+<span id="el<?php echo $deuda_persona_grid->RowCnt ?>_deuda_persona_mig_codigo_cliente" class="deuda_persona_mig_codigo_cliente">
+<span<?php echo $deuda_persona->mig_codigo_cliente->ViewAttributes() ?>>
+<?php echo $deuda_persona->mig_codigo_cliente->ListViewValue() ?></span>
+</span>
+<?php if ($deuda_persona->CurrentAction <> "F") { ?>
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->FormValue) ?>">
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->OldValue) ?>">
+<?php } else { ?>
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="fdeuda_personagrid$x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="fdeuda_personagrid$x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->FormValue) ?>">
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="fdeuda_personagrid$o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="fdeuda_personagrid$o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->OldValue) ?>">
 <?php } ?>
 <?php } ?>
 </td>
@@ -540,9 +580,11 @@ $deuda_persona_grid->ListOptions->Render("body", "left", $deuda_persona_grid->Ro
 <input type="hidden" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" value="<?php echo ew_HtmlEncode($deuda_persona->id_deuda->CurrentValue) ?>">
 <?php } else { ?>
 <span id="el$rowindex$_deuda_persona_id_deuda" class="form-group deuda_persona_id_deuda">
-<select data-table="deuda_persona" data-field="x_id_deuda" data-value-separator="<?php echo $deuda_persona->id_deuda->DisplayValueSeparatorAttribute() ?>" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda"<?php echo $deuda_persona->id_deuda->EditAttributes() ?>>
-<?php echo $deuda_persona->id_deuda->SelectOptionListHtml("x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda") ?>
-</select>
+<span class="ewLookupList">
+	<span onclick="jQuery(this).parent().next().click();" tabindex="-1" class="form-control ewLookupText" id="lu_x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda"><?php echo (strval($deuda_persona->id_deuda->ViewValue) == "" ? $Language->Phrase("PleaseSelect") : $deuda_persona->id_deuda->ViewValue); ?></span>
+</span>
+<button type="button" title="<?php echo ew_HtmlEncode(str_replace("%s", ew_RemoveHtml($deuda_persona->id_deuda->FldCaption()), $Language->Phrase("LookupLink", TRUE))) ?>" onclick="ew_ModalLookupShow({lnk:this,el:'x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda',m:0,n:10});" class="ewLookupBtn btn btn-default btn-sm"><span class="glyphicon glyphicon-search ewIcon"></span></button>
+<input type="hidden" data-table="deuda_persona" data-field="x_id_deuda" data-multiple="0" data-lookup="1" data-value-separator="<?php echo $deuda_persona->id_deuda->DisplayValueSeparatorAttribute() ?>" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_deuda" value="<?php echo $deuda_persona->id_deuda->CurrentValue ?>"<?php echo $deuda_persona->id_deuda->EditAttributes() ?>>
 </span>
 <?php } ?>
 <?php } else { ?>
@@ -576,6 +618,22 @@ $deuda_persona_grid->ListOptions->Render("body", "left", $deuda_persona_grid->Ro
 <input type="hidden" data-table="deuda_persona" data-field="x_id_tipopersona" name="x<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" id="x<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($deuda_persona->id_tipopersona->FormValue) ?>">
 <?php } ?>
 <input type="hidden" data-table="deuda_persona" data-field="x_id_tipopersona" name="o<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" id="o<?php echo $deuda_persona_grid->RowIndex ?>_id_tipopersona" value="<?php echo ew_HtmlEncode($deuda_persona->id_tipopersona->OldValue) ?>">
+</td>
+	<?php } ?>
+	<?php if ($deuda_persona->mig_codigo_cliente->Visible) { // mig_codigo_cliente ?>
+		<td data-name="mig_codigo_cliente">
+<?php if ($deuda_persona->CurrentAction <> "F") { ?>
+<span id="el$rowindex$_deuda_persona_mig_codigo_cliente" class="form-group deuda_persona_mig_codigo_cliente">
+<input type="text" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->getPlaceHolder()) ?>" value="<?php echo $deuda_persona->mig_codigo_cliente->EditValue ?>"<?php echo $deuda_persona->mig_codigo_cliente->EditAttributes() ?>>
+</span>
+<?php } else { ?>
+<span id="el$rowindex$_deuda_persona_mig_codigo_cliente" class="form-group deuda_persona_mig_codigo_cliente">
+<span<?php echo $deuda_persona->mig_codigo_cliente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $deuda_persona->mig_codigo_cliente->ViewValue ?></p></span>
+</span>
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="x<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->FormValue) ?>">
+<?php } ?>
+<input type="hidden" data-table="deuda_persona" data-field="x_mig_codigo_cliente" name="o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" id="o<?php echo $deuda_persona_grid->RowIndex ?>_mig_codigo_cliente" value="<?php echo ew_HtmlEncode($deuda_persona->mig_codigo_cliente->OldValue) ?>">
 </td>
 	<?php } ?>
 <?php

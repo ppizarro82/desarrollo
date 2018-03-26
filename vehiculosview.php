@@ -427,6 +427,8 @@ class cvehiculos_view extends cvehiculos {
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
 		$this->id_persona->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
 		$this->marca->SetVisibility();
 		$this->modelo->SetVisibility();
 		$this->placa->SetVisibility();
@@ -728,6 +730,8 @@ class cvehiculos_view extends cvehiculos {
 			return;
 		$this->Id->setDbValue($row['Id']);
 		$this->id_persona->setDbValue($row['id_persona']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
 		$this->marca->setDbValue($row['marca']);
 		$this->modelo->setDbValue($row['modelo']);
 		$this->placa->setDbValue($row['placa']);
@@ -739,6 +743,8 @@ class cvehiculos_view extends cvehiculos {
 		$row = array();
 		$row['Id'] = NULL;
 		$row['id_persona'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
 		$row['marca'] = NULL;
 		$row['modelo'] = NULL;
 		$row['placa'] = NULL;
@@ -753,6 +759,8 @@ class cvehiculos_view extends cvehiculos {
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
 		$this->id_persona->DbValue = $row['id_persona'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
 		$this->marca->DbValue = $row['marca'];
 		$this->modelo->DbValue = $row['modelo'];
 		$this->placa->DbValue = $row['placa'];
@@ -777,6 +785,8 @@ class cvehiculos_view extends cvehiculos {
 		// Common render codes for all row types
 		// Id
 		// id_persona
+		// id_fuente
+		// id_gestion
 		// marca
 		// modelo
 		// placa
@@ -791,14 +801,13 @@ class cvehiculos_view extends cvehiculos {
 		// id_persona
 		if (strval($this->id_persona->CurrentValue) <> "") {
 			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		$sSqlWrk = "SELECT DISTINCT `Id`, `paterno` AS `DispFld`, `materno` AS `Disp2Fld`, `nombres` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
-		$lookuptblfilter = "`estado`=1";
-		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		$this->id_persona->LookupFilters = array("dx1" => '`paterno`', "dx2" => '`materno`', "dx3" => '`nombres`');
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
 		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `paterno`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
@@ -814,6 +823,56 @@ class cvehiculos_view extends cvehiculos {
 			$this->id_persona->ViewValue = NULL;
 		}
 		$this->id_persona->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
 
 		// marca
 		$this->marca->ViewValue = $this->marca->CurrentValue;
@@ -846,6 +905,16 @@ class cvehiculos_view extends cvehiculos {
 				$this->id_persona->HrefValue = "";
 			}
 			$this->id_persona->TooltipValue = "";
+
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
 
 			// marca
 			$this->marca->LinkCustomAttributes = "";
@@ -1323,8 +1392,12 @@ fvehiculosview.Form_CustomValidate =
 fvehiculosview.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-fvehiculosview.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
+fvehiculosview.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_paterno","x_materno","x_nombres",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
 fvehiculosview.Lists["x_id_persona"].Data = "<?php echo $vehiculos_view->id_persona->LookupFilterQuery(FALSE, "view") ?>";
+fvehiculosview.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fvehiculosview.Lists["x_id_fuente"].Data = "<?php echo $vehiculos_view->id_fuente->LookupFilterQuery(FALSE, "view") ?>";
+fvehiculosview.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fvehiculosview.Lists["x_id_gestion"].Data = "<?php echo $vehiculos_view->id_gestion->LookupFilterQuery(FALSE, "view") ?>";
 
 // Form object for search
 </script>
@@ -1377,6 +1450,28 @@ $vehiculos_view->ShowMessage();
 <?php echo $vehiculos->id_persona->ViewValue ?>
 <?php } ?>
 </span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($vehiculos->id_fuente->Visible) { // id_fuente ?>
+	<tr id="r_id_fuente">
+		<td class="col-sm-2"><span id="elh_vehiculos_id_fuente"><?php echo $vehiculos->id_fuente->FldCaption() ?></span></td>
+		<td data-name="id_fuente"<?php echo $vehiculos->id_fuente->CellAttributes() ?>>
+<span id="el_vehiculos_id_fuente">
+<span<?php echo $vehiculos->id_fuente->ViewAttributes() ?>>
+<?php echo $vehiculos->id_fuente->ViewValue ?></span>
+</span>
+</td>
+	</tr>
+<?php } ?>
+<?php if ($vehiculos->id_gestion->Visible) { // id_gestion ?>
+	<tr id="r_id_gestion">
+		<td class="col-sm-2"><span id="elh_vehiculos_id_gestion"><?php echo $vehiculos->id_gestion->FldCaption() ?></span></td>
+		<td data-name="id_gestion"<?php echo $vehiculos->id_gestion->CellAttributes() ?>>
+<span id="el_vehiculos_id_gestion">
+<span<?php echo $vehiculos->id_gestion->ViewAttributes() ?>>
+<?php echo $vehiculos->id_gestion->ViewValue ?></span>
 </span>
 </td>
 	</tr>

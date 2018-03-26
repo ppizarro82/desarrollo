@@ -7,10 +7,7 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "personasinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "direccionesgridcls.php" ?>
-<?php include_once "telefonosgridcls.php" ?>
-<?php include_once "emailsgridcls.php" ?>
-<?php include_once "vehiculosgridcls.php" ?>
+<?php include_once "fuentesinfo.php" ?>
 <?php include_once "deuda_personagridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
@@ -264,6 +261,9 @@ class cpersonas_edit extends cpersonas {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
+		// Table object (fuentes)
+		if (!isset($GLOBALS['fuentes'])) $GLOBALS['fuentes'] = new cfuentes();
+
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'edit', TRUE);
@@ -327,18 +327,22 @@ class cpersonas_edit extends cpersonas {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->id_ref->SetVisibility();
 		$this->tipo_documento->SetVisibility();
 		$this->no_documento->SetVisibility();
 		$this->nombres->SetVisibility();
 		$this->paterno->SetVisibility();
 		$this->materno->SetVisibility();
+		$this->especial->SetVisibility();
 		$this->fecha_nacimiento->SetVisibility();
 		$this->imagen->SetVisibility();
 		$this->observaciones->SetVisibility();
 		$this->estado->SetVisibility();
 
-		// Set up detail page object
-		$this->SetupDetailPages();
+		// Set up multi page object
+		$this->SetupMultiPages();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -355,38 +359,6 @@ class cpersonas_edit extends cpersonas {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
-
-			// Process auto fill for detail table 'direcciones'
-			if (@$_POST["grid"] == "fdireccionesgrid") {
-				if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid;
-				$GLOBALS["direcciones_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'telefonos'
-			if (@$_POST["grid"] == "ftelefonosgrid") {
-				if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				$GLOBALS["telefonos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'emails'
-			if (@$_POST["grid"] == "femailsgrid") {
-				if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid;
-				$GLOBALS["emails_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
-
-			// Process auto fill for detail table 'vehiculos'
-			if (@$_POST["grid"] == "fvehiculosgrid") {
-				if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
-				$GLOBALS["vehiculos_grid"]->Page_Init();
-				$this->Page_Terminate();
-				exit();
-			}
 
 			// Process auto fill for detail table 'deuda_persona'
 			if (@$_POST["grid"] == "fdeuda_personagrid") {
@@ -474,7 +446,7 @@ class cpersonas_edit extends cpersonas {
 	var $IsMobileOrModal = FALSE;
 	var $DbMasterFilter;
 	var $DbDetailFilter;
-	var $DetailPages; // Detail pages object
+	var $MultiPages; // Multi pages object
 
 	//
 	// Page main
@@ -513,6 +485,9 @@ class cpersonas_edit extends cpersonas {
 				$this->Id->CurrentValue = NULL;
 			}
 		}
+
+		// Set up master detail parameters
+		$this->SetupMasterParms();
 
 		// Load current record
 		$loaded = $this->LoadRow();
@@ -632,6 +607,15 @@ class cpersonas_edit extends cpersonas {
 		$this->GetUploadFiles(); // Get upload files
 		if (!$this->Id->FldIsDetailKey)
 			$this->Id->setFormValue($objForm->GetValue("x_Id"));
+		if (!$this->id_fuente->FldIsDetailKey) {
+			$this->id_fuente->setFormValue($objForm->GetValue("x_id_fuente"));
+		}
+		if (!$this->id_gestion->FldIsDetailKey) {
+			$this->id_gestion->setFormValue($objForm->GetValue("x_id_gestion"));
+		}
+		if (!$this->id_ref->FldIsDetailKey) {
+			$this->id_ref->setFormValue($objForm->GetValue("x_id_ref"));
+		}
 		if (!$this->tipo_documento->FldIsDetailKey) {
 			$this->tipo_documento->setFormValue($objForm->GetValue("x_tipo_documento"));
 		}
@@ -646,6 +630,9 @@ class cpersonas_edit extends cpersonas {
 		}
 		if (!$this->materno->FldIsDetailKey) {
 			$this->materno->setFormValue($objForm->GetValue("x_materno"));
+		}
+		if (!$this->especial->FldIsDetailKey) {
+			$this->especial->setFormValue($objForm->GetValue("x_especial"));
 		}
 		if (!$this->fecha_nacimiento->FldIsDetailKey) {
 			$this->fecha_nacimiento->setFormValue($objForm->GetValue("x_fecha_nacimiento"));
@@ -663,11 +650,15 @@ class cpersonas_edit extends cpersonas {
 	function RestoreFormValues() {
 		global $objForm;
 		$this->Id->CurrentValue = $this->Id->FormValue;
+		$this->id_fuente->CurrentValue = $this->id_fuente->FormValue;
+		$this->id_gestion->CurrentValue = $this->id_gestion->FormValue;
+		$this->id_ref->CurrentValue = $this->id_ref->FormValue;
 		$this->tipo_documento->CurrentValue = $this->tipo_documento->FormValue;
 		$this->no_documento->CurrentValue = $this->no_documento->FormValue;
 		$this->nombres->CurrentValue = $this->nombres->FormValue;
 		$this->paterno->CurrentValue = $this->paterno->FormValue;
 		$this->materno->CurrentValue = $this->materno->FormValue;
+		$this->especial->CurrentValue = $this->especial->FormValue;
 		$this->fecha_nacimiento->CurrentValue = $this->fecha_nacimiento->FormValue;
 		$this->fecha_nacimiento->CurrentValue = ew_UnFormatDateTime($this->fecha_nacimiento->CurrentValue, 7);
 		$this->observaciones->CurrentValue = $this->observaciones->FormValue;
@@ -708,11 +699,15 @@ class cpersonas_edit extends cpersonas {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->id_ref->setDbValue($row['id_ref']);
 		$this->tipo_documento->setDbValue($row['tipo_documento']);
 		$this->no_documento->setDbValue($row['no_documento']);
 		$this->nombres->setDbValue($row['nombres']);
 		$this->paterno->setDbValue($row['paterno']);
 		$this->materno->setDbValue($row['materno']);
+		$this->especial->setDbValue($row['especial']);
 		$this->fecha_nacimiento->setDbValue($row['fecha_nacimiento']);
 		$this->fecha_registro->setDbValue($row['fecha_registro']);
 		$this->imagen->Upload->DbValue = $row['imagen'];
@@ -725,11 +720,15 @@ class cpersonas_edit extends cpersonas {
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['id_ref'] = NULL;
 		$row['tipo_documento'] = NULL;
 		$row['no_documento'] = NULL;
 		$row['nombres'] = NULL;
 		$row['paterno'] = NULL;
 		$row['materno'] = NULL;
+		$row['especial'] = NULL;
 		$row['fecha_nacimiento'] = NULL;
 		$row['fecha_registro'] = NULL;
 		$row['imagen'] = NULL;
@@ -744,11 +743,15 @@ class cpersonas_edit extends cpersonas {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->id_ref->DbValue = $row['id_ref'];
 		$this->tipo_documento->DbValue = $row['tipo_documento'];
 		$this->no_documento->DbValue = $row['no_documento'];
 		$this->nombres->DbValue = $row['nombres'];
 		$this->paterno->DbValue = $row['paterno'];
 		$this->materno->DbValue = $row['materno'];
+		$this->especial->DbValue = $row['especial'];
 		$this->fecha_nacimiento->DbValue = $row['fecha_nacimiento'];
 		$this->fecha_registro->DbValue = $row['fecha_registro'];
 		$this->imagen->Upload->DbValue = $row['imagen'];
@@ -789,11 +792,15 @@ class cpersonas_edit extends cpersonas {
 
 		// Common render codes for all row types
 		// Id
+		// id_fuente
+		// id_gestion
+		// id_ref
 		// tipo_documento
 		// no_documento
 		// nombres
 		// paterno
 		// materno
+		// especial
 		// fecha_nacimiento
 		// fecha_registro
 		// imagen
@@ -805,6 +812,60 @@ class cpersonas_edit extends cpersonas {
 		// Id
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
+
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+		$sWhereWrk = "";
+		$this->id_fuente->LookupFilters = array();
+		$lookuptblfilter = "`estado`=1";
+		ew_AddFilter($sWhereWrk, $lookuptblfilter);
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+			}
+		} else {
+			$this->id_fuente->ViewValue = NULL;
+		}
+		$this->id_fuente->ViewCustomAttributes = "";
+
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// id_ref
+		$this->id_ref->ViewValue = $this->id_ref->CurrentValue;
+		$this->id_ref->ViewCustomAttributes = "";
 
 		// tipo_documento
 		if (strval($this->tipo_documento->CurrentValue) <> "") {
@@ -830,6 +891,10 @@ class cpersonas_edit extends cpersonas {
 		// materno
 		$this->materno->ViewValue = $this->materno->CurrentValue;
 		$this->materno->ViewCustomAttributes = "";
+
+		// especial
+		$this->especial->ViewValue = $this->especial->CurrentValue;
+		$this->especial->ViewCustomAttributes = "";
 
 		// fecha_nacimiento
 		$this->fecha_nacimiento->ViewValue = $this->fecha_nacimiento->CurrentValue;
@@ -870,6 +935,21 @@ class cpersonas_edit extends cpersonas {
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
+			$this->id_ref->TooltipValue = "";
+
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -894,6 +974,11 @@ class cpersonas_edit extends cpersonas {
 			$this->materno->LinkCustomAttributes = "";
 			$this->materno->HrefValue = "";
 			$this->materno->TooltipValue = "";
+
+			// especial
+			$this->especial->LinkCustomAttributes = "";
+			$this->especial->HrefValue = "";
+			$this->especial->TooltipValue = "";
 
 			// fecha_nacimiento
 			$this->fecha_nacimiento->LinkCustomAttributes = "";
@@ -936,6 +1021,82 @@ class cpersonas_edit extends cpersonas {
 			$this->Id->EditValue = $this->Id->CurrentValue;
 			$this->Id->ViewCustomAttributes = "";
 
+			// id_fuente
+			$this->id_fuente->EditAttrs["class"] = "form-control";
+			$this->id_fuente->EditCustomAttributes = "";
+			if ($this->id_fuente->getSessionValue() <> "") {
+				$this->id_fuente->CurrentValue = $this->id_fuente->getSessionValue();
+			if (strval($this->id_fuente->CurrentValue) <> "") {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+				$rswrk = Conn()->Execute($sSqlWrk);
+				if ($rswrk && !$rswrk->EOF) { // Lookup values found
+					$arwrk = array();
+					$arwrk[1] = $rswrk->fields('DispFld');
+					$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
+					$rswrk->Close();
+				} else {
+					$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
+				}
+			} else {
+				$this->id_fuente->ViewValue = NULL;
+			}
+			$this->id_fuente->ViewCustomAttributes = "";
+			} else {
+			if (trim(strval($this->id_fuente->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_fuente->EditValue = $arwrk;
+			}
+
+			// id_gestion
+			$this->id_gestion->EditAttrs["class"] = "form-control";
+			$this->id_gestion->EditCustomAttributes = "";
+			if (trim(strval($this->id_gestion->CurrentValue)) == "") {
+				$sFilterWrk = "0=1";
+			} else {
+				$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+			}
+			$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld`, '' AS `SelectFilterFld`, '' AS `SelectFilterFld2`, '' AS `SelectFilterFld3`, '' AS `SelectFilterFld4` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			ew_AddFilter($sWhereWrk, $sFilterWrk);
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			$arwrk = ($rswrk) ? $rswrk->GetRows() : array();
+			if ($rswrk) $rswrk->Close();
+			$this->id_gestion->EditValue = $arwrk;
+
+			// id_ref
+			$this->id_ref->EditAttrs["class"] = "form-control";
+			$this->id_ref->EditCustomAttributes = "";
+			$this->id_ref->EditValue = ew_HtmlEncode($this->id_ref->CurrentValue);
+			$this->id_ref->PlaceHolder = ew_RemoveHtml($this->id_ref->FldCaption());
+
 			// tipo_documento
 			$this->tipo_documento->EditAttrs["class"] = "form-control";
 			$this->tipo_documento->EditCustomAttributes = "";
@@ -964,6 +1125,12 @@ class cpersonas_edit extends cpersonas {
 			$this->materno->EditCustomAttributes = "";
 			$this->materno->EditValue = ew_HtmlEncode($this->materno->CurrentValue);
 			$this->materno->PlaceHolder = ew_RemoveHtml($this->materno->FldCaption());
+
+			// especial
+			$this->especial->EditAttrs["class"] = "form-control";
+			$this->especial->EditCustomAttributes = "";
+			$this->especial->EditValue = ew_HtmlEncode($this->especial->CurrentValue);
+			$this->especial->PlaceHolder = ew_RemoveHtml($this->especial->FldCaption());
 
 			// fecha_nacimiento
 			$this->fecha_nacimiento->EditAttrs["class"] = "form-control";
@@ -1003,6 +1170,18 @@ class cpersonas_edit extends cpersonas {
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+
+			// id_ref
+			$this->id_ref->LinkCustomAttributes = "";
+			$this->id_ref->HrefValue = "";
+
 			// tipo_documento
 			$this->tipo_documento->LinkCustomAttributes = "";
 			$this->tipo_documento->HrefValue = "";
@@ -1022,6 +1201,10 @@ class cpersonas_edit extends cpersonas {
 			// materno
 			$this->materno->LinkCustomAttributes = "";
 			$this->materno->HrefValue = "";
+
+			// especial
+			$this->especial->LinkCustomAttributes = "";
+			$this->especial->HrefValue = "";
 
 			// fecha_nacimiento
 			$this->fecha_nacimiento->LinkCustomAttributes = "";
@@ -1083,22 +1266,6 @@ class cpersonas_edit extends cpersonas {
 
 		// Validate detail grid
 		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
-		if (in_array("direcciones", $DetailTblVar) && $GLOBALS["direcciones"]->DetailEdit) {
-			if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid(); // get detail page object
-			$GLOBALS["direcciones_grid"]->ValidateGridForm();
-		}
-		if (in_array("telefonos", $DetailTblVar) && $GLOBALS["telefonos"]->DetailEdit) {
-			if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid(); // get detail page object
-			$GLOBALS["telefonos_grid"]->ValidateGridForm();
-		}
-		if (in_array("emails", $DetailTblVar) && $GLOBALS["emails"]->DetailEdit) {
-			if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid(); // get detail page object
-			$GLOBALS["emails_grid"]->ValidateGridForm();
-		}
-		if (in_array("vehiculos", $DetailTblVar) && $GLOBALS["vehiculos"]->DetailEdit) {
-			if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid(); // get detail page object
-			$GLOBALS["vehiculos_grid"]->ValidateGridForm();
-		}
 		if (in_array("deuda_persona", $DetailTblVar) && $GLOBALS["deuda_persona"]->DetailEdit) {
 			if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid(); // get detail page object
 			$GLOBALS["deuda_persona_grid"]->ValidateGridForm();
@@ -1145,6 +1312,15 @@ class cpersonas_edit extends cpersonas {
 			$this->imagen->UploadPath = $this->imagen->OldUploadPath;
 			$rsnew = array();
 
+			// id_fuente
+			$this->id_fuente->SetDbValueDef($rsnew, $this->id_fuente->CurrentValue, 0, $this->id_fuente->ReadOnly);
+
+			// id_gestion
+			$this->id_gestion->SetDbValueDef($rsnew, $this->id_gestion->CurrentValue, 0, $this->id_gestion->ReadOnly);
+
+			// id_ref
+			$this->id_ref->SetDbValueDef($rsnew, $this->id_ref->CurrentValue, NULL, $this->id_ref->ReadOnly);
+
 			// tipo_documento
 			$this->tipo_documento->SetDbValueDef($rsnew, $this->tipo_documento->CurrentValue, NULL, $this->tipo_documento->ReadOnly);
 
@@ -1152,13 +1328,16 @@ class cpersonas_edit extends cpersonas {
 			$this->no_documento->SetDbValueDef($rsnew, $this->no_documento->CurrentValue, NULL, $this->no_documento->ReadOnly);
 
 			// nombres
-			$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, "", $this->nombres->ReadOnly);
+			$this->nombres->SetDbValueDef($rsnew, $this->nombres->CurrentValue, NULL, $this->nombres->ReadOnly);
 
 			// paterno
-			$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, "", $this->paterno->ReadOnly);
+			$this->paterno->SetDbValueDef($rsnew, $this->paterno->CurrentValue, NULL, $this->paterno->ReadOnly);
 
 			// materno
 			$this->materno->SetDbValueDef($rsnew, $this->materno->CurrentValue, "", $this->materno->ReadOnly);
+
+			// especial
+			$this->especial->SetDbValueDef($rsnew, $this->especial->CurrentValue, NULL, $this->especial->ReadOnly);
 
 			// fecha_nacimiento
 			$this->fecha_nacimiento->SetDbValueDef($rsnew, ew_UnFormatDateTime($this->fecha_nacimiento->CurrentValue, 7), NULL, $this->fecha_nacimiento->ReadOnly);
@@ -1208,38 +1387,6 @@ class cpersonas_edit extends cpersonas {
 				// Update detail records
 				$DetailTblVar = explode(",", $this->getCurrentDetailTable());
 				if ($EditRow) {
-					if (in_array("direcciones", $DetailTblVar) && $GLOBALS["direcciones"]->DetailEdit) {
-						if (!isset($GLOBALS["direcciones_grid"])) $GLOBALS["direcciones_grid"] = new cdirecciones_grid(); // Get detail page object
-						$Security->LoadCurrentUserLevel($this->ProjectID . "direcciones"); // Load user level of detail table
-						$EditRow = $GLOBALS["direcciones_grid"]->GridUpdate();
-						$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
-					}
-				}
-				if ($EditRow) {
-					if (in_array("telefonos", $DetailTblVar) && $GLOBALS["telefonos"]->DetailEdit) {
-						if (!isset($GLOBALS["telefonos_grid"])) $GLOBALS["telefonos_grid"] = new ctelefonos_grid(); // Get detail page object
-						$Security->LoadCurrentUserLevel($this->ProjectID . "telefonos"); // Load user level of detail table
-						$EditRow = $GLOBALS["telefonos_grid"]->GridUpdate();
-						$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
-					}
-				}
-				if ($EditRow) {
-					if (in_array("emails", $DetailTblVar) && $GLOBALS["emails"]->DetailEdit) {
-						if (!isset($GLOBALS["emails_grid"])) $GLOBALS["emails_grid"] = new cemails_grid(); // Get detail page object
-						$Security->LoadCurrentUserLevel($this->ProjectID . "emails"); // Load user level of detail table
-						$EditRow = $GLOBALS["emails_grid"]->GridUpdate();
-						$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
-					}
-				}
-				if ($EditRow) {
-					if (in_array("vehiculos", $DetailTblVar) && $GLOBALS["vehiculos"]->DetailEdit) {
-						if (!isset($GLOBALS["vehiculos_grid"])) $GLOBALS["vehiculos_grid"] = new cvehiculos_grid(); // Get detail page object
-						$Security->LoadCurrentUserLevel($this->ProjectID . "vehiculos"); // Load user level of detail table
-						$EditRow = $GLOBALS["vehiculos_grid"]->GridUpdate();
-						$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
-					}
-				}
-				if ($EditRow) {
 					if (in_array("deuda_persona", $DetailTblVar) && $GLOBALS["deuda_persona"]->DetailEdit) {
 						if (!isset($GLOBALS["deuda_persona_grid"])) $GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid(); // Get detail page object
 						$Security->LoadCurrentUserLevel($this->ProjectID . "deuda_persona"); // Load user level of detail table
@@ -1280,6 +1427,67 @@ class cpersonas_edit extends cpersonas {
 		return $EditRow;
 	}
 
+	// Set up master/detail based on QueryString
+	function SetupMasterParms() {
+		$bValidMaster = FALSE;
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fuentes") {
+				$bValidMaster = TRUE;
+				if (@$_GET["fk_Id"] <> "") {
+					$GLOBALS["fuentes"]->Id->setQueryStringValue($_GET["fk_Id"]);
+					$this->id_fuente->setQueryStringValue($GLOBALS["fuentes"]->Id->QueryStringValue);
+					$this->id_fuente->setSessionValue($this->id_fuente->QueryStringValue);
+					if (!is_numeric($GLOBALS["fuentes"]->Id->QueryStringValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
+			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
+			if ($sMasterTblVar == "") {
+				$bValidMaster = TRUE;
+				$this->DbMasterFilter = "";
+				$this->DbDetailFilter = "";
+			}
+			if ($sMasterTblVar == "fuentes") {
+				$bValidMaster = TRUE;
+				if (@$_POST["fk_Id"] <> "") {
+					$GLOBALS["fuentes"]->Id->setFormValue($_POST["fk_Id"]);
+					$this->id_fuente->setFormValue($GLOBALS["fuentes"]->Id->FormValue);
+					$this->id_fuente->setSessionValue($this->id_fuente->FormValue);
+					if (!is_numeric($GLOBALS["fuentes"]->Id->FormValue)) $bValidMaster = FALSE;
+				} else {
+					$bValidMaster = FALSE;
+				}
+			}
+		}
+		if ($bValidMaster) {
+
+			// Save current master table
+			$this->setCurrentMasterTable($sMasterTblVar);
+			$this->setSessionWhere($this->GetDetailFilter());
+
+			// Reset start record counter (new master key)
+			$this->StartRec = 1;
+			$this->setStartRecordNumber($this->StartRec);
+
+			// Clear previous master key from Session
+			if ($sMasterTblVar <> "fuentes") {
+				if ($this->id_fuente->CurrentValue == "") $this->id_fuente->setSessionValue("");
+			}
+		}
+		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
+		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
+	}
+
 	// Set up detail parms based on QueryString
 	function SetupDetailParms() {
 
@@ -1292,66 +1500,6 @@ class cpersonas_edit extends cpersonas {
 		}
 		if ($sDetailTblVar <> "") {
 			$DetailTblVar = explode(",", $sDetailTblVar);
-			if (in_array("direcciones", $DetailTblVar)) {
-				if (!isset($GLOBALS["direcciones_grid"]))
-					$GLOBALS["direcciones_grid"] = new cdirecciones_grid;
-				if ($GLOBALS["direcciones_grid"]->DetailEdit) {
-					$GLOBALS["direcciones_grid"]->CurrentMode = "edit";
-					$GLOBALS["direcciones_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["direcciones_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["direcciones_grid"]->setStartRecordNumber(1);
-					$GLOBALS["direcciones_grid"]->id_persona->FldIsDetailKey = TRUE;
-					$GLOBALS["direcciones_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["direcciones_grid"]->id_persona->setSessionValue($GLOBALS["direcciones_grid"]->id_persona->CurrentValue);
-				}
-			}
-			if (in_array("telefonos", $DetailTblVar)) {
-				if (!isset($GLOBALS["telefonos_grid"]))
-					$GLOBALS["telefonos_grid"] = new ctelefonos_grid;
-				if ($GLOBALS["telefonos_grid"]->DetailEdit) {
-					$GLOBALS["telefonos_grid"]->CurrentMode = "edit";
-					$GLOBALS["telefonos_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["telefonos_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["telefonos_grid"]->setStartRecordNumber(1);
-					$GLOBALS["telefonos_grid"]->id_persona->FldIsDetailKey = TRUE;
-					$GLOBALS["telefonos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["telefonos_grid"]->id_persona->setSessionValue($GLOBALS["telefonos_grid"]->id_persona->CurrentValue);
-				}
-			}
-			if (in_array("emails", $DetailTblVar)) {
-				if (!isset($GLOBALS["emails_grid"]))
-					$GLOBALS["emails_grid"] = new cemails_grid;
-				if ($GLOBALS["emails_grid"]->DetailEdit) {
-					$GLOBALS["emails_grid"]->CurrentMode = "edit";
-					$GLOBALS["emails_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["emails_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["emails_grid"]->setStartRecordNumber(1);
-					$GLOBALS["emails_grid"]->id_persona->FldIsDetailKey = TRUE;
-					$GLOBALS["emails_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["emails_grid"]->id_persona->setSessionValue($GLOBALS["emails_grid"]->id_persona->CurrentValue);
-				}
-			}
-			if (in_array("vehiculos", $DetailTblVar)) {
-				if (!isset($GLOBALS["vehiculos_grid"]))
-					$GLOBALS["vehiculos_grid"] = new cvehiculos_grid;
-				if ($GLOBALS["vehiculos_grid"]->DetailEdit) {
-					$GLOBALS["vehiculos_grid"]->CurrentMode = "edit";
-					$GLOBALS["vehiculos_grid"]->CurrentAction = "gridedit";
-
-					// Save current master table to detail table
-					$GLOBALS["vehiculos_grid"]->setCurrentMasterTable($this->TableVar);
-					$GLOBALS["vehiculos_grid"]->setStartRecordNumber(1);
-					$GLOBALS["vehiculos_grid"]->id_persona->FldIsDetailKey = TRUE;
-					$GLOBALS["vehiculos_grid"]->id_persona->CurrentValue = $this->Id->CurrentValue;
-					$GLOBALS["vehiculos_grid"]->id_persona->setSessionValue($GLOBALS["vehiculos_grid"]->id_persona->CurrentValue);
-				}
-			}
 			if (in_array("deuda_persona", $DetailTblVar)) {
 				if (!isset($GLOBALS["deuda_persona_grid"]))
 					$GLOBALS["deuda_persona_grid"] = new cdeuda_persona_grid;
@@ -1380,16 +1528,15 @@ class cpersonas_edit extends cpersonas {
 		$Breadcrumb->Add("edit", $PageId, $url);
 	}
 
-	// Set up detail pages
-	function SetupDetailPages() {
+	// Set up multi pages
+	function SetupMultiPages() {
 		$pages = new cSubPages();
 		$pages->Style = "tabs";
-		$pages->Add('direcciones');
-		$pages->Add('telefonos');
-		$pages->Add('emails');
-		$pages->Add('vehiculos');
-		$pages->Add('deuda_persona');
-		$this->DetailPages = $pages;
+		$pages->Add(0);
+		$pages->Add(1);
+		$pages->Add(2);
+		$pages->Add(3);
+		$this->MultiPages = $pages;
 	}
 
 	// Setup lookup filters of a field
@@ -1397,6 +1544,34 @@ class cpersonas_edit extends cpersonas {
 		global $gsLanguage;
 		$pageId = $pageId ?: $this->PageID;
 		switch ($fld->FldVar) {
+		case "x_id_fuente":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
+			$sWhereWrk = "";
+			$this->id_fuente->LookupFilters = array();
+			$lookuptblfilter = "`estado`=1";
+			ew_AddFilter($sWhereWrk, $lookuptblfilter);
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
+		case "x_id_gestion":
+			$sSqlWrk = "";
+			$sSqlWrk = "SELECT `Id` AS `LinkFld`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+			$sWhereWrk = "";
+			$this->id_gestion->LookupFilters = array();
+			$fld->LookupFilters += array("s" => $sSqlWrk, "d" => "", "f0" => '`Id` IN ({filter_value})', "t0" => "3", "fn0" => "");
+			$sSqlWrk = "";
+			$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+			if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+			$sSqlWrk .= " ORDER BY `nombre`";
+			if ($sSqlWrk <> "")
+				$fld->LookupFilters["s"] .= $sSqlWrk;
+			break;
 		}
 	}
 
@@ -1559,7 +1734,14 @@ fpersonasedit.Form_CustomValidate =
 // Use JavaScript validation or not
 fpersonasedit.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
+// Multi-Page
+fpersonasedit.MultiPage = new ew_MultiPage("fpersonasedit");
+
 // Dynamic selection lists
+fpersonasedit.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+fpersonasedit.Lists["x_id_fuente"].Data = "<?php echo $personas_edit->id_fuente->LookupFilterQuery(FALSE, "edit") ?>";
+fpersonasedit.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+fpersonasedit.Lists["x_id_gestion"].Data = "<?php echo $personas_edit->id_gestion->LookupFilterQuery(FALSE, "edit") ?>";
 fpersonasedit.Lists["x_tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fpersonasedit.Lists["x_tipo_documento"].Options = <?php echo json_encode($personas_edit->tipo_documento->Options()) ?>;
 fpersonasedit.Lists["x_estado"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
@@ -1582,6 +1764,19 @@ $personas_edit->ShowMessage();
 <input type="hidden" name="t" value="personas">
 <input type="hidden" name="a_edit" id="a_edit" value="U">
 <input type="hidden" name="modal" value="<?php echo intval($personas_edit->IsModal) ?>">
+<?php if ($personas->getCurrentMasterTable() == "fuentes") { ?>
+<input type="hidden" name="<?php echo EW_TABLE_SHOW_MASTER ?>" value="fuentes">
+<input type="hidden" name="fk_Id" value="<?php echo $personas->id_fuente->getSessionValue() ?>">
+<?php } ?>
+<div class="ewMultiPage"><!-- multi-page -->
+<div class="nav-tabs-custom" id="personas_edit"><!-- multi-page .nav-tabs-custom -->
+	<ul class="nav<?php echo $personas_edit->MultiPages->NavStyle() ?>">
+		<li<?php echo $personas_edit->MultiPages->TabStyle("1") ?>><a href="#tab_personas1" data-toggle="tab"><?php echo $personas->PageCaption(1) ?></a></li>
+		<li<?php echo $personas_edit->MultiPages->TabStyle("2") ?>><a href="#tab_personas2" data-toggle="tab"><?php echo $personas->PageCaption(2) ?></a></li>
+		<li<?php echo $personas_edit->MultiPages->TabStyle("3") ?>><a href="#tab_personas3" data-toggle="tab"><?php echo $personas->PageCaption(3) ?></a></li>
+	</ul>
+	<div class="tab-content"><!-- multi-page .nav-tabs-custom .tab-content -->
+		<div class="tab-pane<?php echo $personas_edit->MultiPages->PageStyle("1") ?>" id="tab_personas1"><!-- multi-page .tab-pane -->
 <div class="ewEditDiv"><!-- page* -->
 <?php if ($personas->Id->Visible) { // Id ?>
 	<div id="r_Id" class="form-group">
@@ -1591,16 +1786,78 @@ $personas_edit->ShowMessage();
 <span<?php echo $personas->Id->ViewAttributes() ?>>
 <p class="form-control-static"><?php echo $personas->Id->EditValue ?></p></span>
 </span>
-<input type="hidden" data-table="personas" data-field="x_Id" name="x_Id" id="x_Id" value="<?php echo ew_HtmlEncode($personas->Id->CurrentValue) ?>">
+<input type="hidden" data-table="personas" data-field="x_Id" data-page="1" name="x_Id" id="x_Id" value="<?php echo ew_HtmlEncode($personas->Id->CurrentValue) ?>">
 <?php echo $personas->Id->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+<?php if ($personas->id_fuente->Visible) { // id_fuente ?>
+	<div id="r_id_fuente" class="form-group">
+		<label id="elh_personas_id_fuente" for="x_id_fuente" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->id_fuente->FldCaption() ?></label>
+		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->id_fuente->CellAttributes() ?>>
+<?php if ($personas->id_fuente->getSessionValue() <> "") { ?>
+<span id="el_personas_id_fuente">
+<span<?php echo $personas->id_fuente->ViewAttributes() ?>>
+<p class="form-control-static"><?php echo $personas->id_fuente->ViewValue ?></p></span>
+</span>
+<input type="hidden" id="x_id_fuente" name="x_id_fuente" value="<?php echo ew_HtmlEncode($personas->id_fuente->CurrentValue) ?>">
+<?php } else { ?>
+<span id="el_personas_id_fuente">
+<select data-table="personas" data-field="x_id_fuente" data-page="1" data-value-separator="<?php echo $personas->id_fuente->DisplayValueSeparatorAttribute() ?>" id="x_id_fuente" name="x_id_fuente"<?php echo $personas->id_fuente->EditAttributes() ?>>
+<?php echo $personas->id_fuente->SelectOptionListHtml("x_id_fuente") ?>
+</select>
+</span>
+<?php } ?>
+<?php echo $personas->id_fuente->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($personas->id_gestion->Visible) { // id_gestion ?>
+	<div id="r_id_gestion" class="form-group">
+		<label id="elh_personas_id_gestion" for="x_id_gestion" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->id_gestion->FldCaption() ?></label>
+		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->id_gestion->CellAttributes() ?>>
+<span id="el_personas_id_gestion">
+<select data-table="personas" data-field="x_id_gestion" data-page="1" data-value-separator="<?php echo $personas->id_gestion->DisplayValueSeparatorAttribute() ?>" id="x_id_gestion" name="x_id_gestion"<?php echo $personas->id_gestion->EditAttributes() ?>>
+<?php echo $personas->id_gestion->SelectOptionListHtml("x_id_gestion") ?>
+</select>
+<?php if (AllowAdd(CurrentProjectID() . "gestiones") && !$personas->id_gestion->ReadOnly) { ?>
+<button type="button" title="<?php echo ew_HtmlTitle($Language->Phrase("AddLink")) . "&nbsp;" . $personas->id_gestion->FldCaption() ?>" onclick="ew_AddOptDialogShow({lnk:this,el:'x_id_gestion',url:'gestionesaddopt.php'});" class="ewAddOptBtn btn btn-default btn-sm" id="aol_x_id_gestion"><span class="glyphicon glyphicon-plus ewIcon"></span><span class="hide"><?php echo $Language->Phrase("AddLink") ?>&nbsp;<?php echo $personas->id_gestion->FldCaption() ?></span></button>
+<?php } ?>
+</span>
+<?php echo $personas->id_gestion->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($personas->id_ref->Visible) { // id_ref ?>
+	<div id="r_id_ref" class="form-group">
+		<label id="elh_personas_id_ref" for="x_id_ref" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->id_ref->FldCaption() ?></label>
+		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->id_ref->CellAttributes() ?>>
+<span id="el_personas_id_ref">
+<input type="text" data-table="personas" data-field="x_id_ref" data-page="1" name="x_id_ref" id="x_id_ref" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->id_ref->getPlaceHolder()) ?>" value="<?php echo $personas->id_ref->EditValue ?>"<?php echo $personas->id_ref->EditAttributes() ?>>
+</span>
+<?php echo $personas->id_ref->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($personas->estado->Visible) { // estado ?>
+	<div id="r_estado" class="form-group">
+		<label id="elh_personas_estado" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
+		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->estado->CellAttributes() ?>>
+<span id="el_personas_estado">
+<div id="tp_x_estado" class="ewTemplate"><input type="radio" data-table="personas" data-field="x_estado" data-page="1" data-value-separator="<?php echo $personas->estado->DisplayValueSeparatorAttribute() ?>" name="x_estado" id="x_estado" value="{value}"<?php echo $personas->estado->EditAttributes() ?>></div>
+<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList" style="display: none;"><div>
+<?php echo $personas->estado->RadioButtonListHtml(FALSE, "x_estado", 1) ?>
+</div></div>
+</span>
+<?php echo $personas->estado->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+</div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+		<div class="tab-pane<?php echo $personas_edit->MultiPages->PageStyle("2") ?>" id="tab_personas2"><!-- multi-page .tab-pane -->
+<div class="ewEditDiv"><!-- page* -->
 <?php if ($personas->tipo_documento->Visible) { // tipo_documento ?>
 	<div id="r_tipo_documento" class="form-group">
 		<label id="elh_personas_tipo_documento" for="x_tipo_documento" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->tipo_documento->FldCaption() ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->tipo_documento->CellAttributes() ?>>
 <span id="el_personas_tipo_documento">
-<select data-table="personas" data-field="x_tipo_documento" data-value-separator="<?php echo $personas->tipo_documento->DisplayValueSeparatorAttribute() ?>" id="x_tipo_documento" name="x_tipo_documento"<?php echo $personas->tipo_documento->EditAttributes() ?>>
+<select data-table="personas" data-field="x_tipo_documento" data-page="2" data-value-separator="<?php echo $personas->tipo_documento->DisplayValueSeparatorAttribute() ?>" id="x_tipo_documento" name="x_tipo_documento"<?php echo $personas->tipo_documento->EditAttributes() ?>>
 <?php echo $personas->tipo_documento->SelectOptionListHtml("x_tipo_documento") ?>
 </select>
 </span>
@@ -1612,7 +1869,7 @@ $personas_edit->ShowMessage();
 		<label id="elh_personas_no_documento" for="x_no_documento" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->no_documento->FldCaption() ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->no_documento->CellAttributes() ?>>
 <span id="el_personas_no_documento">
-<input type="text" data-table="personas" data-field="x_no_documento" name="x_no_documento" id="x_no_documento" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->no_documento->getPlaceHolder()) ?>" value="<?php echo $personas->no_documento->EditValue ?>"<?php echo $personas->no_documento->EditAttributes() ?>>
+<input type="text" data-table="personas" data-field="x_no_documento" data-page="2" name="x_no_documento" id="x_no_documento" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->no_documento->getPlaceHolder()) ?>" value="<?php echo $personas->no_documento->EditValue ?>"<?php echo $personas->no_documento->EditAttributes() ?>>
 </span>
 <?php echo $personas->no_documento->CustomMsg ?></div></div>
 	</div>
@@ -1622,7 +1879,7 @@ $personas_edit->ShowMessage();
 		<label id="elh_personas_nombres" for="x_nombres" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->nombres->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->nombres->CellAttributes() ?>>
 <span id="el_personas_nombres">
-<input type="text" data-table="personas" data-field="x_nombres" name="x_nombres" id="x_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->nombres->getPlaceHolder()) ?>" value="<?php echo $personas->nombres->EditValue ?>"<?php echo $personas->nombres->EditAttributes() ?>>
+<input type="text" data-table="personas" data-field="x_nombres" data-page="2" name="x_nombres" id="x_nombres" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->nombres->getPlaceHolder()) ?>" value="<?php echo $personas->nombres->EditValue ?>"<?php echo $personas->nombres->EditAttributes() ?>>
 </span>
 <?php echo $personas->nombres->CustomMsg ?></div></div>
 	</div>
@@ -1632,7 +1889,7 @@ $personas_edit->ShowMessage();
 		<label id="elh_personas_paterno" for="x_paterno" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->paterno->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->paterno->CellAttributes() ?>>
 <span id="el_personas_paterno">
-<input type="text" data-table="personas" data-field="x_paterno" name="x_paterno" id="x_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->paterno->getPlaceHolder()) ?>" value="<?php echo $personas->paterno->EditValue ?>"<?php echo $personas->paterno->EditAttributes() ?>>
+<input type="text" data-table="personas" data-field="x_paterno" data-page="2" name="x_paterno" id="x_paterno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->paterno->getPlaceHolder()) ?>" value="<?php echo $personas->paterno->EditValue ?>"<?php echo $personas->paterno->EditAttributes() ?>>
 </span>
 <?php echo $personas->paterno->CustomMsg ?></div></div>
 	</div>
@@ -1642,9 +1899,19 @@ $personas_edit->ShowMessage();
 		<label id="elh_personas_materno" for="x_materno" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->materno->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->materno->CellAttributes() ?>>
 <span id="el_personas_materno">
-<input type="text" data-table="personas" data-field="x_materno" name="x_materno" id="x_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->materno->getPlaceHolder()) ?>" value="<?php echo $personas->materno->EditValue ?>"<?php echo $personas->materno->EditAttributes() ?>>
+<input type="text" data-table="personas" data-field="x_materno" data-page="2" name="x_materno" id="x_materno" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->materno->getPlaceHolder()) ?>" value="<?php echo $personas->materno->EditValue ?>"<?php echo $personas->materno->EditAttributes() ?>>
 </span>
 <?php echo $personas->materno->CustomMsg ?></div></div>
+	</div>
+<?php } ?>
+<?php if ($personas->especial->Visible) { // especial ?>
+	<div id="r_especial" class="form-group">
+		<label id="elh_personas_especial" for="x_especial" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->especial->FldCaption() ?></label>
+		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->especial->CellAttributes() ?>>
+<span id="el_personas_especial">
+<input type="text" data-table="personas" data-field="x_especial" data-page="2" name="x_especial" id="x_especial" size="30" maxlength="255" placeholder="<?php echo ew_HtmlEncode($personas->especial->getPlaceHolder()) ?>" value="<?php echo $personas->especial->EditValue ?>"<?php echo $personas->especial->EditAttributes() ?>>
+</span>
+<?php echo $personas->especial->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($personas->fecha_nacimiento->Visible) { // fecha_nacimiento ?>
@@ -1652,7 +1919,7 @@ $personas_edit->ShowMessage();
 		<label id="elh_personas_fecha_nacimiento" for="x_fecha_nacimiento" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->fecha_nacimiento->FldCaption() ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->fecha_nacimiento->CellAttributes() ?>>
 <span id="el_personas_fecha_nacimiento">
-<input type="text" data-table="personas" data-field="x_fecha_nacimiento" data-format="7" name="x_fecha_nacimiento" id="x_fecha_nacimiento" size="20" placeholder="<?php echo ew_HtmlEncode($personas->fecha_nacimiento->getPlaceHolder()) ?>" value="<?php echo $personas->fecha_nacimiento->EditValue ?>"<?php echo $personas->fecha_nacimiento->EditAttributes() ?>>
+<input type="text" data-table="personas" data-field="x_fecha_nacimiento" data-page="2" data-format="7" name="x_fecha_nacimiento" id="x_fecha_nacimiento" size="20" placeholder="<?php echo ew_HtmlEncode($personas->fecha_nacimiento->getPlaceHolder()) ?>" value="<?php echo $personas->fecha_nacimiento->EditValue ?>"<?php echo $personas->fecha_nacimiento->EditAttributes() ?>>
 <?php if (!$personas->fecha_nacimiento->ReadOnly && !$personas->fecha_nacimiento->Disabled && !isset($personas->fecha_nacimiento->EditAttrs["readonly"]) && !isset($personas->fecha_nacimiento->EditAttrs["disabled"])) { ?>
 <script type="text/javascript">
 ew_CreateDateTimePicker("fpersonasedit", "x_fecha_nacimiento", {"ignoreReadonly":true,"useCurrent":false,"format":7});
@@ -1662,6 +1929,10 @@ ew_CreateDateTimePicker("fpersonasedit", "x_fecha_nacimiento", {"ignoreReadonly"
 <?php echo $personas->fecha_nacimiento->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
+</div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+		<div class="tab-pane<?php echo $personas_edit->MultiPages->PageStyle("3") ?>" id="tab_personas3"><!-- multi-page .tab-pane -->
+<div class="ewEditDiv"><!-- page* -->
 <?php if ($personas->imagen->Visible) { // imagen ?>
 	<div id="r_imagen" class="form-group">
 		<label id="elh_personas_imagen" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->imagen->FldCaption() ?></label>
@@ -1670,7 +1941,7 @@ ew_CreateDateTimePicker("fpersonasedit", "x_fecha_nacimiento", {"ignoreReadonly"
 <div id="fd_x_imagen">
 <span title="<?php echo $personas->imagen->FldTitle() ? $personas->imagen->FldTitle() : $Language->Phrase("ChooseFile") ?>" class="btn btn-default btn-sm fileinput-button ewTooltip<?php if ($personas->imagen->ReadOnly || $personas->imagen->Disabled) echo " hide"; ?>">
 	<span><?php echo $Language->Phrase("ChooseFileBtn") ?></span>
-	<input type="file" title=" " data-table="personas" data-field="x_imagen" name="x_imagen" id="x_imagen"<?php echo $personas->imagen->EditAttributes() ?>>
+	<input type="file" title=" " data-table="personas" data-field="x_imagen" data-page="3" name="x_imagen" id="x_imagen"<?php echo $personas->imagen->EditAttributes() ?>>
 </span>
 <input type="hidden" name="fn_x_imagen" id= "fn_x_imagen" value="<?php echo $personas->imagen->Upload->FileName ?>">
 <?php if (@$_POST["fa_x_imagen"] == "0") { ?>
@@ -1678,7 +1949,7 @@ ew_CreateDateTimePicker("fpersonasedit", "x_fecha_nacimiento", {"ignoreReadonly"
 <?php } else { ?>
 <input type="hidden" name="fa_x_imagen" id= "fa_x_imagen" value="1">
 <?php } ?>
-<input type="hidden" name="fs_x_imagen" id= "fs_x_imagen" value="100">
+<input type="hidden" name="fs_x_imagen" id= "fs_x_imagen" value="-1">
 <input type="hidden" name="fx_x_imagen" id= "fx_x_imagen" value="<?php echo $personas->imagen->UploadAllowedFileExt ?>">
 <input type="hidden" name="fm_x_imagen" id= "fm_x_imagen" value="<?php echo $personas->imagen->UploadMaxFileSize ?>">
 </div>
@@ -1692,138 +1963,23 @@ ew_CreateDateTimePicker("fpersonasedit", "x_fecha_nacimiento", {"ignoreReadonly"
 		<label id="elh_personas_observaciones" for="x_observaciones" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->observaciones->FldCaption() ?></label>
 		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->observaciones->CellAttributes() ?>>
 <span id="el_personas_observaciones">
-<textarea data-table="personas" data-field="x_observaciones" name="x_observaciones" id="x_observaciones" cols="35" rows="4" placeholder="<?php echo ew_HtmlEncode($personas->observaciones->getPlaceHolder()) ?>"<?php echo $personas->observaciones->EditAttributes() ?>><?php echo $personas->observaciones->EditValue ?></textarea>
+<textarea data-table="personas" data-field="x_observaciones" data-page="3" name="x_observaciones" id="x_observaciones" cols="35" rows="4" placeholder="<?php echo ew_HtmlEncode($personas->observaciones->getPlaceHolder()) ?>"<?php echo $personas->observaciones->EditAttributes() ?>><?php echo $personas->observaciones->EditValue ?></textarea>
 </span>
 <?php echo $personas->observaciones->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
-<?php if ($personas->estado->Visible) { // estado ?>
-	<div id="r_estado" class="form-group">
-		<label id="elh_personas_estado" class="<?php echo $personas_edit->LeftColumnClass ?>"><?php echo $personas->estado->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
-		<div class="<?php echo $personas_edit->RightColumnClass ?>"><div<?php echo $personas->estado->CellAttributes() ?>>
-<span id="el_personas_estado">
-<div id="tp_x_estado" class="ewTemplate"><input type="radio" data-table="personas" data-field="x_estado" data-value-separator="<?php echo $personas->estado->DisplayValueSeparatorAttribute() ?>" name="x_estado" id="x_estado" value="{value}"<?php echo $personas->estado->EditAttributes() ?>></div>
-<div id="dsl_x_estado" data-repeatcolumn="5" class="ewItemList" style="display: none;"><div>
-<?php echo $personas->estado->RadioButtonListHtml(FALSE, "x_estado") ?>
-</div></div>
-</span>
-<?php echo $personas->estado->CustomMsg ?></div></div>
-	</div>
-<?php } ?>
 </div><!-- /page* -->
+		</div><!-- /multi-page .tab-pane -->
+	</div><!-- /multi-page .nav-tabs-custom .tab-content -->
+</div><!-- /multi-page .nav-tabs-custom -->
+</div><!-- /multi-page -->
+<?php
+	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailEdit) {
+?>
 <?php if ($personas->getCurrentDetailTable() <> "") { ?>
-<?php
-	$personas_edit->DetailPages->ValidKeys = explode(",", $personas->getCurrentDetailTable());
-	$FirstActiveDetailTable = $personas_edit->DetailPages->ActivePageIndex();
-?>
-<div class="ewDetailPages"><!-- detail-pages -->
-<div class="nav-tabs-custom" id="personas_edit_details"><!-- .nav-tabs-custom -->
-	<ul class="nav<?php echo $personas_edit->DetailPages->NavStyle() ?>"><!-- .nav -->
-<?php
-	if (in_array("direcciones", explode(",", $personas->getCurrentDetailTable())) && $direcciones->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "direcciones") {
-			$FirstActiveDetailTable = "direcciones";
-		}
-?>
-		<li<?php echo $personas_edit->DetailPages->TabStyle("direcciones") ?>><a href="#tab_direcciones" data-toggle="tab"><?php echo $Language->TablePhrase("direcciones", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-<?php
-	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
-			$FirstActiveDetailTable = "telefonos";
-		}
-?>
-		<li<?php echo $personas_edit->DetailPages->TabStyle("telefonos") ?>><a href="#tab_telefonos" data-toggle="tab"><?php echo $Language->TablePhrase("telefonos", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-<?php
-	if (in_array("emails", explode(",", $personas->getCurrentDetailTable())) && $emails->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "emails") {
-			$FirstActiveDetailTable = "emails";
-		}
-?>
-		<li<?php echo $personas_edit->DetailPages->TabStyle("emails") ?>><a href="#tab_emails" data-toggle="tab"><?php echo $Language->TablePhrase("emails", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-<?php
-	if (in_array("vehiculos", explode(",", $personas->getCurrentDetailTable())) && $vehiculos->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "vehiculos") {
-			$FirstActiveDetailTable = "vehiculos";
-		}
-?>
-		<li<?php echo $personas_edit->DetailPages->TabStyle("vehiculos") ?>><a href="#tab_vehiculos" data-toggle="tab"><?php echo $Language->TablePhrase("vehiculos", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-<?php
-	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "deuda_persona") {
-			$FirstActiveDetailTable = "deuda_persona";
-		}
-?>
-		<li<?php echo $personas_edit->DetailPages->TabStyle("deuda_persona") ?>><a href="#tab_deuda_persona" data-toggle="tab"><?php echo $Language->TablePhrase("deuda_persona", "TblCaption") ?></a></li>
-<?php
-	}
-?>
-	</ul><!-- /.nav -->
-	<div class="tab-content"><!-- .tab-content -->
-<?php
-	if (in_array("direcciones", explode(",", $personas->getCurrentDetailTable())) && $direcciones->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "direcciones") {
-			$FirstActiveDetailTable = "direcciones";
-		}
-?>
-		<div class="tab-pane<?php echo $personas_edit->DetailPages->PageStyle("direcciones") ?>" id="tab_direcciones"><!-- page* -->
-<?php include_once "direccionesgrid.php" ?>
-		</div><!-- /page* -->
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("deuda_persona", "TblCaption") ?></h4>
 <?php } ?>
-<?php
-	if (in_array("telefonos", explode(",", $personas->getCurrentDetailTable())) && $telefonos->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "telefonos") {
-			$FirstActiveDetailTable = "telefonos";
-		}
-?>
-		<div class="tab-pane<?php echo $personas_edit->DetailPages->PageStyle("telefonos") ?>" id="tab_telefonos"><!-- page* -->
-<?php include_once "telefonosgrid.php" ?>
-		</div><!-- /page* -->
-<?php } ?>
-<?php
-	if (in_array("emails", explode(",", $personas->getCurrentDetailTable())) && $emails->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "emails") {
-			$FirstActiveDetailTable = "emails";
-		}
-?>
-		<div class="tab-pane<?php echo $personas_edit->DetailPages->PageStyle("emails") ?>" id="tab_emails"><!-- page* -->
-<?php include_once "emailsgrid.php" ?>
-		</div><!-- /page* -->
-<?php } ?>
-<?php
-	if (in_array("vehiculos", explode(",", $personas->getCurrentDetailTable())) && $vehiculos->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "vehiculos") {
-			$FirstActiveDetailTable = "vehiculos";
-		}
-?>
-		<div class="tab-pane<?php echo $personas_edit->DetailPages->PageStyle("vehiculos") ?>" id="tab_vehiculos"><!-- page* -->
-<?php include_once "vehiculosgrid.php" ?>
-		</div><!-- /page* -->
-<?php } ?>
-<?php
-	if (in_array("deuda_persona", explode(",", $personas->getCurrentDetailTable())) && $deuda_persona->DetailEdit) {
-		if ($FirstActiveDetailTable == "" || $FirstActiveDetailTable == "deuda_persona") {
-			$FirstActiveDetailTable = "deuda_persona";
-		}
-?>
-		<div class="tab-pane<?php echo $personas_edit->DetailPages->PageStyle("deuda_persona") ?>" id="tab_deuda_persona"><!-- page* -->
 <?php include_once "deuda_personagrid.php" ?>
-		</div><!-- /page* -->
-<?php } ?>
-	</div><!-- /.tab-content -->
-</div><!-- /.nav-tabs-custom -->
-</div><!-- /detail-pages -->
 <?php } ?>
 <?php if (!$personas_edit->IsModal) { ?>
 <div class="form-group"><!-- buttons .form-group -->

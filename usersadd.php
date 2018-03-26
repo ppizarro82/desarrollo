@@ -6,6 +6,7 @@ ob_start(); // Turn on output buffering
 <?php include_once ((EW_USE_ADODB) ? "adodb5/adodb.inc.php" : "ewmysql14.php") ?>
 <?php include_once "phpfn14.php" ?>
 <?php include_once "usersinfo.php" ?>
+<?php include_once "deudasgridcls.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -345,6 +346,14 @@ class cusers_add extends cusers {
 
 		// Process auto fill
 		if (@$_POST["ajax"] == "autofill") {
+
+			// Process auto fill for detail table 'deudas'
+			if (@$_POST["grid"] == "fdeudasgrid") {
+				if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid;
+				$GLOBALS["deudas_grid"]->Page_Init();
+				$this->Page_Terminate();
+				exit();
+			}
 			$results = $this->GetAutoFill(@$_POST["name"], @$_POST["q"]);
 			if ($results) {
 
@@ -471,6 +480,9 @@ class cusers_add extends cusers {
 			$this->LoadFormValues(); // Load form values
 		}
 
+		// Set up detail parameters
+		$this->SetupDetailParms();
+
 		// Validate form if post back
 		if (@$_POST["a_add"] <> "") {
 			if (!$this->ValidateForm()) {
@@ -490,13 +502,19 @@ class cusers_add extends cusers {
 					if ($this->getFailureMessage() == "") $this->setFailureMessage($Language->Phrase("NoRecord")); // No record found
 					$this->Page_Terminate("userslist.php"); // No matching record, return to list
 				}
+
+				// Set up detail parameters
+				$this->SetupDetailParms();
 				break;
 			case "A": // Add new record
 				$this->SendEmail = TRUE; // Send email on add success
 				if ($this->AddRow($this->OldRecordset)) { // Add successful
 					if ($this->getSuccessMessage() == "")
 						$this->setSuccessMessage($Language->Phrase("AddSuccess")); // Set up success message
-					$sReturnUrl = $this->getReturnUrl();
+					if ($this->getCurrentDetailTable() <> "") // Master/detail add
+						$sReturnUrl = $this->GetDetailUrl();
+					else
+						$sReturnUrl = $this->getReturnUrl();
 					if (ew_GetPageName($sReturnUrl) == "userslist.php")
 						$sReturnUrl = $this->AddMasterUrl($sReturnUrl); // List page, return to List page with correct master key if necessary
 					elseif (ew_GetPageName($sReturnUrl) == "usersview.php")
@@ -505,6 +523,9 @@ class cusers_add extends cusers {
 				} else {
 					$this->EventCancelled = TRUE; // Event cancelled
 					$this->RestoreFormValues(); // Add failed, restore form values
+
+					// Set up detail parameters
+					$this->SetupDetailParms();
 				}
 		}
 
@@ -847,7 +868,11 @@ class cusers_add extends cusers {
 		$this->No_documento->ViewCustomAttributes = "";
 
 		// Tipo_documento
-		$this->Tipo_documento->ViewValue = $this->Tipo_documento->CurrentValue;
+		if (strval($this->Tipo_documento->CurrentValue) <> "") {
+			$this->Tipo_documento->ViewValue = $this->Tipo_documento->OptionCaption($this->Tipo_documento->CurrentValue);
+		} else {
+			$this->Tipo_documento->ViewValue = NULL;
+		}
 		$this->Tipo_documento->ViewCustomAttributes = "";
 
 		// First_Name
@@ -899,7 +924,7 @@ class cusers_add extends cusers {
 
 		// fecha_ingreso
 		$this->fecha_ingreso->ViewValue = $this->fecha_ingreso->CurrentValue;
-		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 0);
+		$this->fecha_ingreso->ViewValue = ew_FormatDateTime($this->fecha_ingreso->ViewValue, 11);
 		$this->fecha_ingreso->ViewCustomAttributes = "";
 
 			// User_Level
@@ -1020,8 +1045,7 @@ class cusers_add extends cusers {
 			// Tipo_documento
 			$this->Tipo_documento->EditAttrs["class"] = "form-control";
 			$this->Tipo_documento->EditCustomAttributes = "";
-			$this->Tipo_documento->EditValue = ew_HtmlEncode($this->Tipo_documento->CurrentValue);
-			$this->Tipo_documento->PlaceHolder = ew_RemoveHtml($this->Tipo_documento->FldCaption());
+			$this->Tipo_documento->EditValue = $this->Tipo_documento->Options(TRUE);
 
 			// First_Name
 			$this->First_Name->EditAttrs["class"] = "form-control";
@@ -1153,6 +1177,18 @@ class cusers_add extends cusers {
 		if (!$this->Password->FldIsDetailKey && !is_null($this->Password->FormValue) && $this->Password->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->Password->FldCaption(), $this->Password->ReqErrMsg));
 		}
+		if (!$this->No_documento->FldIsDetailKey && !is_null($this->No_documento->FormValue) && $this->No_documento->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->No_documento->FldCaption(), $this->No_documento->ReqErrMsg));
+		}
+		if (!$this->Tipo_documento->FldIsDetailKey && !is_null($this->Tipo_documento->FormValue) && $this->Tipo_documento->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->Tipo_documento->FldCaption(), $this->Tipo_documento->ReqErrMsg));
+		}
+		if (!$this->First_Name->FldIsDetailKey && !is_null($this->First_Name->FormValue) && $this->First_Name->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->First_Name->FldCaption(), $this->First_Name->ReqErrMsg));
+		}
+		if (!$this->Last_Name->FldIsDetailKey && !is_null($this->Last_Name->FormValue) && $this->Last_Name->FormValue == "") {
+			ew_AddMessage($gsFormError, str_replace("%s", $this->Last_Name->FldCaption(), $this->Last_Name->ReqErrMsg));
+		}
 		if (!$this->Telefono_movil->FldIsDetailKey && !is_null($this->Telefono_movil->FormValue) && $this->Telefono_movil->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->Telefono_movil->FldCaption(), $this->Telefono_movil->ReqErrMsg));
 		}
@@ -1161,6 +1197,13 @@ class cusers_add extends cusers {
 		}
 		if ($this->acceso_app->FormValue == "") {
 			ew_AddMessage($gsFormError, str_replace("%s", $this->acceso_app->FldCaption(), $this->acceso_app->ReqErrMsg));
+		}
+
+		// Validate detail grid
+		$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+		if (in_array("deudas", $DetailTblVar) && $GLOBALS["deudas"]->DetailAdd) {
+			if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid(); // get detail page object
+			$GLOBALS["deudas_grid"]->ValidateGridForm();
 		}
 
 		// Return validate result
@@ -1179,6 +1222,10 @@ class cusers_add extends cusers {
 	function AddRow($rsold = NULL) {
 		global $Language, $Security;
 		$conn = &$this->Connection();
+
+		// Begin transaction
+		if ($this->getCurrentDetailTable() <> "")
+			$conn->BeginTrans();
 
 		// Load db values from rsold
 		$this->LoadDbValues($rsold);
@@ -1248,6 +1295,29 @@ class cusers_add extends cusers {
 			}
 			$AddRow = FALSE;
 		}
+
+		// Add detail records
+		if ($AddRow) {
+			$DetailTblVar = explode(",", $this->getCurrentDetailTable());
+			if (in_array("deudas", $DetailTblVar) && $GLOBALS["deudas"]->DetailAdd) {
+				$GLOBALS["deudas"]->id_agente->setSessionValue($this->id_user->CurrentValue); // Set master key
+				if (!isset($GLOBALS["deudas_grid"])) $GLOBALS["deudas_grid"] = new cdeudas_grid(); // Get detail page object
+				$Security->LoadCurrentUserLevel($this->ProjectID . "deudas"); // Load user level of detail table
+				$AddRow = $GLOBALS["deudas_grid"]->GridInsert();
+				$Security->LoadCurrentUserLevel($this->ProjectID . $this->TableName); // Restore user level of master table
+				if (!$AddRow)
+					$GLOBALS["deudas"]->id_agente->setSessionValue(""); // Clear master key if insert failed
+			}
+		}
+
+		// Commit/Rollback transaction
+		if ($this->getCurrentDetailTable() <> "") {
+			if ($AddRow) {
+				$conn->CommitTrans(); // Commit transaction
+			} else {
+				$conn->RollbackTrans(); // Rollback transaction
+			}
+		}
 		if ($AddRow) {
 
 			// Call Row Inserted event
@@ -1255,6 +1325,39 @@ class cusers_add extends cusers {
 			$this->Row_Inserted($rs, $rsnew);
 		}
 		return $AddRow;
+	}
+
+	// Set up detail parms based on QueryString
+	function SetupDetailParms() {
+
+		// Get the keys for master table
+		if (isset($_GET[EW_TABLE_SHOW_DETAIL])) {
+			$sDetailTblVar = $_GET[EW_TABLE_SHOW_DETAIL];
+			$this->setCurrentDetailTable($sDetailTblVar);
+		} else {
+			$sDetailTblVar = $this->getCurrentDetailTable();
+		}
+		if ($sDetailTblVar <> "") {
+			$DetailTblVar = explode(",", $sDetailTblVar);
+			if (in_array("deudas", $DetailTblVar)) {
+				if (!isset($GLOBALS["deudas_grid"]))
+					$GLOBALS["deudas_grid"] = new cdeudas_grid;
+				if ($GLOBALS["deudas_grid"]->DetailAdd) {
+					if ($this->CopyRecord)
+						$GLOBALS["deudas_grid"]->CurrentMode = "copy";
+					else
+						$GLOBALS["deudas_grid"]->CurrentMode = "add";
+					$GLOBALS["deudas_grid"]->CurrentAction = "gridadd";
+
+					// Save current master table to detail table
+					$GLOBALS["deudas_grid"]->setCurrentMasterTable($this->TableVar);
+					$GLOBALS["deudas_grid"]->setStartRecordNumber(1);
+					$GLOBALS["deudas_grid"]->id_agente->FldIsDetailKey = TRUE;
+					$GLOBALS["deudas_grid"]->id_agente->CurrentValue = $this->id_user->CurrentValue;
+					$GLOBALS["deudas_grid"]->id_agente->setSessionValue($GLOBALS["deudas_grid"]->id_agente->CurrentValue);
+				}
+			}
+		}
 	}
 
 	// Set up Breadcrumb
@@ -1414,6 +1517,18 @@ fusersadd.Validate = function() {
 			elm = this.GetElements("x" + infix + "_Password");
 			if (elm && $(elm).hasClass("ewPasswordStrength") && !$(elm).data("validated"))
 				return this.OnError(elm, ewLanguage.Phrase("PasswordTooSimple"));
+			elm = this.GetElements("x" + infix + "_No_documento");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $users->No_documento->FldCaption(), $users->No_documento->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_Tipo_documento");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $users->Tipo_documento->FldCaption(), $users->Tipo_documento->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_First_Name");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $users->First_Name->FldCaption(), $users->First_Name->ReqErrMsg)) ?>");
+			elm = this.GetElements("x" + infix + "_Last_Name");
+			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
+				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $users->Last_Name->FldCaption(), $users->Last_Name->ReqErrMsg)) ?>");
 			elm = this.GetElements("x" + infix + "_Telefono_movil");
 			if (elm && !ew_IsHidden(elm) && !ew_HasValue(elm))
 				return this.OnError(elm, "<?php echo ew_JsEncode2(str_replace("%s", $users->Telefono_movil->FldCaption(), $users->Telefono_movil->ReqErrMsg)) ?>");
@@ -1454,6 +1569,8 @@ fusersadd.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 // Dynamic selection lists
 fusersadd.Lists["x_User_Level"] = {"LinkField":"x_userlevelid","Ajax":true,"AutoFill":false,"DisplayFields":["x_userlevelname","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"userlevels"};
 fusersadd.Lists["x_User_Level"].Data = "<?php echo $users_add->User_Level->LookupFilterQuery(FALSE, "add") ?>";
+fusersadd.Lists["x_Tipo_documento"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
+fusersadd.Lists["x_Tipo_documento"].Options = <?php echo json_encode($users_add->Tipo_documento->Options()) ?>;
 fusersadd.Lists["x_acceso_app"] = {"LinkField":"","Ajax":null,"AutoFill":false,"DisplayFields":["","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":""};
 fusersadd.Lists["x_acceso_app"].Options = <?php echo json_encode($users_add->acceso_app->Options()) ?>;
 
@@ -1521,7 +1638,7 @@ $users_add->ShowMessage();
 <?php } ?>
 <?php if ($users->No_documento->Visible) { // No_documento ?>
 	<div id="r_No_documento" class="form-group">
-		<label id="elh_users_No_documento" for="x_No_documento" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->No_documento->FldCaption() ?></label>
+		<label id="elh_users_No_documento" for="x_No_documento" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->No_documento->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $users_add->RightColumnClass ?>"><div<?php echo $users->No_documento->CellAttributes() ?>>
 <span id="el_users_No_documento">
 <input type="text" data-table="users" data-field="x_No_documento" name="x_No_documento" id="x_No_documento" size="30" maxlength="20" placeholder="<?php echo ew_HtmlEncode($users->No_documento->getPlaceHolder()) ?>" value="<?php echo $users->No_documento->EditValue ?>"<?php echo $users->No_documento->EditAttributes() ?>>
@@ -1531,17 +1648,19 @@ $users_add->ShowMessage();
 <?php } ?>
 <?php if ($users->Tipo_documento->Visible) { // Tipo_documento ?>
 	<div id="r_Tipo_documento" class="form-group">
-		<label id="elh_users_Tipo_documento" for="x_Tipo_documento" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->Tipo_documento->FldCaption() ?></label>
+		<label id="elh_users_Tipo_documento" for="x_Tipo_documento" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->Tipo_documento->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $users_add->RightColumnClass ?>"><div<?php echo $users->Tipo_documento->CellAttributes() ?>>
 <span id="el_users_Tipo_documento">
-<input type="text" data-table="users" data-field="x_Tipo_documento" name="x_Tipo_documento" id="x_Tipo_documento" size="30" maxlength="20" placeholder="<?php echo ew_HtmlEncode($users->Tipo_documento->getPlaceHolder()) ?>" value="<?php echo $users->Tipo_documento->EditValue ?>"<?php echo $users->Tipo_documento->EditAttributes() ?>>
+<select data-table="users" data-field="x_Tipo_documento" data-value-separator="<?php echo $users->Tipo_documento->DisplayValueSeparatorAttribute() ?>" id="x_Tipo_documento" name="x_Tipo_documento"<?php echo $users->Tipo_documento->EditAttributes() ?>>
+<?php echo $users->Tipo_documento->SelectOptionListHtml("x_Tipo_documento") ?>
+</select>
 </span>
 <?php echo $users->Tipo_documento->CustomMsg ?></div></div>
 	</div>
 <?php } ?>
 <?php if ($users->First_Name->Visible) { // First_Name ?>
 	<div id="r_First_Name" class="form-group">
-		<label id="elh_users_First_Name" for="x_First_Name" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->First_Name->FldCaption() ?></label>
+		<label id="elh_users_First_Name" for="x_First_Name" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->First_Name->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $users_add->RightColumnClass ?>"><div<?php echo $users->First_Name->CellAttributes() ?>>
 <span id="el_users_First_Name">
 <input type="text" data-table="users" data-field="x_First_Name" name="x_First_Name" id="x_First_Name" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($users->First_Name->getPlaceHolder()) ?>" value="<?php echo $users->First_Name->EditValue ?>"<?php echo $users->First_Name->EditAttributes() ?>>
@@ -1551,7 +1670,7 @@ $users_add->ShowMessage();
 <?php } ?>
 <?php if ($users->Last_Name->Visible) { // Last_Name ?>
 	<div id="r_Last_Name" class="form-group">
-		<label id="elh_users_Last_Name" for="x_Last_Name" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->Last_Name->FldCaption() ?></label>
+		<label id="elh_users_Last_Name" for="x_Last_Name" class="<?php echo $users_add->LeftColumnClass ?>"><?php echo $users->Last_Name->FldCaption() ?><?php echo $Language->Phrase("FieldRequiredIndicator") ?></label>
 		<div class="<?php echo $users_add->RightColumnClass ?>"><div<?php echo $users->Last_Name->CellAttributes() ?>>
 <span id="el_users_Last_Name">
 <input type="text" data-table="users" data-field="x_Last_Name" name="x_Last_Name" id="x_Last_Name" size="30" maxlength="50" placeholder="<?php echo ew_HtmlEncode($users->Last_Name->getPlaceHolder()) ?>" value="<?php echo $users->Last_Name->EditValue ?>"<?php echo $users->Last_Name->EditAttributes() ?>>
@@ -1628,6 +1747,14 @@ ew_CreateDateTimePicker("fusersadd", "x_Fecha_nacimiento", {"ignoreReadonly":tru
 	</div>
 <?php } ?>
 </div><!-- /page* -->
+<?php
+	if (in_array("deudas", explode(",", $users->getCurrentDetailTable())) && $deudas->DetailAdd) {
+?>
+<?php if ($users->getCurrentDetailTable() <> "") { ?>
+<h4 class="ewDetailCaption"><?php echo $Language->TablePhrase("deudas", "TblCaption") ?></h4>
+<?php } ?>
+<?php include_once "deudasgrid.php" ?>
+<?php } ?>
 <?php if (!$users_add->IsModal) { ?>
 <div class="form-group"><!-- buttons .form-group -->
 	<div class="<?php echo $users_add->OffsetColumnClass ?>"><!-- buttons offset -->

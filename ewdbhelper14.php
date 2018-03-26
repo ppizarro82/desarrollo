@@ -19,20 +19,20 @@ if (!function_exists('DbHelper')) {
 			$langid = "";
 			$info = $args[0];
 		}
-		$dbclass = "ccobranzas_db";
+		$dbclass = "ccobranzas_db_db";
 		$dbhelper = new $dbclass($langfolder, $langid, $info);
 		return $dbhelper;
 	}
 }
 
-class ccobranzas_db extends cDbHelper {
+class ccobranzas_db_db extends cDbHelper {
 
 	// Database connection info
 	var $Host = 'localhost';
 	var $Port = 3306;
 	var $Username = 'root';
 	var $Password = '';
-	var $DbName = 'cobranzas';
+	var $DbName = 'cobranzas_db';
 
 	// ADODB (Access/SQL Server)
 	var $CodePage = 65001; // Code page

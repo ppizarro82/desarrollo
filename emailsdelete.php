@@ -7,7 +7,6 @@ ob_start(); // Turn on output buffering
 <?php include_once "phpfn14.php" ?>
 <?php include_once "emailsinfo.php" ?>
 <?php include_once "usersinfo.php" ?>
-<?php include_once "personasinfo.php" ?>
 <?php include_once "userfn14.php" ?>
 <?php
 
@@ -260,9 +259,6 @@ class cemails_delete extends cemails {
 		// Table object (users)
 		if (!isset($GLOBALS['users'])) $GLOBALS['users'] = new cusers();
 
-		// Table object (personas)
-		if (!isset($GLOBALS['personas'])) $GLOBALS['personas'] = new cpersonas();
-
 		// Page ID
 		if (!defined("EW_PAGE_ID"))
 			define("EW_PAGE_ID", 'delete', TRUE);
@@ -321,8 +317,17 @@ class cemails_delete extends cemails {
 		$this->CurrentAction = (@$_GET["a"] <> "") ? $_GET["a"] : @$_POST["a_list"]; // Set up current action
 		$this->Id->SetVisibility();
 		$this->Id->Visible = !$this->IsAdd() && !$this->IsCopy() && !$this->IsGridAdd();
-		$this->id_persona->SetVisibility();
-		$this->_email->SetVisibility();
+		$this->id_fuente->SetVisibility();
+		$this->id_gestion->SetVisibility();
+		$this->tipo_documento->SetVisibility();
+		$this->no_documento->SetVisibility();
+		$this->nombres->SetVisibility();
+		$this->paterno->SetVisibility();
+		$this->materno->SetVisibility();
+		$this->email1->SetVisibility();
+		$this->email2->SetVisibility();
+		$this->email3->SetVisibility();
+		$this->email4->SetVisibility();
 
 		// Global Page Loading event (in userfn*.php)
 		Page_Loading();
@@ -399,9 +404,6 @@ class cemails_delete extends cemails {
 	//
 	function Page_Main() {
 		global $Language;
-
-		// Set up master/detail parameters
-		$this->SetupMasterParms();
 
 		// Set up Breadcrumb
 		$this->SetupBreadcrumb();
@@ -506,16 +508,34 @@ class cemails_delete extends cemails {
 		if (!$rs || $rs->EOF)
 			return;
 		$this->Id->setDbValue($row['Id']);
-		$this->id_persona->setDbValue($row['id_persona']);
-		$this->_email->setDbValue($row['email']);
+		$this->id_fuente->setDbValue($row['id_fuente']);
+		$this->id_gestion->setDbValue($row['id_gestion']);
+		$this->tipo_documento->setDbValue($row['tipo_documento']);
+		$this->no_documento->setDbValue($row['no_documento']);
+		$this->nombres->setDbValue($row['nombres']);
+		$this->paterno->setDbValue($row['paterno']);
+		$this->materno->setDbValue($row['materno']);
+		$this->email1->setDbValue($row['email1']);
+		$this->email2->setDbValue($row['email2']);
+		$this->email3->setDbValue($row['email3']);
+		$this->email4->setDbValue($row['email4']);
 	}
 
 	// Return a row with default values
 	function NewRow() {
 		$row = array();
 		$row['Id'] = NULL;
-		$row['id_persona'] = NULL;
-		$row['email'] = NULL;
+		$row['id_fuente'] = NULL;
+		$row['id_gestion'] = NULL;
+		$row['tipo_documento'] = NULL;
+		$row['no_documento'] = NULL;
+		$row['nombres'] = NULL;
+		$row['paterno'] = NULL;
+		$row['materno'] = NULL;
+		$row['email1'] = NULL;
+		$row['email2'] = NULL;
+		$row['email3'] = NULL;
+		$row['email4'] = NULL;
 		return $row;
 	}
 
@@ -525,8 +545,17 @@ class cemails_delete extends cemails {
 			return;
 		$row = is_array($rs) ? $rs : $rs->fields;
 		$this->Id->DbValue = $row['Id'];
-		$this->id_persona->DbValue = $row['id_persona'];
-		$this->_email->DbValue = $row['email'];
+		$this->id_fuente->DbValue = $row['id_fuente'];
+		$this->id_gestion->DbValue = $row['id_gestion'];
+		$this->tipo_documento->DbValue = $row['tipo_documento'];
+		$this->no_documento->DbValue = $row['no_documento'];
+		$this->nombres->DbValue = $row['nombres'];
+		$this->paterno->DbValue = $row['paterno'];
+		$this->materno->DbValue = $row['materno'];
+		$this->email1->DbValue = $row['email1'];
+		$this->email2->DbValue = $row['email2'];
+		$this->email3->DbValue = $row['email3'];
+		$this->email4->DbValue = $row['email4'];
 	}
 
 	// Render row values based on field settings
@@ -540,8 +569,17 @@ class cemails_delete extends cemails {
 
 		// Common render codes for all row types
 		// Id
-		// id_persona
-		// email
+		// id_fuente
+		// id_gestion
+		// tipo_documento
+		// no_documento
+		// nombres
+		// paterno
+		// materno
+		// email1
+		// email2
+		// email3
+		// email4
 
 		if ($this->RowType == EW_ROWTYPE_VIEW) { // View row
 
@@ -549,57 +587,151 @@ class cemails_delete extends cemails {
 		$this->Id->ViewValue = $this->Id->CurrentValue;
 		$this->Id->ViewCustomAttributes = "";
 
-		// id_persona
-		if (strval($this->id_persona->CurrentValue) <> "") {
-			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_persona->CurrentValue, EW_DATATYPE_NUMBER, "");
-		$sSqlWrk = "SELECT `Id`, `nombres` AS `DispFld`, `paterno` AS `Disp2Fld`, `materno` AS `Disp3Fld`, '' AS `Disp4Fld` FROM `personas`";
+		// id_fuente
+		if (strval($this->id_fuente->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_fuente->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `fuentes`";
 		$sWhereWrk = "";
-		$this->id_persona->LookupFilters = array();
+		$this->id_fuente->LookupFilters = array();
 		$lookuptblfilter = "`estado`=1";
 		ew_AddFilter($sWhereWrk, $lookuptblfilter);
 		ew_AddFilter($sWhereWrk, $sFilterWrk);
-		$this->Lookup_Selecting($this->id_persona, $sWhereWrk); // Call Lookup Selecting
+		$this->Lookup_Selecting($this->id_fuente, $sWhereWrk); // Call Lookup Selecting
 		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
 			$rswrk = Conn()->Execute($sSqlWrk);
 			if ($rswrk && !$rswrk->EOF) { // Lookup values found
 				$arwrk = array();
 				$arwrk[1] = $rswrk->fields('DispFld');
-				$arwrk[2] = $rswrk->fields('Disp2Fld');
-				$arwrk[3] = $rswrk->fields('Disp3Fld');
-				$this->id_persona->ViewValue = $this->id_persona->DisplayValue($arwrk);
+				$this->id_fuente->ViewValue = $this->id_fuente->DisplayValue($arwrk);
 				$rswrk->Close();
 			} else {
-				$this->id_persona->ViewValue = $this->id_persona->CurrentValue;
+				$this->id_fuente->ViewValue = $this->id_fuente->CurrentValue;
 			}
 		} else {
-			$this->id_persona->ViewValue = NULL;
+			$this->id_fuente->ViewValue = NULL;
 		}
-		$this->id_persona->ViewCustomAttributes = "";
+		$this->id_fuente->ViewCustomAttributes = "";
 
-		// email
-		$this->_email->ViewValue = $this->_email->CurrentValue;
-		$this->_email->ViewCustomAttributes = "";
+		// id_gestion
+		if (strval($this->id_gestion->CurrentValue) <> "") {
+			$sFilterWrk = "`Id`" . ew_SearchString("=", $this->id_gestion->CurrentValue, EW_DATATYPE_NUMBER, "");
+		$sSqlWrk = "SELECT `Id`, `nombre` AS `DispFld`, '' AS `Disp2Fld`, '' AS `Disp3Fld`, '' AS `Disp4Fld` FROM `gestiones`";
+		$sWhereWrk = "";
+		$this->id_gestion->LookupFilters = array();
+		ew_AddFilter($sWhereWrk, $sFilterWrk);
+		$this->Lookup_Selecting($this->id_gestion, $sWhereWrk); // Call Lookup Selecting
+		if ($sWhereWrk <> "") $sSqlWrk .= " WHERE " . $sWhereWrk;
+		$sSqlWrk .= " ORDER BY `nombre`";
+			$rswrk = Conn()->Execute($sSqlWrk);
+			if ($rswrk && !$rswrk->EOF) { // Lookup values found
+				$arwrk = array();
+				$arwrk[1] = $rswrk->fields('DispFld');
+				$this->id_gestion->ViewValue = $this->id_gestion->DisplayValue($arwrk);
+				$rswrk->Close();
+			} else {
+				$this->id_gestion->ViewValue = $this->id_gestion->CurrentValue;
+			}
+		} else {
+			$this->id_gestion->ViewValue = NULL;
+		}
+		$this->id_gestion->ViewCustomAttributes = "";
+
+		// tipo_documento
+		$this->tipo_documento->ViewValue = $this->tipo_documento->CurrentValue;
+		$this->tipo_documento->ViewCustomAttributes = "";
+
+		// no_documento
+		$this->no_documento->ViewValue = $this->no_documento->CurrentValue;
+		$this->no_documento->ViewCustomAttributes = "";
+
+		// nombres
+		$this->nombres->ViewValue = $this->nombres->CurrentValue;
+		$this->nombres->ViewCustomAttributes = "";
+
+		// paterno
+		$this->paterno->ViewValue = $this->paterno->CurrentValue;
+		$this->paterno->ViewCustomAttributes = "";
+
+		// materno
+		$this->materno->ViewValue = $this->materno->CurrentValue;
+		$this->materno->ViewCustomAttributes = "";
+
+		// email1
+		$this->email1->ViewValue = $this->email1->CurrentValue;
+		$this->email1->ViewCustomAttributes = "";
+
+		// email2
+		$this->email2->ViewValue = $this->email2->CurrentValue;
+		$this->email2->ViewCustomAttributes = "";
+
+		// email3
+		$this->email3->ViewValue = $this->email3->CurrentValue;
+		$this->email3->ViewCustomAttributes = "";
+
+		// email4
+		$this->email4->ViewValue = $this->email4->CurrentValue;
+		$this->email4->ViewCustomAttributes = "";
 
 			// Id
 			$this->Id->LinkCustomAttributes = "";
 			$this->Id->HrefValue = "";
 			$this->Id->TooltipValue = "";
 
-			// id_persona
-			$this->id_persona->LinkCustomAttributes = "";
-			if (!ew_Empty($this->id_persona->CurrentValue)) {
-				$this->id_persona->HrefValue = "personasview.php?showdetail=direcciones,telefonos,emails,vehiculos,deuda_persona&Id=" . $this->id_persona->CurrentValue; // Add prefix/suffix
-				$this->id_persona->LinkAttrs["target"] = ""; // Add target
-				if ($this->Export <> "") $this->id_persona->HrefValue = ew_FullUrl($this->id_persona->HrefValue, "href");
-			} else {
-				$this->id_persona->HrefValue = "";
-			}
-			$this->id_persona->TooltipValue = "";
+			// id_fuente
+			$this->id_fuente->LinkCustomAttributes = "";
+			$this->id_fuente->HrefValue = "";
+			$this->id_fuente->TooltipValue = "";
 
-			// email
-			$this->_email->LinkCustomAttributes = "";
-			$this->_email->HrefValue = "";
-			$this->_email->TooltipValue = "";
+			// id_gestion
+			$this->id_gestion->LinkCustomAttributes = "";
+			$this->id_gestion->HrefValue = "";
+			$this->id_gestion->TooltipValue = "";
+
+			// tipo_documento
+			$this->tipo_documento->LinkCustomAttributes = "";
+			$this->tipo_documento->HrefValue = "";
+			$this->tipo_documento->TooltipValue = "";
+
+			// no_documento
+			$this->no_documento->LinkCustomAttributes = "";
+			$this->no_documento->HrefValue = "";
+			$this->no_documento->TooltipValue = "";
+
+			// nombres
+			$this->nombres->LinkCustomAttributes = "";
+			$this->nombres->HrefValue = "";
+			$this->nombres->TooltipValue = "";
+
+			// paterno
+			$this->paterno->LinkCustomAttributes = "";
+			$this->paterno->HrefValue = "";
+			$this->paterno->TooltipValue = "";
+
+			// materno
+			$this->materno->LinkCustomAttributes = "";
+			$this->materno->HrefValue = "";
+			$this->materno->TooltipValue = "";
+
+			// email1
+			$this->email1->LinkCustomAttributes = "";
+			$this->email1->HrefValue = "";
+			$this->email1->TooltipValue = "";
+
+			// email2
+			$this->email2->LinkCustomAttributes = "";
+			$this->email2->HrefValue = "";
+			$this->email2->TooltipValue = "";
+
+			// email3
+			$this->email3->LinkCustomAttributes = "";
+			$this->email3->HrefValue = "";
+			$this->email3->TooltipValue = "";
+
+			// email4
+			$this->email4->LinkCustomAttributes = "";
+			$this->email4->HrefValue = "";
+			$this->email4->TooltipValue = "";
 		}
 
 		// Call Row Rendered event
@@ -685,66 +817,6 @@ class cemails_delete extends cemails {
 			}
 		}
 		return $DeleteRows;
-	}
-
-	// Set up master/detail based on QueryString
-	function SetupMasterParms() {
-		$bValidMaster = FALSE;
-
-		// Get the keys for master table
-		if (isset($_GET[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_GET[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_GET["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setQueryStringValue($_GET["fk_Id"]);
-					$this->id_persona->setQueryStringValue($GLOBALS["personas"]->Id->QueryStringValue);
-					$this->id_persona->setSessionValue($this->id_persona->QueryStringValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->QueryStringValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		} elseif (isset($_POST[EW_TABLE_SHOW_MASTER])) {
-			$sMasterTblVar = $_POST[EW_TABLE_SHOW_MASTER];
-			if ($sMasterTblVar == "") {
-				$bValidMaster = TRUE;
-				$this->DbMasterFilter = "";
-				$this->DbDetailFilter = "";
-			}
-			if ($sMasterTblVar == "personas") {
-				$bValidMaster = TRUE;
-				if (@$_POST["fk_Id"] <> "") {
-					$GLOBALS["personas"]->Id->setFormValue($_POST["fk_Id"]);
-					$this->id_persona->setFormValue($GLOBALS["personas"]->Id->FormValue);
-					$this->id_persona->setSessionValue($this->id_persona->FormValue);
-					if (!is_numeric($GLOBALS["personas"]->Id->FormValue)) $bValidMaster = FALSE;
-				} else {
-					$bValidMaster = FALSE;
-				}
-			}
-		}
-		if ($bValidMaster) {
-
-			// Save current master table
-			$this->setCurrentMasterTable($sMasterTblVar);
-
-			// Reset start record counter (new master key)
-			$this->StartRec = 1;
-			$this->setStartRecordNumber($this->StartRec);
-
-			// Clear previous master key from Session
-			if ($sMasterTblVar <> "personas") {
-				if ($this->id_persona->CurrentValue == "") $this->id_persona->setSessionValue("");
-			}
-		}
-		$this->DbMasterFilter = $this->GetMasterFilter(); // Get master filter
-		$this->DbDetailFilter = $this->GetDetailFilter(); // Get detail filter
 	}
 
 	// Set up Breadcrumb
@@ -871,8 +943,10 @@ femailsdelete.Form_CustomValidate =
 femailsdelete.ValidateRequired = <?php echo json_encode(EW_CLIENT_VALIDATE) ?>;
 
 // Dynamic selection lists
-femailsdelete.Lists["x_id_persona"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombres","x_paterno","x_materno",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"personas"};
-femailsdelete.Lists["x_id_persona"].Data = "<?php echo $emails_delete->id_persona->LookupFilterQuery(FALSE, "delete") ?>";
+femailsdelete.Lists["x_id_fuente"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"fuentes"};
+femailsdelete.Lists["x_id_fuente"].Data = "<?php echo $emails_delete->id_fuente->LookupFilterQuery(FALSE, "delete") ?>";
+femailsdelete.Lists["x_id_gestion"] = {"LinkField":"x_Id","Ajax":true,"AutoFill":false,"DisplayFields":["x_nombre","","",""],"ParentFields":[],"ChildFields":[],"FilterFields":[],"Options":[],"Template":"","LinkTable":"gestiones"};
+femailsdelete.Lists["x_id_gestion"].Data = "<?php echo $emails_delete->id_gestion->LookupFilterQuery(FALSE, "delete") ?>";
 
 // Form object for search
 </script>
@@ -902,11 +976,38 @@ $emails_delete->ShowMessage();
 <?php if ($emails->Id->Visible) { // Id ?>
 		<th class="<?php echo $emails->Id->HeaderCellClass() ?>"><span id="elh_emails_Id" class="emails_Id"><?php echo $emails->Id->FldCaption() ?></span></th>
 <?php } ?>
-<?php if ($emails->id_persona->Visible) { // id_persona ?>
-		<th class="<?php echo $emails->id_persona->HeaderCellClass() ?>"><span id="elh_emails_id_persona" class="emails_id_persona"><?php echo $emails->id_persona->FldCaption() ?></span></th>
+<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+		<th class="<?php echo $emails->id_fuente->HeaderCellClass() ?>"><span id="elh_emails_id_fuente" class="emails_id_fuente"><?php echo $emails->id_fuente->FldCaption() ?></span></th>
 <?php } ?>
-<?php if ($emails->_email->Visible) { // email ?>
-		<th class="<?php echo $emails->_email->HeaderCellClass() ?>"><span id="elh_emails__email" class="emails__email"><?php echo $emails->_email->FldCaption() ?></span></th>
+<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+		<th class="<?php echo $emails->id_gestion->HeaderCellClass() ?>"><span id="elh_emails_id_gestion" class="emails_id_gestion"><?php echo $emails->id_gestion->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->tipo_documento->Visible) { // tipo_documento ?>
+		<th class="<?php echo $emails->tipo_documento->HeaderCellClass() ?>"><span id="elh_emails_tipo_documento" class="emails_tipo_documento"><?php echo $emails->tipo_documento->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->no_documento->Visible) { // no_documento ?>
+		<th class="<?php echo $emails->no_documento->HeaderCellClass() ?>"><span id="elh_emails_no_documento" class="emails_no_documento"><?php echo $emails->no_documento->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->nombres->Visible) { // nombres ?>
+		<th class="<?php echo $emails->nombres->HeaderCellClass() ?>"><span id="elh_emails_nombres" class="emails_nombres"><?php echo $emails->nombres->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->paterno->Visible) { // paterno ?>
+		<th class="<?php echo $emails->paterno->HeaderCellClass() ?>"><span id="elh_emails_paterno" class="emails_paterno"><?php echo $emails->paterno->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->materno->Visible) { // materno ?>
+		<th class="<?php echo $emails->materno->HeaderCellClass() ?>"><span id="elh_emails_materno" class="emails_materno"><?php echo $emails->materno->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->email1->Visible) { // email1 ?>
+		<th class="<?php echo $emails->email1->HeaderCellClass() ?>"><span id="elh_emails_email1" class="emails_email1"><?php echo $emails->email1->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->email2->Visible) { // email2 ?>
+		<th class="<?php echo $emails->email2->HeaderCellClass() ?>"><span id="elh_emails_email2" class="emails_email2"><?php echo $emails->email2->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->email3->Visible) { // email3 ?>
+		<th class="<?php echo $emails->email3->HeaderCellClass() ?>"><span id="elh_emails_email3" class="emails_email3"><?php echo $emails->email3->FldCaption() ?></span></th>
+<?php } ?>
+<?php if ($emails->email4->Visible) { // email4 ?>
+		<th class="<?php echo $emails->email4->HeaderCellClass() ?>"><span id="elh_emails_email4" class="emails_email4"><?php echo $emails->email4->FldCaption() ?></span></th>
 <?php } ?>
 	</tr>
 	</thead>
@@ -937,24 +1038,91 @@ while (!$emails_delete->Recordset->EOF) {
 </span>
 </td>
 <?php } ?>
-<?php if ($emails->id_persona->Visible) { // id_persona ?>
-		<td<?php echo $emails->id_persona->CellAttributes() ?>>
-<span id="el<?php echo $emails_delete->RowCnt ?>_emails_id_persona" class="emails_id_persona">
-<span<?php echo $emails->id_persona->ViewAttributes() ?>>
-<?php if ((!ew_EmptyStr($emails->id_persona->ListViewValue())) && $emails->id_persona->LinkAttributes() <> "") { ?>
-<a<?php echo $emails->id_persona->LinkAttributes() ?>><?php echo $emails->id_persona->ListViewValue() ?></a>
-<?php } else { ?>
-<?php echo $emails->id_persona->ListViewValue() ?>
-<?php } ?>
-</span>
+<?php if ($emails->id_fuente->Visible) { // id_fuente ?>
+		<td<?php echo $emails->id_fuente->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_id_fuente" class="emails_id_fuente">
+<span<?php echo $emails->id_fuente->ViewAttributes() ?>>
+<?php echo $emails->id_fuente->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
-<?php if ($emails->_email->Visible) { // email ?>
-		<td<?php echo $emails->_email->CellAttributes() ?>>
-<span id="el<?php echo $emails_delete->RowCnt ?>_emails__email" class="emails__email">
-<span<?php echo $emails->_email->ViewAttributes() ?>>
-<?php echo $emails->_email->ListViewValue() ?></span>
+<?php if ($emails->id_gestion->Visible) { // id_gestion ?>
+		<td<?php echo $emails->id_gestion->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_id_gestion" class="emails_id_gestion">
+<span<?php echo $emails->id_gestion->ViewAttributes() ?>>
+<?php echo $emails->id_gestion->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->tipo_documento->Visible) { // tipo_documento ?>
+		<td<?php echo $emails->tipo_documento->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_tipo_documento" class="emails_tipo_documento">
+<span<?php echo $emails->tipo_documento->ViewAttributes() ?>>
+<?php echo $emails->tipo_documento->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->no_documento->Visible) { // no_documento ?>
+		<td<?php echo $emails->no_documento->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_no_documento" class="emails_no_documento">
+<span<?php echo $emails->no_documento->ViewAttributes() ?>>
+<?php echo $emails->no_documento->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->nombres->Visible) { // nombres ?>
+		<td<?php echo $emails->nombres->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_nombres" class="emails_nombres">
+<span<?php echo $emails->nombres->ViewAttributes() ?>>
+<?php echo $emails->nombres->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->paterno->Visible) { // paterno ?>
+		<td<?php echo $emails->paterno->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_paterno" class="emails_paterno">
+<span<?php echo $emails->paterno->ViewAttributes() ?>>
+<?php echo $emails->paterno->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->materno->Visible) { // materno ?>
+		<td<?php echo $emails->materno->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_materno" class="emails_materno">
+<span<?php echo $emails->materno->ViewAttributes() ?>>
+<?php echo $emails->materno->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->email1->Visible) { // email1 ?>
+		<td<?php echo $emails->email1->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_email1" class="emails_email1">
+<span<?php echo $emails->email1->ViewAttributes() ?>>
+<?php echo $emails->email1->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->email2->Visible) { // email2 ?>
+		<td<?php echo $emails->email2->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_email2" class="emails_email2">
+<span<?php echo $emails->email2->ViewAttributes() ?>>
+<?php echo $emails->email2->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->email3->Visible) { // email3 ?>
+		<td<?php echo $emails->email3->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_email3" class="emails_email3">
+<span<?php echo $emails->email3->ViewAttributes() ?>>
+<?php echo $emails->email3->ListViewValue() ?></span>
+</span>
+</td>
+<?php } ?>
+<?php if ($emails->email4->Visible) { // email4 ?>
+		<td<?php echo $emails->email4->CellAttributes() ?>>
+<span id="el<?php echo $emails_delete->RowCnt ?>_emails_email4" class="emails_email4">
+<span<?php echo $emails->email4->ViewAttributes() ?>>
+<?php echo $emails->email4->ListViewValue() ?></span>
 </span>
 </td>
 <?php } ?>
